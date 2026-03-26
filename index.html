@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lead Time Scatterplot · v1.87</title>
+<title>Lead Time Analytics · v1.87</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;800&display=swap" rel="stylesheet">
 <style>
@@ -23,222 +23,145 @@
     --p85:     #fb923c;
     --p95:     #f87171;
     --accent:  #6366f1;
+    --unpl:    #ef4444;
+    --cl:      #818cf8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: 'JetBrains Mono', monospace;
-    padding: 36px 44px 60px;
-    min-height: 100vh;
+    padding: 36px 44px 60px; min-height: 100vh;
   }
   body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 44px 44px;
-    opacity: 0.35;
-    pointer-events: none;
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background-image: linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+    background-size: 44px 44px; opacity: 0.35; pointer-events: none;
   }
   .page { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; }
 
-  /* ── HEADER ── */
+  /* HEADER */
   .header { margin-bottom: 24px; }
-  .eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
-  h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--hi); letter-spacing: -0.02em; }
-  .sub { font-size: 0.68rem; color: var(--dim); margin-top: 4px; letter-spacing: 0.06em; }
+  .eyebrow { font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:6px; }
+  h1 { font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--hi);letter-spacing:-.02em; }
+  .sub { font-size:.68rem;color:var(--dim);margin-top:4px;letter-spacing:.06em; }
 
-  /* ── STATS ── */
-  .stats { display: flex; gap: 1px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--border); }
-  .stat { flex: 1; background: var(--surface); padding: 12px 15px; }
-  .stat-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--dim); margin-bottom: 5px; }
-  .stat-val { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; line-height: 1; }
-  .stat-sub { font-size: 0.58rem; color: var(--mid); margin-top: 3px; }
+  /* TABS */
+  .tabs { display:flex;gap:0;margin-bottom:24px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--border); }
+  .tab {
+    flex:1;padding:13px 20px;background:var(--surface);cursor:pointer;
+    font-size:.72rem;letter-spacing:.06em;color:var(--mid);text-align:center;
+    transition:background .2s,color .2s;border:none;font-family:'JetBrains Mono',monospace;
+  }
+  .tab:hover { background:var(--muted);color:var(--text); }
+  .tab.active { background:#6366f118;color:#a5b4fc; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
 
-  /* ── LEGEND ── */
-  .legend { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
-  .leg-grp { display: flex; gap: 12px; align-items: center; }
-  .leg-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--dim); }
-  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--mid); }
-  .leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-  .leg-sep { width: 1px; height: 18px; background: var(--border); }
-  .perc-item { display: flex; align-items: center; gap: 7px; font-size: 0.65rem; color: var(--mid); }
-  .perc-dash { width: 20px; border-top: 2px dashed; }
+  /* STATS */
+  .stats { display:flex;gap:1px;margin-bottom:20px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--border); }
+  .stat { flex:1;background:var(--surface);padding:12px 15px; }
+  .stat-lbl { font-size:.56rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);margin-bottom:5px; }
+  .stat-val { font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;line-height:1; }
+  .stat-sub { font-size:.58rem;color:var(--mid);margin-top:3px; }
 
-  /* ── TOOLBAR (filter + add) ── */
-  .toolbar {
-    display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
+  /* LEGEND */
+  .legend { display:flex;gap:20px;flex-wrap:wrap;align-items:center;margin-bottom:16px; }
+  .leg-grp { display:flex;gap:12px;align-items:center; }
+  .leg-lbl { font-size:.56rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim); }
+  .leg-item { display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--mid); }
+  .leg-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0; }
+  .leg-sep { width:1px;height:18px;background:var(--border); }
+  .perc-item { display:flex;align-items:center;gap:7px;font-size:.65rem;color:var(--mid); }
+  .perc-dash { width:20px;border-top:2px dashed; }
+  .leg-line { width:20px;height:2px; }
 
-  /* date filter */
-  .filter-box {
-    display: flex; align-items: center; gap: 0;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 8px; overflow: hidden; flex: 1; min-width: 340px;
-  }
-  .filter-label {
-    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em;
-    color: var(--dim); padding: 0 14px; white-space: nowrap;
-    border-right: 1px solid var(--border);
-    display: flex; align-items: center; height: 100%;
-  }
-  .filter-btns { display: flex; flex: 1; }
-  .fbtn {
-    flex: 1; background: transparent; border: none; border-right: 1px solid var(--border);
-    color: var(--mid); font-family: 'JetBrains Mono', monospace;
-    font-size: 0.65rem; padding: 10px 6px; cursor: pointer;
-    transition: background .15s, color .15s; white-space: nowrap;
-  }
-  .fbtn:last-child { border-right: none; }
-  .fbtn:hover { background: var(--muted); color: var(--hi); }
-  .fbtn.active { background: #6366f120; color: #818cf8; }
+  /* TOOLBAR */
+  .toolbar { display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;margin-bottom:16px; }
+  .filter-box { display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:1;min-width:340px; }
+  .filter-label { font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);padding:0 14px;white-space:nowrap;border-right:1px solid var(--border);display:flex;align-items:center;height:100%; }
+  .filter-btns { display:flex;flex:1; }
+  .fbtn { flex:1;background:transparent;border:none;border-right:1px solid var(--border);color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:.65rem;padding:10px 6px;cursor:pointer;transition:background .15s,color .15s;white-space:nowrap; }
+  .fbtn:last-child { border-right:none; }
+  .fbtn:hover { background:var(--muted);color:var(--hi); }
+  .fbtn.active { background:#6366f120;color:#818cf8; }
+  .add-btn { display:flex;align-items:center;gap:8px;background:#6366f118;border:1px solid #6366f140;border-radius:8px;padding:10px 18px;color:#818cf8;font-family:'JetBrains Mono',monospace;font-size:.68rem;cursor:pointer;white-space:nowrap;transition:background .2s,border-color .2s;letter-spacing:.04em; }
+  .add-btn:hover { background:#6366f128;border-color:#6366f170;color:#a5b4fc; }
 
-  /* add PBI button */
-  .add-btn {
-    display: flex; align-items: center; gap: 8px;
-    background: #6366f118; border: 1px solid #6366f140;
-    border-radius: 8px; padding: 10px 18px;
-    color: #818cf8; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem; cursor: pointer; white-space: nowrap;
-    transition: background .2s, border-color .2s;
-    letter-spacing: 0.04em;
-  }
-  .add-btn:hover { background: #6366f128; border-color: #6366f170; color: #a5b4fc; }
-  .add-btn svg { flex-shrink: 0; }
+  /* PBC TOOLBAR */
+  .pbc-toolbar { display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px; }
+  .pbc-filter { display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden; }
+  .pbc-filter-lbl { font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--dim);padding:0 14px;border-right:1px solid var(--border);height:100%;display:flex;align-items:center;white-space:nowrap; }
+  .pbc-filter-btns { display:flex; }
+  .pbc-filter-btns .fbtn { min-width:52px; }
 
-  /* ── BANNER ── */
-  .banner {
-    display: flex; align-items: center; gap: 10px;
-    background: #1a2a1a; border: 1px solid #2a4a2a;
-    border-radius: 7px; padding: 9px 15px;
-    margin-bottom: 16px; font-size: 0.66rem; color: #6aaa6a;
-    letter-spacing: 0.04em;
-  }
-  .banner b { color: #8acc8a; }
+  /* BANNER */
+  .banner { display:flex;align-items:center;gap:10px;background:#1a2a1a;border:1px solid #2a4a2a;border-radius:7px;padding:9px 15px;margin-bottom:16px;font-size:.66rem;color:#6aaa6a;letter-spacing:.04em; }
+  .banner b { color:#8acc8a; }
+  .pbc-banner { background:#1a1a2e;border-color:#2a2a50;color:#818cf8; }
+  .pbc-banner b { color:#a5b4fc; }
 
-  /* ── CHART CARD ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px; padding: 24px 28px 20px;
-  }
-  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
-  .card-title { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text); }
-  .card-range { font-size: 0.62rem; color: var(--dim); letter-spacing: 0.04em; }
-  .card-desc { font-size: 0.61rem; color: var(--dim); letter-spacing: 0.05em; margin-bottom: 16px; }
-  canvas { display: block; cursor: crosshair; width: 100%; }
+  /* CARD */
+  .card { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px 20px; }
+  .card + .card { margin-top:20px; }
+  .card-header { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px; }
+  .card-title { font-family:'Syne',sans-serif;font-size:.85rem;font-weight:600;color:var(--text); }
+  .card-meta { font-size:.62rem;color:var(--dim);letter-spacing:.04em; }
+  .card-desc { font-size:.61rem;color:var(--dim);letter-spacing:.05em;margin-bottom:16px; }
+  canvas { display:block;cursor:crosshair;width:100%; }
 
-  /* ── REMOVED SECTION ── */
-  .removed-section { margin-top: 18px; display: none; }
-  .removed-section.visible { display: block; }
-  .removed-header {
-    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
-    color: var(--dim); margin-bottom: 9px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .restore-all {
-    font-size: 0.6rem; letter-spacing: 0.06em;
-    color: #f97316; background: #f9731618; border: 1px solid #f9731630;
-    border-radius: 5px; padding: 3px 10px; cursor: pointer;
-    transition: background .2s; font-family: 'JetBrains Mono', monospace;
-  }
-  .restore-all:hover { background: #f9731630; }
-  .removed-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip {
-    display: flex; align-items: center; gap: 7px;
-    background: var(--surface); border: 1px solid #ef444430;
-    border-radius: 6px; padding: 5px 10px;
-    font-size: 0.64rem; color: var(--mid); cursor: pointer;
-    transition: border-color .2s, background .2s; max-width: 320px;
-  }
-  .chip:hover { border-color: #ef4444aa; background: #ef444415; color: var(--hi); }
-  .chip-lt { color: #ef4444; font-weight: 700; margin-left: 4px; }
-  .chip-x { color: #ef444455; margin-left: 2px; }
-  .chip:hover .chip-x { color: #ef4444; }
+  /* REMOVED */
+  .removed-section { margin-top:18px;display:none; }
+  .removed-section.visible { display:block; }
+  .removed-header { font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);margin-bottom:9px;display:flex;align-items:center;gap:12px; }
+  .restore-all { font-size:.6rem;letter-spacing:.06em;color:#f97316;background:#f9731618;border:1px solid #f9731630;border-radius:5px;padding:3px 10px;cursor:pointer;transition:background .2s;font-family:'JetBrains Mono',monospace; }
+  .restore-all:hover { background:#f9731630; }
+  .removed-chips { display:flex;flex-wrap:wrap;gap:8px; }
+  .chip { display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid #ef444430;border-radius:6px;padding:5px 10px;font-size:.64rem;color:var(--mid);cursor:pointer;transition:border-color .2s,background .2s;max-width:320px; }
+  .chip:hover { border-color:#ef4444aa;background:#ef444415;color:var(--hi); }
+  .chip-lt { color:#ef4444;font-weight:700;margin-left:4px; }
+  .chip-x { color:#ef444455;margin-left:2px; }
+  .chip:hover .chip-x { color:#ef4444; }
 
-  /* ── ADD PBI MODAL ── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: #000000a0; backdrop-filter: blur(4px);
-    display: none; align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #0d1520; border: 1px solid var(--muted);
-    border-radius: 14px; padding: 28px 32px; width: 480px; max-width: 95vw;
-    box-shadow: 0 24px 80px #00000090;
-    animation: modalIn .22s ease;
-  }
-  @keyframes modalIn { from{opacity:0;transform:scale(.96)translateY(8px)} to{opacity:1;transform:none} }
-  .modal-title {
-    font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
-    color: var(--hi); margin-bottom: 4px;
-  }
-  .modal-sub { font-size: 0.64rem; color: var(--dim); margin-bottom: 22px; letter-spacing: 0.04em; }
-  .field { margin-bottom: 16px; }
-  .field-label {
-    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.13em;
-    color: var(--dim); margin-bottom: 6px; display: block;
-  }
-  .field input, .field select {
-    width: 100%; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 7px; padding: 10px 12px; color: var(--hi);
-    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
-    outline: none; transition: border-color .2s;
-  }
-  .field input:focus, .field select:focus { border-color: #6366f180; }
-  .field select option { background: #0d1520; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .field-hint { font-size: 0.59rem; color: var(--dim); margin-top: 5px; }
-  .field-hint.computed { color: #818cf8; }
-  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
-  .btn-cancel {
-    background: transparent; border: 1px solid var(--border); border-radius: 7px;
-    padding: 9px 18px; color: var(--mid); font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem; cursor: pointer; transition: border-color .2s, color .2s;
-  }
-  .btn-cancel:hover { border-color: var(--dim); color: var(--text); }
-  .btn-add {
-    background: #6366f125; border: 1px solid #6366f160; border-radius: 7px;
-    padding: 9px 22px; color: #a5b4fc; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.68rem; cursor: pointer; font-weight: 700;
-    transition: background .2s, border-color .2s;
-  }
-  .btn-add:hover { background: #6366f135; border-color: #6366f190; }
-  .btn-add:disabled { opacity: .4; cursor: not-allowed; }
-  .size-preview {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 3px 10px; border-radius: 5px; font-size: 0.65rem;
-    font-weight: 700; margin-top: 6px; letter-spacing: 0.06em;
-  }
+  /* MODAL */
+  .modal-overlay { position:fixed;inset:0;z-index:1000;background:#000000a0;backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#0d1520;border:1px solid var(--muted);border-radius:14px;padding:28px 32px;width:480px;max-width:95vw;box-shadow:0 24px 80px #00000090;animation:modalIn .22s ease; }
+  @keyframes modalIn { from{opacity:0;transform:scale(.96)translateY(8px)}to{opacity:1;transform:none} }
+  .modal-title { font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--hi);margin-bottom:4px; }
+  .modal-sub { font-size:.64rem;color:var(--dim);margin-bottom:22px;letter-spacing:.04em; }
+  .field { margin-bottom:16px; }
+  .field-label { font-size:.6rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);margin-bottom:6px;display:block; }
+  .field input,.field select { width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:10px 12px;color:var(--hi);font-family:'JetBrains Mono',monospace;font-size:.72rem;outline:none;transition:border-color .2s; }
+  .field input:focus,.field select:focus { border-color:#6366f180; }
+  .field select option { background:#0d1520; }
+  .field-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+  .modal-actions { display:flex;gap:10px;justify-content:flex-end;margin-top:22px; }
+  .btn-cancel { background:transparent;border:1px solid var(--border);border-radius:7px;padding:9px 18px;color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:.68rem;cursor:pointer; }
+  .btn-cancel:hover { border-color:var(--dim);color:var(--text); }
+  .btn-add { background:#6366f125;border:1px solid #6366f160;border-radius:7px;padding:9px 22px;color:#a5b4fc;font-family:'JetBrains Mono',monospace;font-size:.68rem;cursor:pointer;font-weight:700; }
+  .btn-add:hover { background:#6366f135; }
+  .btn-add:disabled { opacity:.4;cursor:not-allowed; }
+  .size-preview { display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:5px;font-size:.65rem;font-weight:700;margin-top:6px; }
 
-  /* ── TOOLTIP ── */
-  #tt {
-    position: fixed; z-index: 9999; pointer-events: none; display: none;
-    background: #0a1520f2; border: 1px solid var(--muted);
-    border-radius: 8px; padding: 12px 15px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.67rem; color: var(--text); max-width: 340px; line-height: 1.7;
-    backdrop-filter: blur(10px); box-shadow: 0 12px 40px #00000070;
-  }
-  #tt .tt-name { font-size: 0.7rem; color: var(--hi); margin-bottom: 7px; line-height: 1.4; font-weight: 500; }
-  #tt hr { border: none; border-top: 1px solid var(--border); margin: 7px 0; }
-  #tt .tt-row { display: flex; justify-content: space-between; gap: 18px; }
-  #tt .tt-k { color: var(--dim); }
-  #tt .tt-v { color: var(--hi); }
-  #tt .tt-badge { display: inline-block; margin-top: 7px; padding: 2px 9px; border-radius: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; }
-  #tt .tt-hint { margin-top: 8px; font-size: 0.6rem; color: #ef444466; }
-  #tt .tt-new { margin-top: 4px; font-size: 0.59rem; color: #6366f188; }
+  /* TOOLTIP */
+  #tt { position:fixed;z-index:9999;pointer-events:none;display:none;background:#0a1520f2;border:1px solid var(--muted);border-radius:8px;padding:12px 15px;font-family:'JetBrains Mono',monospace;font-size:.67rem;color:var(--text);max-width:340px;line-height:1.7;backdrop-filter:blur(10px);box-shadow:0 12px 40px #00000070; }
+  #tt .tt-name { font-size:.7rem;color:var(--hi);margin-bottom:7px;line-height:1.4;font-weight:500; }
+  #tt hr { border:none;border-top:1px solid var(--border);margin:7px 0; }
+  #tt .tt-row { display:flex;justify-content:space-between;gap:18px; }
+  #tt .tt-k { color:var(--dim); }
+  #tt .tt-v { color:var(--hi); }
+  #tt .tt-badge { display:inline-block;margin-top:7px;padding:2px 9px;border-radius:4px;font-size:.62rem;font-weight:700;letter-spacing:.06em; }
+  #tt .tt-hint { margin-top:8px;font-size:.6rem;color:#ef444466; }
+  #tt .tt-new { margin-top:4px;font-size:.59rem;color:#6366f188; }
 
-  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
-  .stats   { animation: fadeUp .4s ease both .05s; }
-  .legend  { animation: fadeUp .4s ease both .1s; }
-  .toolbar { animation: fadeUp .4s ease both .14s; }
-  .banner  { animation: fadeUp .4s ease both .18s; }
-  .card    { animation: fadeUp .4s ease both .22s; }
+  /* PBC signal badges */
+  .signal-list { display:flex;flex-wrap:wrap;gap:8px;margin-top:14px; }
+  .signal-badge { display:flex;align-items:center;gap:6px;padding:5px 11px;border-radius:6px;font-size:.63rem;border:1px solid; }
+  .signal-badge.ucl { background:#ef444412;border-color:#ef444430;color:#f87171; }
+  .signal-badge.run { background:#fb923c12;border-color:#fb923c30;color:#fb923c; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none} }
+  .stats,.legend,.toolbar,.pbc-toolbar,.banner,.card { animation:fadeUp .4s ease both .1s; }
 </style>
 </head>
 <body>
@@ -246,94 +169,178 @@
 
   <div class="header">
     <div class="eyebrow">Flow Metrics · Release v1.87</div>
-    <h1>Lead Time Scatterplot</h1>
-    <div class="sub">X = Closed Date · Y = Lead Time (days) · Percentile lines for <span style="color:var(--medium)">Medium</span> items only</div>
+    <h1>Lead Time Analytics</h1>
+    <div class="sub">42 zamknięte elementy · od startu do zamknięcia w dniach kalendarzowych</div>
   </div>
 
-  <div class="stats">
-    <div class="stat"><div class="stat-lbl">Visible</div><div class="stat-val" style="color:#93c5fd" id="s-total">42</div><div class="stat-sub">in range</div></div>
-    <div class="stat"><div class="stat-lbl">Medium P50</div><div class="stat-val" style="color:var(--p50)" id="s-p50">32.5d</div><div class="stat-sub">50% done by</div></div>
-    <div class="stat"><div class="stat-lbl">Medium P85</div><div class="stat-val" style="color:var(--p85)" id="s-p85">41.9d</div><div class="stat-sub">85% done by</div></div>
-    <div class="stat"><div class="stat-lbl">Medium P95</div><div class="stat-val" style="color:var(--p95)" id="s-p95">45.0d</div><div class="stat-sub">95% done by</div></div>
-    <div class="stat"><div class="stat-lbl">Medium</div><div class="stat-val" style="color:var(--medium)" id="s-med">18</div><div class="stat-sub">in calc</div></div>
-    <div class="stat"><div class="stat-lbl">Removed</div><div class="stat-val" style="color:#ef4444" id="s-rem">0</div><div class="stat-sub">outliers</div></div>
-    <div class="stat"><div class="stat-lbl">Added</div><div class="stat-val" style="color:#818cf8" id="s-add">0</div><div class="stat-sub">new PBIs</div></div>
+  <!-- ═══ TABS ═══ -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('scatter')">📍 Scatterplot</button>
+    <button class="tab" onclick="switchTab('pbc')">📈 Process Behaviour Chart</button>
   </div>
 
-  <div class="legend">
-    <div class="leg-grp">
-      <span class="leg-lbl">Size:</span>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--small)"></div>Small (≤14d)</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--medium)"></div>Medium (15–59d)</div>
-      <div class="leg-item"><div class="leg-dot" style="background:var(--large)"></div>Large (≥60d)</div>
+  <!-- ══════════════════════════════════════════════════════
+       TAB 1 — SCATTER
+  ═══════════════════════════════════════════════════════ -->
+  <div id="tab-scatter" class="tab-panel active">
+
+    <div class="stats">
+      <div class="stat"><div class="stat-lbl">Visible</div><div class="stat-val" style="color:#93c5fd" id="s-total">42</div><div class="stat-sub">in range</div></div>
+      <div class="stat"><div class="stat-lbl">Medium P50</div><div class="stat-val" style="color:var(--p50)" id="s-p50">32.5d</div><div class="stat-sub">50% done by</div></div>
+      <div class="stat"><div class="stat-lbl">Medium P85</div><div class="stat-val" style="color:var(--p85)" id="s-p85">41.9d</div><div class="stat-sub">85% done by</div></div>
+      <div class="stat"><div class="stat-lbl">Medium P95</div><div class="stat-val" style="color:var(--p95)" id="s-p95">45.0d</div><div class="stat-sub">95% done by</div></div>
+      <div class="stat"><div class="stat-lbl">Medium</div><div class="stat-val" style="color:var(--medium)" id="s-med">18</div><div class="stat-sub">in calc</div></div>
+      <div class="stat"><div class="stat-lbl">Removed</div><div class="stat-val" style="color:#ef4444" id="s-rem">0</div><div class="stat-sub">outliers</div></div>
+      <div class="stat"><div class="stat-lbl">Added</div><div class="stat-val" style="color:#818cf8" id="s-add">0</div><div class="stat-sub">new PBIs</div></div>
     </div>
-    <div class="leg-sep"></div>
-    <div class="leg-grp">
-      <span class="leg-lbl">Medium percentiles:</span>
-      <div class="perc-item"><div class="perc-dash" style="border-color:var(--p50)"></div>P50</div>
-      <div class="perc-item"><div class="perc-dash" style="border-color:var(--p85)"></div>P85</div>
-      <div class="perc-item"><div class="perc-dash" style="border-color:var(--p95)"></div>P95</div>
-    </div>
-  </div>
 
-  <!-- TOOLBAR -->
-  <div class="toolbar">
-    <div class="filter-box">
-      <div class="filter-label">📅 Last</div>
-      <div class="filter-btns">
-        <button class="fbtn" data-days="10"  onclick="setFilter(10)">10 dni</button>
-        <button class="fbtn" data-days="20"  onclick="setFilter(20)">20 dni</button>
-        <button class="fbtn" data-days="30"  onclick="setFilter(30)">30 dni</button>
-        <button class="fbtn" data-days="40"  onclick="setFilter(40)">40 dni</button>
-        <button class="fbtn" data-days="50"  onclick="setFilter(50)">50 dni</button>
-        <button class="fbtn" data-days="60"  onclick="setFilter(60)">60 dni</button>
-        <button class="fbtn active" data-days="0" onclick="setFilter(0)">Wszystkie</button>
+    <div class="legend">
+      <div class="leg-grp">
+        <span class="leg-lbl">Size:</span>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--small)"></div>Small (≤14d)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--medium)"></div>Medium (15–59d)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--large)"></div>Large (≥60d)</div>
+      </div>
+      <div class="leg-sep"></div>
+      <div class="leg-grp">
+        <span class="leg-lbl">Medium percentiles:</span>
+        <div class="perc-item"><div class="perc-dash" style="border-color:var(--p50)"></div>P50</div>
+        <div class="perc-item"><div class="perc-dash" style="border-color:var(--p85)"></div>P85</div>
+        <div class="perc-item"><div class="perc-dash" style="border-color:var(--p95)"></div>P95</div>
       </div>
     </div>
-    <button class="add-btn" onclick="openModal()">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <circle cx="7" cy="7" r="6" stroke="#818cf8" stroke-width="1.3"/>
-        <path d="M7 4v6M4 7h6" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Dodaj PBI
-    </button>
-  </div>
 
-  <div class="banner">
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#6aaa6a" stroke-width="1.2"/><path d="M7 4v4M7 10v.4" stroke="#6aaa6a" stroke-width="1.4" stroke-linecap="round"/></svg>
-    <span><b>Kliknij kropkę</b> aby usunąć jako outlier · <b>Filtry</b> zawężają widok X do ostatnich N dni · <b>Percentyle</b> przeliczają się live dla widocznych Medium</span>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Closed Date vs Lead Time</div>
-      <div class="card-range" id="range-label">Zakres: wszystkie daty</div>
+    <div class="toolbar">
+      <div class="filter-box">
+        <div class="filter-label">📅 Ostatnie</div>
+        <div class="filter-btns">
+          <button class="fbtn" data-days="10"  onclick="setFilter(10)">10d</button>
+          <button class="fbtn" data-days="20"  onclick="setFilter(20)">20d</button>
+          <button class="fbtn" data-days="30"  onclick="setFilter(30)">30d</button>
+          <button class="fbtn" data-days="40"  onclick="setFilter(40)">40d</button>
+          <button class="fbtn" data-days="50"  onclick="setFilter(50)">50d</button>
+          <button class="fbtn" data-days="60"  onclick="setFilter(60)">60d</button>
+          <button class="fbtn active" data-days="0" onclick="setFilter(0)">Wszystkie</button>
+        </div>
+      </div>
+      <button class="add-btn" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#818cf8" stroke-width="1.3"/><path d="M7 4v6M4 7h6" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Dodaj PBI
+      </button>
     </div>
-    <div class="card-desc">Każda kropka = jeden element · Przerywane linie = P50 / P85 / P95 tylko dla widocznych <span style="color:var(--medium)">Medium</span></div>
-    <canvas id="chart"></canvas>
-  </div>
 
-  <div class="removed-section" id="removed-section">
-    <div class="removed-header">
-      <span>Usunięte outliery</span>
-      <button class="restore-all" onclick="restoreAll()">↩ Przywróć wszystkie</button>
+    <div class="banner">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#6aaa6a" stroke-width="1.2"/><path d="M7 4v4M7 10v.4" stroke="#6aaa6a" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span><b>Kliknij kropkę</b> aby usunąć jako outlier · <b>Filtry</b> zawężają widok X · <b>Percentyle</b> przeliczają się live dla widocznych Medium</span>
     </div>
-    <div class="removed-chips" id="removed-chips"></div>
-  </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Closed Date vs Lead Time</div>
+        <div class="card-meta" id="range-label">Zakres: wszystkie daty</div>
+      </div>
+      <div class="card-desc">Każda kropka = jeden element · Przerywane = P50/P85/P95 tylko dla widocznych <span style="color:var(--medium)">Medium</span></div>
+      <canvas id="scatter-canvas"></canvas>
+    </div>
+
+    <div class="removed-section" id="removed-section">
+      <div class="removed-header">
+        <span>Usunięte outliery</span>
+        <button class="restore-all" onclick="restoreAll()">↩ Przywróć wszystkie</button>
+      </div>
+      <div class="removed-chips" id="removed-chips"></div>
+    </div>
+
+  </div><!-- /tab-scatter -->
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB 2 — PROCESS BEHAVIOUR CHART
+  ═══════════════════════════════════════════════════════ -->
+  <div id="tab-pbc" class="tab-panel">
+
+    <div class="stats" id="pbc-stats">
+      <div class="stat"><div class="stat-lbl">Punkty</div><div class="stat-val" style="color:#93c5fd" id="pbc-n">42</div><div class="stat-sub">w sekwencji</div></div>
+      <div class="stat"><div class="stat-lbl">Średnia (X̄)</div><div class="stat-val" style="color:#818cf8" id="pbc-mean">–</div><div class="stat-sub">central line</div></div>
+      <div class="stat"><div class="stat-lbl">UCL</div><div class="stat-val" style="color:#ef4444" id="pbc-ucl">–</div><div class="stat-sub">upper control limit</div></div>
+      <div class="stat"><div class="stat-lbl">LCL</div><div class="stat-val" style="color:#34d058" id="pbc-lcl">–</div><div class="stat-sub">lower control limit</div></div>
+      <div class="stat"><div class="stat-lbl">Sygnały</div><div class="stat-val" style="color:#fb923c" id="pbc-sigs">0</div><div class="stat-sub">poza UCL/LCL</div></div>
+      <div class="stat"><div class="stat-lbl">mR̄</div><div class="stat-val" style="color:#6a8ea8" id="pbc-mr">–</div><div class="stat-sub">avg moving range</div></div>
+    </div>
+
+    <div class="legend">
+      <div class="leg-grp">
+        <span class="leg-lbl">Linie:</span>
+        <div class="leg-item"><div class="leg-line" style="background:#818cf8;height:2px"></div>X̄ (Średnia)</div>
+        <div class="leg-item"><div class="leg-line" style="background:#ef4444;height:2px;border-top:2px dashed #ef4444;background:none"></div>UCL</div>
+        <div class="leg-item"><div class="leg-line" style="border-top:2px dashed #34d058;background:none"></div>LCL</div>
+      </div>
+      <div class="leg-sep"></div>
+      <div class="leg-grp">
+        <span class="leg-lbl">Sygnały:</span>
+        <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Poza UCL/LCL</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#fb923c;border:2px solid #fb923c"></div>Run ≥8 po jednej stronie</div>
+      </div>
+      <div class="leg-sep"></div>
+      <div class="leg-grp">
+        <span class="leg-lbl">Kolor:</span>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--small)"></div>Small</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--medium)"></div>Medium</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--large)"></div>Large</div>
+      </div>
+    </div>
+
+    <div class="pbc-toolbar">
+      <div class="pbc-filter">
+        <div class="pbc-filter-lbl">📊 Filtr</div>
+        <div class="pbc-filter-btns">
+          <button class="fbtn active" data-pbc="all"    onclick="setPbcFilter('all')">Wszystkie</button>
+          <button class="fbtn" data-pbc="Small"   onclick="setPbcFilter('Small')">Small</button>
+          <button class="fbtn" data-pbc="Medium"  onclick="setPbcFilter('Medium')">Medium</button>
+          <button class="fbtn" data-pbc="Large"   onclick="setPbcFilter('Large')">Large</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="banner pbc-banner">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#818cf8" stroke-width="1.2"/><path d="M7 4v4M7 10v.4" stroke="#818cf8" stroke-width="1.4" stroke-linecap="round"/></svg>
+      <span>Sekwencja danych w kolejności zamknięcia · <b>UCL/LCL</b> liczone metodą XmR (×2.66×mR̄) · <b>Czerwone kropki</b> = sygnały poza limitami · <b>Pomarańczowe</b> = reguła run 8+</span>
+    </div>
+
+    <!-- X chart -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">X Chart — Lead Time per Item</div>
+        <div class="card-meta" id="pbc-filter-label">Wszystkie elementy · sortowane wg daty zamknięcia</div>
+      </div>
+      <div class="card-desc">Każdy punkt = lead time jednego elementu w kolejności chronologicznej</div>
+      <canvas id="pbc-x-canvas"></canvas>
+    </div>
+
+    <!-- mR chart -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">mR Chart — Moving Range</div>
+        <div class="card-meta">|X<sub>i</sub> − X<sub>i−1</sub>| · zmienność między kolejnymi punktami</div>
+      </div>
+      <div class="card-desc">Ruchomy zakres między kolejnymi obserwacjami · UCL(mR) = 3.267 × mR̄</div>
+      <canvas id="pbc-mr-canvas"></canvas>
+    </div>
+
+    <div class="signal-list" id="signal-list"></div>
+
+  </div><!-- /tab-pbc -->
 
 </div><!-- /page -->
 
-<!-- ADD PBI MODAL -->
+<!-- ADD MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-title">Dodaj nowe PBI</div>
-    <div class="modal-sub">Nowy element zostanie naniesiony na wykres i uwzględniony w percentylach</div>
-
+    <div class="modal-sub">Nowy element zostanie naniesiony na oba wykresy</div>
     <div class="field">
       <label class="field-label">Nazwa zadania *</label>
       <input type="text" id="f-task" placeholder="np. Nowa funkcja rozliczeń…" oninput="validateForm()">
     </div>
-
     <div class="field-row">
       <div class="field">
         <label class="field-label">Data rozpoczęcia *</label>
@@ -344,12 +351,10 @@
         <input type="date" id="f-closed" oninput="computeLT()">
       </div>
     </div>
-
     <div class="field">
       <label class="field-label">Lead Time</label>
-      <div id="lt-preview" style="font-size:0.8rem;color:var(--dim);padding:4px 0">— wprowadź obie daty</div>
+      <div id="lt-preview" style="font-size:.8rem;color:var(--dim);padding:4px 0">— wprowadź obie daty</div>
     </div>
-
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal()">Anuluj</button>
       <button class="btn-add" id="btn-add-submit" disabled onclick="addPBI()">✚ Dodaj do wykresu</button>
@@ -360,9 +365,9 @@
 <div id="tt"></div>
 
 <script>
-// ─────────────────────────────────────────────────────────────────────
-//  DATA
-// ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  SHARED DATA
+// ═══════════════════════════════════════════════════════
 const RAW = [
   {task:"Kopiowanie schematów v etykiety w laboratorium",type:"PBI",lt:147,start:"2025-08-13",closed:"2026-01-07"},
   {task:"Biuro GT: problem z podłączaniem bazy danych",type:"PBI",lt:28,start:"2025-12-10",closed:"2026-01-07"},
@@ -408,381 +413,198 @@ const RAW = [
   {task:"Zbiorczy parametr OCR w biurze GT",type:"PBI",lt:82,start:"2025-10-22",closed:"2026-01-12"},
 ];
 
-function classify(lt) {
-  if (lt <= 14) return 'Small';
-  if (lt <= 59) return 'Medium';
-  return 'Large';
-}
+function classify(lt){ return lt<=14?'Small':lt<=59?'Medium':'Large'; }
 
-const DATA = RAW.map((d, i) => ({
-  ...d,
-  id: i,
-  size: classify(d.lt),
-  closedDate: new Date(d.closed + 'T00:00:00'),
-  removed: false,
-  isNew: false,
+const DATA = RAW.map((d,i)=>({
+  ...d, id:i, size:classify(d.lt),
+  closedDate:new Date(d.closed+'T00:00:00'),
+  removed:false, isNew:false,
 }));
 
-const COLOR = { Small:'#34d058', Medium:'#f97316', Large:'#ef4444' };
+const COLOR={Small:'#34d058',Medium:'#f97316',Large:'#ef4444'};
+const dpr=window.devicePixelRatio||1;
 
-// ─────────────────────────────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────────────────────────────
-let filterDays = 0;   // 0 = all
-let hov = null;
-
-// Compute the global max closed date across ALL data (including added)
-function getMaxDate() {
-  return DATA.reduce((mx, d) => d.closedDate > mx ? d.closedDate : mx, DATA[0].closedDate);
+// ═══════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['scatter','pbc'][i]===id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active',p.id==='tab-'+id);
+  });
+  if(id==='scatter'){scatterResize();}
+  else{pbcResize();}
 }
 
-// Date window for current filter
-function getDateWindow() {
-  const maxDate = getMaxDate();
-  const padEnd   = new Date(maxDate); padEnd.setDate(padEnd.getDate() + 3);
-  if (filterDays === 0) {
-    const padStart = new Date('2025-11-10');
-    return { start: padStart, end: padEnd };
-  }
-  const start = new Date(maxDate);
-  start.setDate(start.getDate() - filterDays + 1 - 3);
-  return { start, end: padEnd };
+// ═══════════════════════════════════════════════════════
+//  SCATTER — STATE & HELPERS
+// ═══════════════════════════════════════════════════════
+let filterDays=0, scatterHov=null;
+
+function getMaxDate(){ return DATA.reduce((mx,d)=>d.closedDate>mx?d.closedDate:mx,DATA[0].closedDate); }
+function getDateWindow(){
+  const maxDate=getMaxDate();
+  const padEnd=new Date(maxDate); padEnd.setDate(padEnd.getDate()+3);
+  if(filterDays===0){ return{start:new Date('2025-11-10'),end:padEnd}; }
+  const start=new Date(maxDate); start.setDate(start.getDate()-filterDays-2);
+  return{start,end:padEnd};
+}
+function isVisible(d){ if(d.removed)return false; const{start,end}=getDateWindow(); return d.closedDate>=start&&d.closedDate<=end; }
+
+function pct(arr,p){ if(!arr.length)return 0; const s=[...arr].sort((a,b)=>a-b); const idx=(p/100)*(s.length-1); const lo=Math.floor(idx),hi=Math.ceil(idx); return lo===hi?s[lo]:s[lo]+(s[hi]-s[lo])*(idx-lo); }
+function getMediumPercentiles(){ const vals=DATA.filter(d=>isVisible(d)&&d.size==='Medium').map(d=>d.lt); return{p50:pct(vals,50),p85:pct(vals,85),p95:pct(vals,95),count:vals.length}; }
+
+function updateStats(){
+  const{p50,p85,p95,count}=getMediumPercentiles();
+  const removed=DATA.filter(d=>d.removed).length;
+  const visible=DATA.filter(d=>isVisible(d)).length;
+  const added=DATA.filter(d=>d.isNew).length;
+  document.getElementById('s-total').textContent=visible;
+  document.getElementById('s-p50').textContent=p50.toFixed(1)+'d';
+  document.getElementById('s-p85').textContent=p85.toFixed(1)+'d';
+  document.getElementById('s-p95').textContent=p95.toFixed(1)+'d';
+  document.getElementById('s-med').textContent=count;
+  document.getElementById('s-rem').textContent=removed;
+  document.getElementById('s-add').textContent=added;
+  const{start,end}=getDateWindow();
+  const fmt=d=>d.toLocaleDateString('pl-PL',{day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('range-label').textContent=filterDays===0?'Zakres: wszystkie daty':`Zakres: ${fmt(start)} – ${fmt(end)}`;
 }
 
-// Is a data point visible in current date window (and not removed)?
-function isVisible(d) {
-  if (d.removed) return false;
-  const { start, end } = getDateWindow();
-  return d.closedDate >= start && d.closedDate <= end;
-}
-
-// ─────────────────────────────────────────────────────────────────────
-//  PERCENTILES
-// ─────────────────────────────────────────────────────────────────────
-function pct(arr, p) {
-  if (!arr.length) return 0;
-  const s = [...arr].sort((a, b) => a - b);
-  const idx = (p / 100) * (s.length - 1);
-  const lo = Math.floor(idx), hi = Math.ceil(idx);
-  return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (idx - lo);
-}
-
-function getMediumPercentiles() {
-  const vals = DATA.filter(d => isVisible(d) && d.size === 'Medium').map(d => d.lt);
-  return { p50: pct(vals, 50), p85: pct(vals, 85), p95: pct(vals, 95), count: vals.length };
-}
-
-// ─────────────────────────────────────────────────────────────────────
-//  STATS + REMOVED UI
-// ─────────────────────────────────────────────────────────────────────
-function updateStats() {
-  const { p50, p85, p95, count } = getMediumPercentiles();
-  const removed = DATA.filter(d => d.removed).length;
-  const visible = DATA.filter(d => isVisible(d)).length;
-  const added   = DATA.filter(d => d.isNew).length;
-  document.getElementById('s-total').textContent = visible;
-  document.getElementById('s-p50').textContent   = p50.toFixed(1) + 'd';
-  document.getElementById('s-p85').textContent   = p85.toFixed(1) + 'd';
-  document.getElementById('s-p95').textContent   = p95.toFixed(1) + 'd';
-  document.getElementById('s-med').textContent   = count;
-  document.getElementById('s-rem').textContent   = removed;
-  document.getElementById('s-add').textContent   = added;
-
-  const { start, end } = getDateWindow();
-  const fmt = d => d.toLocaleDateString('pl-PL', { day:'2-digit', month:'short', year:'numeric' });
-  document.getElementById('range-label').textContent =
-    filterDays === 0 ? 'Zakres: wszystkie daty' : `Zakres: ${fmt(start)} – ${fmt(end)}`;
-}
-
-function updateRemovedUI() {
-  const removed = DATA.filter(d => d.removed);
-  const sec = document.getElementById('removed-section');
-  const chips = document.getElementById('removed-chips');
-  if (!removed.length) { sec.classList.remove('visible'); return; }
-  sec.classList.add('visible');
-  chips.innerHTML = '';
-  removed.forEach(d => {
-    const col = COLOR[d.size];
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.innerHTML = `<div class="leg-dot" style="background:${col}"></div>
-      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${d.task}</span>
-      <span class="chip-lt">${d.lt}d</span><span class="chip-x">↩</span>`;
-    chip.onclick = () => { d.removed = false; refresh(); };
+function updateRemovedUI(){
+  const removed=DATA.filter(d=>d.removed);
+  const sec=document.getElementById('removed-section');
+  const chips=document.getElementById('removed-chips');
+  if(!removed.length){sec.classList.remove('visible');return;}
+  sec.classList.add('visible'); chips.innerHTML='';
+  removed.forEach(d=>{
+    const col=COLOR[d.size]; const chip=document.createElement('div');
+    chip.className='chip';
+    chip.innerHTML=`<div class="leg-dot" style="background:${col}"></div><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${d.task}</span><span class="chip-lt">${d.lt}d</span><span class="chip-x">↩</span>`;
+    chip.onclick=()=>{d.removed=false;refresh();};
     chips.appendChild(chip);
   });
 }
+function restoreAll(){ DATA.forEach(d=>d.removed=false); refresh(); }
+function refresh(){ updateStats(); updateRemovedUI(); drawScatter(); pbcRefresh(); }
 
-function restoreAll() {
-  DATA.forEach(d => d.removed = false);
-  refresh();
+function setFilter(days){
+  filterDays=days;
+  document.querySelectorAll('.fbtn[data-days]').forEach(b=>b.classList.toggle('active',+b.dataset.days===days));
+  scatterHov=null; refresh();
 }
 
-function refresh() { updateStats(); updateRemovedUI(); draw(); }
+// ═══════════════════════════════════════════════════════
+//  SCATTER — CANVAS
+// ═══════════════════════════════════════════════════════
+const scatterCanvas=document.getElementById('scatter-canvas');
+const SPAD={top:20,right:110,bottom:64,left:66};
+const maxY=165;
 
-// ─────────────────────────────────────────────────────────────────────
-//  FILTER
-// ─────────────────────────────────────────────────────────────────────
-function setFilter(days) {
-  filterDays = days;
-  document.querySelectorAll('.fbtn').forEach(b => {
-    b.classList.toggle('active', +b.dataset.days === days);
-  });
-  hov = null;
-  refresh();
+function scatterResize(){
+  const W=scatterCanvas.parentElement.clientWidth-56;
+  const H=Math.min(500,Math.max(300,W*0.4));
+  scatterCanvas.style.width=W+'px'; scatterCanvas.style.height=H+'px';
+  scatterCanvas.width=W*dpr; scatterCanvas.height=H*dpr;
+  drawScatter();
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  MODAL
-// ─────────────────────────────────────────────────────────────────────
-function openModal() {
-  document.getElementById('modal-overlay').classList.add('open');
-  // default dates: today as closed, 14 days before as start
-  const today = new Date();
-  const prior = new Date(today); prior.setDate(prior.getDate() - 14);
-  document.getElementById('f-closed').value = today.toISOString().slice(0,10);
-  document.getElementById('f-start').value  = prior.toISOString().slice(0,10);
-  document.getElementById('f-task').value   = '';
-  computeLT();
-}
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
-function closeModalOutside(e) { if (e.target.id === 'modal-overlay') closeModal(); }
+function scx(date,W){ const{start,end}=getDateWindow(); return SPAD.left+((date-start)/(end-start))*W; }
+function scy(lt,H){ return SPAD.top+(1-lt/maxY)*H; }
 
-function computeLT() {
-  const s = document.getElementById('f-start').value;
-  const c = document.getElementById('f-closed').value;
-  const preview = document.getElementById('lt-preview');
-  if (s && c) {
-    const diff = Math.round((new Date(c) - new Date(s)) / 86400000);
-    if (diff < 0) {
-      preview.innerHTML = `<span style="color:#ef4444">⚠ Data zamknięcia przed datą startu</span>`;
-      document.getElementById('btn-add-submit').disabled = true;
-    } else {
-      const sz = classify(diff);
-      const col = COLOR[sz];
-      preview.innerHTML = `<b style="color:${col};font-size:1rem">${diff} dni</b>
-        <span class="size-preview" style="background:${col}20;color:${col}">${sz}</span>`;
-      validateForm();
-    }
-  } else {
-    preview.innerHTML = `<span style="color:var(--dim)">— wprowadź obie daty</span>`;
-    document.getElementById('btn-add-submit').disabled = true;
-  }
-}
-
-function validateForm() {
-  const task = document.getElementById('f-task').value.trim();
-  const s    = document.getElementById('f-start').value;
-  const c    = document.getElementById('f-closed').value;
-  const ok   = task.length > 0 && s && c && (new Date(c) >= new Date(s));
-  document.getElementById('btn-add-submit').disabled = !ok;
-}
-
-function addPBI() {
-  const task   = document.getElementById('f-task').value.trim();
-  const start  = document.getElementById('f-start').value;
-  const closed = document.getElementById('f-closed').value;
-  const lt     = Math.round((new Date(closed) - new Date(start)) / 86400000);
-  const size   = classify(lt);
-
-  DATA.push({
-    id: DATA.length,
-    task, type:'PBI', lt, size,
-    start, closed,
-    closedDate: new Date(closed + 'T00:00:00'),
-    removed: false,
-    isNew: true,
-  });
-
-  closeModal();
-  // if filter would hide the new item, reset filter
-  const newItem = DATA[DATA.length - 1];
-  const { start: ws, end: we } = getDateWindow();
-  if (newItem.closedDate < ws || newItem.closedDate > we) setFilter(0);
-  else refresh();
-}
-
-// ─────────────────────────────────────────────────────────────────────
-//  CANVAS
-// ─────────────────────────────────────────────────────────────────────
-const canvas = document.getElementById('chart');
-const dpr = window.devicePixelRatio || 1;
-const PAD = { top:20, right:110, bottom:64, left:66 };
-const maxY = 165;
-
-function resize() {
-  const W = canvas.parentElement.clientWidth - 56;
-  const H = Math.min(520, Math.max(320, W * 0.42));
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
-  canvas.width  = W * dpr;
-  canvas.height = H * dpr;
-  draw();
-}
-
-function cx(date, W) {
-  const { start, end } = getDateWindow();
-  return PAD.left + ((date.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * W;
-}
-function cy(lt, H) { return PAD.top + (1 - lt / maxY) * H; }
-
-function dateTicks() {
-  const { start, end } = getDateWindow();
-  const ticks = [];
-  const span = (end - start) / 86400000;
-  const step = span <= 15 ? 2 : span <= 35 ? 5 : span <= 70 ? 7 : 14;
-  const d = new Date(start); d.setDate(d.getDate() + 1);
-  while (d <= end) {
-    ticks.push(new Date(d));
-    d.setDate(d.getDate() + step);
-  }
+function scDateTicks(){
+  const{start,end}=getDateWindow(); const ticks=[];
+  const span=(end-start)/86400000;
+  const step=span<=15?2:span<=35?5:span<=70?7:14;
+  const d=new Date(start); d.setDate(d.getDate()+1);
+  while(d<=end){ticks.push(new Date(d));d.setDate(d.getDate()+step);}
   return ticks;
 }
 
-function draw() {
-  const ctx = canvas.getContext('2d');
-  const CW = canvas.width, CH = canvas.height;
-  const W  = CW - PAD.left - PAD.right;
-  const H  = CH - PAD.top  - PAD.bottom;
+function drawScatter(){
+  const ctx=scatterCanvas.getContext('2d');
+  const CW=scatterCanvas.width,CH=scatterCanvas.height;
+  const W=CW-SPAD.left-SPAD.right, H=CH-SPAD.top-SPAD.bottom;
+  ctx.clearRect(0,0,CW,CH);
+  const base=`${10.5*dpr}px 'JetBrains Mono',monospace`;
 
-  ctx.clearRect(0, 0, CW, CH);
-  const base = `${10.5*dpr}px 'JetBrains Mono',monospace`;
-
-  // Y grid
-  const yTicks = [0,20,40,60,80,100,120,140,160];
-  ctx.font = base; ctx.textAlign = 'right';
-  yTicks.forEach(v => {
-    const y = cy(v, H);
-    ctx.beginPath(); ctx.strokeStyle = v===0?'#1e2d3f':'#10181f';
-    ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
-    ctx.fillStyle='#3a5268';
-    ctx.fillText(v===0?'0d':v+'d', PAD.left-8*dpr, y+4*dpr);
+  [0,20,40,60,80,100,120,140,160].forEach(v=>{
+    const y=scy(v,H);
+    ctx.beginPath(); ctx.strokeStyle=v===0?'#1e2d3f':'#10181f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(SPAD.left,y); ctx.lineTo(SPAD.left+W,y); ctx.stroke();
+    ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#3a5268';
+    ctx.fillText(v===0?'0d':v+'d',SPAD.left-8*dpr,y+4*dpr);
   });
 
-  // X grid + labels
   ctx.textAlign='center';
-  dateTicks().forEach(d => {
-    const x = cx(d, W);
-    if (x < PAD.left-2 || x > PAD.left+W+2) return;
+  scDateTicks().forEach(d=>{
+    const x=scx(d,W); if(x<SPAD.left-2||x>SPAD.left+W+2)return;
     ctx.beginPath(); ctx.strokeStyle='#10181f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top+H); ctx.stroke();
-    const lbl = d.toLocaleDateString('pl-PL',{day:'2-digit',month:'short'});
+    ctx.moveTo(x,SPAD.top); ctx.lineTo(x,SPAD.top+H); ctx.stroke();
     ctx.fillStyle='#3a5268'; ctx.font=base;
-    ctx.fillText(lbl, x, PAD.top+H+18*dpr);
+    ctx.fillText(d.toLocaleDateString('pl-PL',{day:'2-digit',month:'short'}),x,SPAD.top+H+18*dpr);
   });
 
-  // Axes
   ctx.beginPath(); ctx.strokeStyle='#1e2d3f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+H);
-  ctx.lineTo(PAD.left+W,PAD.top+H); ctx.stroke();
+  ctx.moveTo(SPAD.left,SPAD.top); ctx.lineTo(SPAD.left,SPAD.top+H); ctx.lineTo(SPAD.left+W,SPAD.top+H); ctx.stroke();
 
-  // Axis labels
-  ctx.fillStyle='#3a5268'; ctx.font=`${10*dpr}px 'JetBrains Mono',monospace`;
-  ctx.textAlign='center';
-  ctx.fillText('Data zamknięcia', PAD.left+W/2, CH-10*dpr);
-  ctx.save(); ctx.translate(12*dpr,PAD.top+H/2); ctx.rotate(-Math.PI/2);
-  ctx.fillText('Lead Time (dni)',0,0); ctx.restore();
+  ctx.fillStyle='#3a5268'; ctx.font=`${10*dpr}px 'JetBrains Mono',monospace`; ctx.textAlign='center';
+  ctx.fillText('Data zamknięcia',SPAD.left+W/2,CH-10*dpr);
+  ctx.save(); ctx.translate(12*dpr,SPAD.top+H/2); ctx.rotate(-Math.PI/2); ctx.fillText('Lead Time (dni)',0,0); ctx.restore();
 
-  // Zone bands
   [[0,14,'#34d05806'],[15,59,'#f9731606'],[60,maxY,'#ef444406']].forEach(([from,to,col])=>{
-    ctx.fillStyle=col;
-    ctx.fillRect(PAD.left,cy(to,H),W,cy(from,H)-cy(to,H));
+    ctx.fillStyle=col; ctx.fillRect(SPAD.left,scy(to,H),W,scy(from,H)-scy(to,H));
   });
 
-  // Percentile lines (only visible Medium items)
-  const {p50,p85,p95} = getMediumPercentiles();
+  const{p50,p85,p95}=getMediumPercentiles();
   [[p50,'#facc15','P50'],[p85,'#fb923c','P85'],[p95,'#f87171','P95']].forEach(([val,color,lbl])=>{
-    if (!val) return;
-    const y = cy(val,H);
-    ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=1.6*dpr;
-    ctx.setLineDash([7*dpr,5*dpr]); ctx.globalAlpha=0.9;
-    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha=1;
-
-    const txt = `${lbl} = ${val.toFixed(1)}d`;
-    ctx.font=`500 ${9*dpr}px 'JetBrains Mono',monospace`;
-    ctx.textAlign='left';
-    const tw=ctx.measureText(txt).width+12*dpr, th=15*dpr;
-    const lx=PAD.left+W+4*dpr, ly=y-th/2;
-    ctx.fillStyle=color+'25';
-    ctx.beginPath(); ctx.roundRect(lx,ly,tw,th,3*dpr); ctx.fill();
-    ctx.fillStyle=color;
-    ctx.fillText(txt,lx+6*dpr,ly+th-4.5*dpr);
+    if(!val)return;
+    const y=scy(val,H);
+    ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=1.6*dpr; ctx.setLineDash([7*dpr,5*dpr]); ctx.globalAlpha=0.9;
+    ctx.moveTo(SPAD.left,y); ctx.lineTo(SPAD.left+W,y); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    const txt=`${lbl} = ${val.toFixed(1)}d`;
+    ctx.font=`500 ${9*dpr}px 'JetBrains Mono',monospace`; ctx.textAlign='left';
+    const tw=ctx.measureText(txt).width+12*dpr,th=15*dpr,lx=SPAD.left+W+4*dpr,ly=y-th/2;
+    ctx.fillStyle=color+'25'; ctx.beginPath(); ctx.roundRect(lx,ly,tw,th,3*dpr); ctx.fill();
+    ctx.fillStyle=color; ctx.fillText(txt,lx+6*dpr,ly+th-4.5*dpr);
   });
 
-  // Dots (visible)
   DATA.forEach((d,i)=>{
-    if (!isVisible(d)) return;
-    const x=cx(d.closedDate,W), y=cy(d.lt,H);
-    const col=COLOR[d.size];
-    const isH=hov===i;
-    const r=isH?8*dpr:5.5*dpr;
-
-    if(isH){
-      const g=ctx.createRadialGradient(x,y,0,x,y,22*dpr);
-      g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00');
-      ctx.beginPath(); ctx.arc(x,y,22*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
-    }
-    ctx.beginPath(); ctx.arc(x,y,r+2.5*dpr,0,Math.PI*2);
-    ctx.fillStyle=col+(isH?'45':'20'); ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
-    ctx.fillStyle=col; ctx.fill();
-    ctx.beginPath(); ctx.arc(x,y,r*0.35,0,Math.PI*2);
-    ctx.fillStyle='#00000055'; ctx.fill();
-
-    // star badge for new items
-    if(d.isNew){
-      ctx.font=`bold ${11*dpr}px sans-serif`;
-      ctx.fillStyle='#a5b4fc';
-      ctx.textAlign='center';
-      ctx.fillText('★', x, y-r-3*dpr);
-    }
+    if(!isVisible(d))return;
+    const x=scx(d.closedDate,W),y=scy(d.lt,H),col=COLOR[d.size],isH=scatterHov===i,r=isH?8*dpr:5.5*dpr;
+    if(isH){ const g=ctx.createRadialGradient(x,y,0,x,y,22*dpr); g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00'); ctx.beginPath(); ctx.arc(x,y,22*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill(); }
+    ctx.beginPath(); ctx.arc(x,y,r+2.5*dpr,0,Math.PI*2); ctx.fillStyle=col+(isH?'45':'20'); ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r*0.35,0,Math.PI*2); ctx.fillStyle='#00000055'; ctx.fill();
+    if(d.isNew){ ctx.font=`bold ${11*dpr}px sans-serif`; ctx.fillStyle='#a5b4fc'; ctx.textAlign='center'; ctx.fillText('★',x,y-r-3*dpr); }
   });
 
-  // Ghost dots (removed but in date range)
   DATA.forEach(d=>{
-    if(!d.removed) return;
-    const { start, end } = getDateWindow();
-    if(d.closedDate < start || d.closedDate > end) return;
-    const x=cx(d.closedDate,W), y=cy(d.lt,H);
-    const s=4*dpr;
-    ctx.beginPath(); ctx.arc(x,y,5*dpr,0,Math.PI*2);
-    ctx.strokeStyle='#ffffff13'; ctx.lineWidth=dpr; ctx.setLineDash([3*dpr,3*dpr]);
-    ctx.stroke(); ctx.setLineDash([]);
-    ctx.beginPath(); ctx.strokeStyle='#ffffff15'; ctx.lineWidth=1.2*dpr;
-    ctx.moveTo(x-s,y-s); ctx.lineTo(x+s,y+s);
-    ctx.moveTo(x+s,y-s); ctx.lineTo(x-s,y+s);
-    ctx.stroke();
+    if(!d.removed)return;
+    const{start,end}=getDateWindow(); if(d.closedDate<start||d.closedDate>end)return;
+    const x=scx(d.closedDate,W),y=scy(d.lt,H),s=4*dpr;
+    ctx.beginPath(); ctx.arc(x,y,5*dpr,0,Math.PI*2); ctx.strokeStyle='#ffffff13'; ctx.lineWidth=dpr; ctx.setLineDash([3*dpr,3*dpr]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.strokeStyle='#ffffff15'; ctx.lineWidth=1.2*dpr; ctx.moveTo(x-s,y-s); ctx.lineTo(x+s,y+s); ctx.moveTo(x+s,y-s); ctx.lineTo(x-s,y+s); ctx.stroke();
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────
-//  TOOLTIP + CLICK
-// ─────────────────────────────────────────────────────────────────────
-const tt = document.getElementById('tt');
-
-function hitTest(mx, my) {
-  const W=canvas.width-PAD.left-PAD.right;
-  const H=canvas.height-PAD.top-PAD.bottom;
-  let closest=null, minD=18*dpr;
-  DATA.forEach((d,i)=>{
-    if(!isVisible(d)) return;
-    const x=cx(d.closedDate,W), y=cy(d.lt,H);
-    const dist=Math.hypot(mx-x,my-y);
-    if(dist<minD){minD=dist;closest=i;}
-  });
+// scatter hit/tooltip/click
+const tt=document.getElementById('tt');
+function scHitTest(mx,my){
+  const W=scatterCanvas.width-SPAD.left-SPAD.right,H=scatterCanvas.height-SPAD.top-SPAD.bottom;
+  let closest=null,minD=18*dpr;
+  DATA.forEach((d,i)=>{ if(!isVisible(d))return; const x=scx(d.closedDate,W),y=scy(d.lt,H),dist=Math.hypot(mx-x,my-y); if(dist<minD){minD=dist;closest=i;} });
   return closest;
 }
-
-canvas.addEventListener('mousemove',e=>{
-  const rect=canvas.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*dpr, my=(e.clientY-rect.top)*dpr;
-  const found=hitTest(mx,my);
+scatterCanvas.addEventListener('mousemove',e=>{
+  const rect=scatterCanvas.getBoundingClientRect(),mx=(e.clientX-rect.left)*dpr,my=(e.clientY-rect.top)*dpr;
+  const found=scHitTest(mx,my);
   if(found!==null){
-    const d=DATA[found]; const col=COLOR[d.size];
+    const d=DATA[found],col=COLOR[d.size];
     tt.style.display='block';
-    tt.innerHTML=`<div class="tt-name">${d.isNew?'★ ':''} ${d.task}</div><hr>
+    tt.innerHTML=`<div class="tt-name">${d.isNew?'★ ':''}${d.task}</div><hr>
       <div class="tt-row"><span class="tt-k">Lead Time</span><span class="tt-v" style="color:${col}">${d.lt} dni</span></div>
       <div class="tt-row"><span class="tt-k">Typ</span><span class="tt-v">${d.type}</span></div>
       <div class="tt-row"><span class="tt-k">Start</span><span class="tt-v">${d.start}</span></div>
@@ -790,37 +612,403 @@ canvas.addEventListener('mousemove',e=>{
       <div><span class="tt-badge" style="background:${col}22;color:${col}">${d.size}</span></div>
       <div class="tt-hint">🖱 Kliknij aby usunąć jako outlier</div>
       ${d.isNew?'<div class="tt-new">★ Ręcznie dodany</div>':''}`;
-    let lx=e.clientX+16, ly=e.clientY-10;
-    if(lx+340>window.innerWidth)  lx=e.clientX-356;
-    if(ly+200>window.innerHeight) ly=e.clientY-205;
-    tt.style.left=lx+'px'; tt.style.top=ly+'px';
-    canvas.style.cursor='pointer';
-    if(hov!==found){hov=found;draw();}
+    let lx=e.clientX+16,ly=e.clientY-10;
+    if(lx+340>window.innerWidth)lx=e.clientX-356;
+    if(ly+200>window.innerHeight)ly=e.clientY-205;
+    tt.style.left=lx+'px'; tt.style.top=ly+'px'; scatterCanvas.style.cursor='pointer';
+    if(scatterHov!==found){scatterHov=found;drawScatter();}
+  } else {
+    tt.style.display='none'; scatterCanvas.style.cursor='crosshair';
+    if(scatterHov!==null){scatterHov=null;drawScatter();}
+  }
+});
+scatterCanvas.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(scatterHov!==null){scatterHov=null;drawScatter();} });
+scatterCanvas.addEventListener('click',e=>{
+  const rect=scatterCanvas.getBoundingClientRect(),mx=(e.clientX-rect.left)*dpr,my=(e.clientY-rect.top)*dpr;
+  const found=scHitTest(mx,my);
+  if(found!==null){ DATA[found].removed=true; scatterHov=null; tt.style.display='none'; refresh(); }
+});
+
+// ═══════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(){
+  document.getElementById('modal-overlay').classList.add('open');
+  const today=new Date(), prior=new Date(today); prior.setDate(prior.getDate()-14);
+  document.getElementById('f-closed').value=today.toISOString().slice(0,10);
+  document.getElementById('f-start').value=prior.toISOString().slice(0,10);
+  document.getElementById('f-task').value=''; computeLT();
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e){ if(e.target.id==='modal-overlay')closeModal(); }
+function computeLT(){
+  const s=document.getElementById('f-start').value,c=document.getElementById('f-closed').value;
+  const preview=document.getElementById('lt-preview');
+  if(s&&c){
+    const diff=Math.round((new Date(c)-new Date(s))/86400000);
+    if(diff<0){ preview.innerHTML=`<span style="color:#ef4444">⚠ Data zamknięcia przed datą startu</span>`; document.getElementById('btn-add-submit').disabled=true; }
+    else{ const sz=classify(diff),col=COLOR[sz]; preview.innerHTML=`<b style="color:${col};font-size:1rem">${diff} dni</b> <span class="size-preview" style="background:${col}20;color:${col}">${sz}</span>`; validateForm(); }
+  } else { preview.innerHTML=`<span style="color:var(--dim)">— wprowadź obie daty</span>`; document.getElementById('btn-add-submit').disabled=true; }
+}
+function validateForm(){
+  const ok=document.getElementById('f-task').value.trim().length>0&&document.getElementById('f-start').value&&document.getElementById('f-closed').value&&(new Date(document.getElementById('f-closed').value)>=new Date(document.getElementById('f-start').value));
+  document.getElementById('btn-add-submit').disabled=!ok;
+}
+function addPBI(){
+  const task=document.getElementById('f-task').value.trim(),start=document.getElementById('f-start').value,closed=document.getElementById('f-closed').value;
+  const lt=Math.round((new Date(closed)-new Date(start))/86400000),size=classify(lt);
+  DATA.push({id:DATA.length,task,type:'PBI',lt,size,start,closed,closedDate:new Date(closed+'T00:00:00'),removed:false,isNew:true});
+  closeModal();
+  const ni=DATA[DATA.length-1],{start:ws,end:we}=getDateWindow();
+  if(ni.closedDate<ws||ni.closedDate>we)setFilter(0); else refresh();
+}
+
+// ═══════════════════════════════════════════════════════
+//  PBC — PROCESS BEHAVIOUR CHART
+// ═══════════════════════════════════════════════════════
+let pbcFilter='all', pbcXHov=null, pbcMrHov=null;
+
+function setPbcFilter(f){
+  pbcFilter=f;
+  document.querySelectorAll('.fbtn[data-pbc]').forEach(b=>b.classList.toggle('active',b.dataset.pbc===f));
+  pbcXHov=null; pbcMrHov=null; pbcRefresh();
+}
+
+function getPbcData(){
+  return DATA
+    .filter(d=>!d.removed)
+    .filter(d=>pbcFilter==='all'||d.size===pbcFilter)
+    .sort((a,b)=>a.closedDate-b.closedDate);
+}
+
+function calcXmR(pts){
+  const n=pts.length; if(n<2)return{mean:0,ucl:0,lcl:0,mr:[],mrmean:0,mruct:0};
+  const vals=pts.map(p=>p.lt);
+  const mean=vals.reduce((s,v)=>s+v,0)/n;
+  const mr=[];
+  for(let i=1;i<n;i++) mr.push(Math.abs(vals[i]-vals[i-1]));
+  const mrmean=mr.reduce((s,v)=>s+v,0)/mr.length;
+  const ucl=mean+2.66*mrmean;
+  const lcl=Math.max(0,mean-2.66*mrmean);
+  const mruct=3.267*mrmean;
+  return{mean,ucl,lcl,mr,mrmean,mruct,vals};
+}
+
+function detectSignals(pts,mean,ucl,lcl){
+  const signals=[];
+  const n=pts.length,vals=pts.map(p=>p.lt);
+  // rule 1: beyond UCL/LCL
+  vals.forEach((v,i)=>{ if(v>ucl||v<lcl) signals.push({i,type:'ucl',val:v}); });
+  // rule 2: run of 8+ on same side
+  let runDir=null,runLen=0;
+  vals.forEach((v,i)=>{
+    const above=v>mean;
+    if(runDir===above){runLen++;}else{runDir=above;runLen=1;}
+    if(runLen>=8) signals.push({i,type:'run',val:v,above});
+  });
+  return signals;
+}
+
+function pbcRefresh(){
+  const pts=getPbcData();
+  const{mean,ucl,lcl,mr,mrmean,mruct,vals}=calcXmR(pts);
+  const sigs=detectSignals(pts,mean,ucl,lcl);
+  const uclSigs=sigs.filter(s=>s.type==='ucl');
+
+  document.getElementById('pbc-n').textContent=pts.length;
+  document.getElementById('pbc-mean').textContent=mean.toFixed(1)+'d';
+  document.getElementById('pbc-ucl').textContent=ucl.toFixed(1)+'d';
+  document.getElementById('pbc-lcl').textContent=lcl.toFixed(1)+'d';
+  document.getElementById('pbc-sigs').textContent=uclSigs.length;
+  document.getElementById('pbc-mr').textContent=mrmean.toFixed(1)+'d';
+
+  const fl=pbcFilter==='all'?'Wszystkie elementy':pbcFilter+' items';
+  document.getElementById('pbc-filter-label').textContent=`${fl} · sortowane wg daty zamknięcia`;
+
+  // signal list
+  const sl=document.getElementById('signal-list');
+  sl.innerHTML='';
+  if(uclSigs.length){
+    const h=document.createElement('div'); h.className='removed-header'; h.style.marginTop='16px'; h.textContent='Sygnały wykryte:'; sl.appendChild(h);
+    uclSigs.forEach(s=>{
+      const p=pts[s.i]; const b=document.createElement('div'); b.className='signal-badge ucl';
+      b.innerHTML=`<div class="leg-dot" style="background:#ef4444"></div> #${s.i+1} · <b>${p.task.slice(0,40)}${p.task.length>40?'…':''}</b> · ${s.val}d (UCL=${ucl.toFixed(1)}d)`;
+      sl.appendChild(b);
+    });
+  }
+  const runSigs=[...new Map(sigs.filter(s=>s.type==='run').map(s=>[s.i,s])).values()];
+  if(runSigs.length){
+    runSigs.forEach(s=>{
+      const p=pts[s.i]; const b=document.createElement('div'); b.className='signal-badge run';
+      b.innerHTML=`<div class="leg-dot" style="background:#fb923c"></div> Run 8+ ${s.above?'powyżej':'poniżej'} średniej · ostatni: #${s.i+1} ${p.task.slice(0,35)}…`;
+      sl.appendChild(b);
+    });
+  }
+
+  drawPbcX(pts,mean,ucl,lcl,sigs);
+  drawPbcMr(pts,mr,mrmean,mruct,sigs);
+}
+
+// PBC X chart canvas
+const pbcXCanvas=document.getElementById('pbc-x-canvas');
+const XPAD={top:28,right:80,bottom:48,left:66};
+
+function pbcResize(){
+  [pbcXCanvas,pbcMrCanvas].forEach(c=>{
+    const W=c.parentElement.clientWidth-56;
+    const H=c===pbcXCanvas?Math.min(400,Math.max(260,W*0.32)):Math.min(220,Math.max(150,W*0.18));
+    c.style.width=W+'px'; c.style.height=H+'px'; c.width=W*dpr; c.height=H*dpr;
+  });
+  pbcRefresh();
+}
+
+function drawPbcX(pts,mean,ucl,lcl,sigs){
+  const ctx=pbcXCanvas.getContext('2d');
+  const CW=pbcXCanvas.width,CH=pbcXCanvas.height;
+  const W=CW-XPAD.left-XPAD.right,H=CH-XPAD.top-XPAD.bottom;
+  const n=pts.length; if(!n)return;
+  ctx.clearRect(0,0,CW,CH);
+
+  const maxV=Math.max(...pts.map(p=>p.lt),ucl)*1.12;
+  const base=`${10.5*dpr}px 'JetBrains Mono',monospace`;
+
+  function px(i){ return XPAD.left+(i/(n-1||1))*W; }
+  function py(v){ return XPAD.top+(1-v/maxV)*H; }
+
+  // Y grid
+  const step=maxV>120?20:maxV>60?10:5;
+  for(let v=0;v<=maxV;v+=step){
+    const y=py(v);
+    ctx.beginPath(); ctx.strokeStyle='#10181f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(XPAD.left,y); ctx.lineTo(XPAD.left+W,y); ctx.stroke();
+    ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#3a5268';
+    ctx.fillText(v+'d',XPAD.left-8*dpr,y+4*dpr);
+  }
+
+  // X grid (every ~5 items)
+  ctx.textAlign='center';
+  for(let i=0;i<n;i++){
+    if(i===0||i===n-1||(i+1)%Math.max(1,Math.round(n/8))===0){
+      const x=px(i);
+      ctx.beginPath(); ctx.strokeStyle='#0d151e'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+      ctx.moveTo(x,XPAD.top); ctx.lineTo(x,XPAD.top+H); ctx.stroke();
+      const d=pts[i]; ctx.fillStyle='#2a3a50'; ctx.font=`${9.5*dpr}px 'JetBrains Mono',monospace`;
+      ctx.fillText(d.closed.slice(5),x,XPAD.top+H+15*dpr);
+    }
+  }
+
+  // Axes
+  ctx.beginPath(); ctx.strokeStyle='#1e2d3f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+  ctx.moveTo(XPAD.left,XPAD.top); ctx.lineTo(XPAD.left,XPAD.top+H); ctx.lineTo(XPAD.left+W,XPAD.top+H); ctx.stroke();
+
+  // Axis label
+  ctx.fillStyle='#3a5268'; ctx.font=`${10*dpr}px 'JetBrains Mono',monospace`; ctx.textAlign='center';
+  ctx.fillText('Lead Time (dni)',XPAD.left+W/2,CH-6*dpr);
+
+  // UCL/LCL/Mean zones
+  const yl=py(lcl),yu=py(ucl),ym=py(mean);
+  ctx.fillStyle='#ef444408'; ctx.fillRect(XPAD.left,XPAD.top,W,yu-XPAD.top);      // above UCL
+  ctx.fillStyle='#34d05806'; ctx.fillRect(XPAD.left,yl,W,XPAD.top+H-yl);           // below LCL
+  ctx.fillStyle='#6366f108'; ctx.fillRect(XPAD.left,yu,W,yl-yu);                   // between
+
+  // Mean line
+  ctx.beginPath(); ctx.strokeStyle='#818cf8'; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
+  ctx.moveTo(XPAD.left,ym); ctx.lineTo(XPAD.left+W,ym); ctx.stroke();
+  ctx.font=`500 ${9*dpr}px 'JetBrains Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#818cf8';
+  ctx.fillText(`X̄=${mean.toFixed(1)}d`,XPAD.left+W+4*dpr,ym+4*dpr);
+
+  // UCL
+  ctx.beginPath(); ctx.strokeStyle='#ef4444'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]); ctx.globalAlpha=0.9;
+  ctx.moveTo(XPAD.left,yu); ctx.lineTo(XPAD.left+W,yu); ctx.stroke(); ctx.globalAlpha=1;
+  ctx.setLineDash([]); ctx.textAlign='left'; ctx.fillStyle='#ef4444';
+  ctx.fillText(`UCL=${ucl.toFixed(1)}d`,XPAD.left+W+4*dpr,yu+4*dpr);
+
+  // LCL
+  if(lcl>0){
+    ctx.beginPath(); ctx.strokeStyle='#34d058'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]); ctx.globalAlpha=0.9;
+    ctx.moveTo(XPAD.left,yl); ctx.lineTo(XPAD.left+W,yl); ctx.stroke(); ctx.globalAlpha=1;
+    ctx.setLineDash([]); ctx.textAlign='left'; ctx.fillStyle='#34d058';
+    ctx.fillText(`LCL=${lcl.toFixed(1)}d`,XPAD.left+W+4*dpr,yl+4*dpr);
+  }
+
+  // connecting line
+  ctx.beginPath(); ctx.strokeStyle='#1e3048'; ctx.lineWidth=1.2*dpr; ctx.setLineDash([]);
+  pts.forEach((p,i)=>{ const x=px(i),y=py(p.lt); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
+
+  // detect signal indices
+  const sigSet=new Set(sigs.map(s=>s.i));
+  const runSet=new Set(sigs.filter(s=>s.type==='run').map(s=>s.i));
+
+  // dots
+  pts.forEach((p,i)=>{
+    const x=px(i),y=py(p.lt);
+    const isUCL=p.lt>ucl||p.lt<lcl;
+    const isRun=runSet.has(i)&&!isUCL;
+    const isH=pbcXHov===i;
+    const col=isUCL?'#ef4444':isRun?'#fb923c':COLOR[p.size];
+    const r=isH?8*dpr:5*dpr;
+
+    if(isH){
+      const g=ctx.createRadialGradient(x,y,0,x,y,18*dpr);
+      g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00');
+      ctx.beginPath(); ctx.arc(x,y,18*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    }
+    if(isUCL||isRun){
+      ctx.beginPath(); ctx.arc(x,y,r+3*dpr,0,Math.PI*2); ctx.fillStyle=col+'30'; ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(x,y,r+2*dpr,0,Math.PI*2); ctx.fillStyle=col+'22'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r*0.35,0,Math.PI*2); ctx.fillStyle='#00000055'; ctx.fill();
+  });
+}
+
+// PBC mR chart
+const pbcMrCanvas=document.getElementById('pbc-mr-canvas');
+const MRPAD={top:20,right:80,bottom:48,left:66};
+let pbcMrHov2=null;
+
+function drawPbcMr(pts,mr,mrmean,mruct,sigs){
+  const ctx=pbcMrCanvas.getContext('2d');
+  const CW=pbcMrCanvas.width,CH=pbcMrCanvas.height;
+  const W=CW-MRPAD.left-MRPAD.right,H=CH-MRPAD.top-MRPAD.bottom;
+  const n=mr.length; if(!n)return;
+  ctx.clearRect(0,0,CW,CH);
+
+  const maxV=Math.max(...mr,mruct)*1.15;
+  const base=`${10.5*dpr}px 'JetBrains Mono',monospace`;
+
+  function px(i){ return MRPAD.left+(i/(n-1||1))*W; }
+  function py(v){ return MRPAD.top+(1-v/maxV)*H; }
+
+  // Y grid
+  const step=maxV>100?20:maxV>40?10:5;
+  for(let v=0;v<=maxV;v+=step){
+    const y=py(v);
+    ctx.beginPath(); ctx.strokeStyle='#10181f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(MRPAD.left,y); ctx.lineTo(MRPAD.left+W,y); ctx.stroke();
+    ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#3a5268';
+    ctx.fillText(v+'d',MRPAD.left-8*dpr,y+4*dpr);
+  }
+
+  // X labels (align to pts — mr[i] = |pts[i+1]-pts[i]|)
+  ctx.textAlign='center';
+  for(let i=0;i<n;i++){
+    if(i===0||i===n-1||(i+1)%Math.max(1,Math.round(n/8))===0){
+      const x=px(i); ctx.fillStyle='#2a3a50'; ctx.font=`${9.5*dpr}px 'JetBrains Mono',monospace`;
+      ctx.fillText(pts[i+1].closed.slice(5),x,MRPAD.top+H+15*dpr);
+    }
+  }
+
+  ctx.beginPath(); ctx.strokeStyle='#1e2d3f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+  ctx.moveTo(MRPAD.left,MRPAD.top); ctx.lineTo(MRPAD.left,MRPAD.top+H); ctx.lineTo(MRPAD.left+W,MRPAD.top+H); ctx.stroke();
+
+  ctx.fillStyle='#3a5268'; ctx.font=`${10*dpr}px 'JetBrains Mono',monospace`; ctx.textAlign='center';
+  ctx.fillText('Moving Range (|ΔLT|)',MRPAD.left+W/2,CH-6*dpr);
+
+  // mR̄ line
+  const ym=py(mrmean);
+  ctx.beginPath(); ctx.strokeStyle='#6a8ea8'; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
+  ctx.moveTo(MRPAD.left,ym); ctx.lineTo(MRPAD.left+W,ym); ctx.stroke();
+  ctx.font=`500 ${9*dpr}px 'JetBrains Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#6a8ea8';
+  ctx.fillText(`mR̄=${mrmean.toFixed(1)}d`,MRPAD.left+W+4*dpr,ym+4*dpr);
+
+  // UCL(mR)
+  const yu=py(mruct);
+  ctx.beginPath(); ctx.strokeStyle='#ef4444'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]); ctx.globalAlpha=0.85;
+  ctx.moveTo(MRPAD.left,yu); ctx.lineTo(MRPAD.left+W,yu); ctx.stroke(); ctx.globalAlpha=1; ctx.setLineDash([]);
+  ctx.textAlign='left'; ctx.fillStyle='#ef4444';
+  ctx.fillText(`UCL=${mruct.toFixed(1)}d`,MRPAD.left+W+4*dpr,yu+4*dpr);
+
+  // zone
+  ctx.fillStyle='#ef444408'; ctx.fillRect(MRPAD.left,MRPAD.top,W,yu-MRPAD.top);
+
+  // bars
+  const barW=Math.max(2*dpr,Math.min(18*dpr,W/n*0.5));
+  mr.forEach((v,i)=>{
+    const x=px(i),y=py(v),h2=py(0)-y;
+    const isHi=v>mruct;
+    const isH=pbcMrHov2===i;
+    const col=isHi?'#ef4444':'#4a7a9b';
+    ctx.fillStyle=col+(isH?'cc':'66'); ctx.fillRect(x-barW/2,y,barW,h2);
+    ctx.strokeStyle=col+(isH?'':'88'); ctx.lineWidth=1*dpr; ctx.setLineDash([]);
+    ctx.strokeRect(x-barW/2,y,barW,h2);
+  });
+
+  // dots on top of bars
+  mr.forEach((v,i)=>{
+    const x=px(i),y=py(v);
+    const isHi=v>mruct,isH=pbcMrHov2===i,col=isHi?'#ef4444':'#4a9ab8';
+    ctx.beginPath(); ctx.arc(x,y,isH?5*dpr:3.5*dpr,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+  });
+}
+
+// PBC X hover
+pbcXCanvas.addEventListener('mousemove',e=>{
+  const pts=getPbcData(); const{mean,ucl,lcl,mr,mrmean,mruct}=calcXmR(pts);
+  const sigs=detectSignals(pts,mean,ucl,lcl);
+  const rect=pbcXCanvas.getBoundingClientRect(),mx=(e.clientX-rect.left)*dpr,my=(e.clientY-rect.top)*dpr;
+  const W=pbcXCanvas.width-XPAD.left-XPAD.right,H=pbcXCanvas.height-XPAD.top-XPAD.bottom;
+  const n=pts.length; if(!n)return;
+  function px(i){return XPAD.left+(i/(n-1||1))*W;}
+  function py(v){const maxV=Math.max(...pts.map(p=>p.lt),ucl)*1.12;return XPAD.top+(1-v/maxV)*H;}
+  let found=null,minD=20*dpr;
+  pts.forEach((p,i)=>{const x=px(i),y=py(p.lt),d=Math.hypot(mx-x,my-y);if(d<minD){minD=d;found=i;}});
+  if(found!==null){
+    const p=pts[found],col=COLOR[p.size];
+    const isUCL=p.lt>ucl||p.lt<lcl;
+    tt.style.display='block';
+    tt.innerHTML=`<div class="tt-name">${p.task}</div><hr>
+      <div class="tt-row"><span class="tt-k">Lead Time</span><span class="tt-v" style="color:${isUCL?'#ef4444':col}">${p.lt}d</span></div>
+      <div class="tt-row"><span class="tt-k">Seq #</span><span class="tt-v">#${found+1}</span></div>
+      <div class="tt-row"><span class="tt-k">Zamknięto</span><span class="tt-v">${p.closed}</span></div>
+      <div class="tt-row"><span class="tt-k">X̄</span><span class="tt-v">${mean.toFixed(1)}d</span></div>
+      <div class="tt-row"><span class="tt-k">UCL / LCL</span><span class="tt-v">${ucl.toFixed(1)}d / ${lcl.toFixed(1)}d</span></div>
+      <div><span class="tt-badge" style="background:${col}22;color:${col}">${p.size}</span>${isUCL?`<span class="tt-badge" style="background:#ef444422;color:#ef4444;margin-left:6px">⚠ SYGNAŁ</span>`:''}</div>`;
+    let lx=e.clientX+16,ly=e.clientY-10;
+    if(lx+340>window.innerWidth)lx=e.clientX-356; if(ly+220>window.innerHeight)ly=e.clientY-225;
+    tt.style.left=lx+'px'; tt.style.top=ly+'px'; pbcXCanvas.style.cursor='default';
+    if(pbcXHov!==found){pbcXHov=found;drawPbcX(pts,mean,ucl,lcl,sigs);}
   } else {
     tt.style.display='none';
-    canvas.style.cursor='crosshair';
-    if(hov!==null){hov=null;draw();}
+    if(pbcXHov!==null){pbcXHov=null;const{mean,ucl,lcl,mr,mrmean,mruct}=calcXmR(pts);drawPbcX(pts,mean,ucl,lcl,detectSignals(pts,mean,ucl,lcl));}
   }
 });
+pbcXCanvas.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(pbcXHov!==null){pbcXHov=null;pbcRefresh();} });
 
-canvas.addEventListener('mouseleave',()=>{
-  tt.style.display='none';
-  if(hov!==null){hov=null;draw();}
-});
-
-canvas.addEventListener('click',e=>{
-  const rect=canvas.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*dpr, my=(e.clientY-rect.top)*dpr;
-  const found=hitTest(mx,my);
+// mR hover
+pbcMrCanvas.addEventListener('mousemove',e=>{
+  const pts=getPbcData();const{mean,ucl,lcl,mr,mrmean,mruct}=calcXmR(pts);
+  const rect=pbcMrCanvas.getBoundingClientRect(),mx=(e.clientX-rect.left)*dpr,my=(e.clientY-rect.top)*dpr;
+  const W=pbcMrCanvas.width-MRPAD.left-MRPAD.right,n=mr.length;if(!n)return;
+  function px(i){return MRPAD.left+(i/(n-1||1))*W;}
+  let found=null,minD=22*dpr;
+  mr.forEach((v,i)=>{const x=px(i),d=Math.abs(mx-x);if(d<minD){minD=d;found=i;}});
   if(found!==null){
-    DATA[found].removed=true;
-    hov=null; tt.style.display='none';
-    refresh();
+    const p1=pts[found],p2=pts[found+1],v=mr[found];
+    tt.style.display='block';
+    tt.innerHTML=`<div class="tt-name">mR #${found+1}</div><hr>
+      <div class="tt-row"><span class="tt-k">|ΔLT|</span><span class="tt-v" style="color:${v>mruct?'#ef4444':'#4a9ab8'}">${v}d</span></div>
+      <div class="tt-row"><span class="tt-k">Od</span><span class="tt-v">${p1.task.slice(0,28)}…</span></div>
+      <div class="tt-row"><span class="tt-k">Do</span><span class="tt-v">${p2.task.slice(0,28)}…</span></div>
+      <div class="tt-row"><span class="tt-k">mR̄ / UCL</span><span class="tt-v">${mrmean.toFixed(1)}d / ${mruct.toFixed(1)}d</span></div>
+      ${v>mruct?'<div class="tt-hint">⚠ Powyżej UCL(mR)</div>':''}`;
+    let lx=e.clientX+16,ly=e.clientY-10;
+    if(lx+340>window.innerWidth)lx=e.clientX-356;if(ly+180>window.innerHeight)ly=e.clientY-185;
+    tt.style.left=lx+'px';tt.style.top=ly+'px';
+    if(pbcMrHov2!==found){pbcMrHov2=found;drawPbcMr(pts,mr,mrmean,mruct,detectSignals(pts,mean,ucl,lcl));}
+  } else {
+    tt.style.display='none';
+    if(pbcMrHov2!==null){pbcMrHov2=null;drawPbcMr(pts,mr,mrmean,mruct,detectSignals(pts,mean,ucl,lcl));}
   }
 });
+pbcMrCanvas.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(pbcMrHov2!==null){pbcMrHov2=null;pbcRefresh();} });
 
-window.addEventListener('resize',resize);
-resize();
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+window.addEventListener('resize',()=>{ scatterResize(); pbcResize(); });
+scatterResize();
+pbcResize();
 refresh();
 </script>
 </body>
