@@ -22,13 +22,14 @@
     --p50:     #facc15;
     --p85:     #fb923c;
     --p95:     #f87171;
+    --accent:  #6366f1;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: 'JetBrains Mono', monospace;
-    padding: 36px 44px 52px;
+    padding: 36px 44px 60px;
     min-height: 100vh;
   }
   body::before {
@@ -38,59 +39,111 @@
       linear-gradient(var(--border) 1px, transparent 1px),
       linear-gradient(90deg, var(--border) 1px, transparent 1px);
     background-size: 44px 44px;
-    opacity: 0.4;
+    opacity: 0.35;
     pointer-events: none;
   }
   .page { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; }
 
-  .header { margin-bottom: 28px; }
+  /* ── HEADER ── */
+  .header { margin-bottom: 24px; }
   .eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
   h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--hi); letter-spacing: -0.02em; }
   .sub { font-size: 0.68rem; color: var(--dim); margin-top: 4px; letter-spacing: 0.06em; }
 
-  /* stats */
-  .stats { display: flex; gap: 1px; margin-bottom: 24px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--border); }
-  .stat { flex: 1; background: var(--surface); padding: 13px 16px; }
-  .stat-lbl { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--dim); margin-bottom: 5px; }
-  .stat-val { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; line-height: 1; }
-  .stat-sub { font-size: 0.59rem; color: var(--mid); margin-top: 3px; }
-  .stat.dynamic .stat-val { transition: color .3s; }
+  /* ── STATS ── */
+  .stats { display: flex; gap: 1px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--border); }
+  .stat { flex: 1; background: var(--surface); padding: 12px 15px; }
+  .stat-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--dim); margin-bottom: 5px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; line-height: 1; }
+  .stat-sub { font-size: 0.58rem; color: var(--mid); margin-top: 3px; }
 
-  /* legend */
-  .legend { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
-  .leg-grp { display: flex; gap: 14px; align-items: center; }
-  .leg-lbl { font-size: 0.57rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--dim); }
-  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.66rem; color: var(--mid); }
-  .leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .leg-grp { display: flex; gap: 12px; align-items: center; }
+  .leg-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 0.13em; color: var(--dim); }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.65rem; color: var(--mid); }
+  .leg-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
   .leg-sep { width: 1px; height: 18px; background: var(--border); }
-  .perc-item { display: flex; align-items: center; gap: 7px; font-size: 0.66rem; color: var(--mid); }
+  .perc-item { display: flex; align-items: center; gap: 7px; font-size: 0.65rem; color: var(--mid); }
   .perc-dash { width: 20px; border-top: 2px dashed; }
 
-  /* instruction banner */
+  /* ── TOOLBAR (filter + add) ── */
+  .toolbar {
+    display: flex; gap: 12px; align-items: stretch; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  /* date filter */
+  .filter-box {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden; flex: 1; min-width: 340px;
+  }
+  .filter-label {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--dim); padding: 0 14px; white-space: nowrap;
+    border-right: 1px solid var(--border);
+    display: flex; align-items: center; height: 100%;
+  }
+  .filter-btns { display: flex; flex: 1; }
+  .fbtn {
+    flex: 1; background: transparent; border: none; border-right: 1px solid var(--border);
+    color: var(--mid); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; padding: 10px 6px; cursor: pointer;
+    transition: background .15s, color .15s; white-space: nowrap;
+  }
+  .fbtn:last-child { border-right: none; }
+  .fbtn:hover { background: var(--muted); color: var(--hi); }
+  .fbtn.active { background: #6366f120; color: #818cf8; }
+
+  /* add PBI button */
+  .add-btn {
+    display: flex; align-items: center; gap: 8px;
+    background: #6366f118; border: 1px solid #6366f140;
+    border-radius: 8px; padding: 10px 18px;
+    color: #818cf8; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; cursor: pointer; white-space: nowrap;
+    transition: background .2s, border-color .2s;
+    letter-spacing: 0.04em;
+  }
+  .add-btn:hover { background: #6366f128; border-color: #6366f170; color: #a5b4fc; }
+  .add-btn svg { flex-shrink: 0; }
+
+  /* ── BANNER ── */
   .banner {
     display: flex; align-items: center; gap: 10px;
     background: #1a2a1a; border: 1px solid #2a4a2a;
-    border-radius: 7px; padding: 10px 16px;
-    margin-bottom: 18px; font-size: 0.68rem; color: #6aaa6a;
+    border-radius: 7px; padding: 9px 15px;
+    margin-bottom: 16px; font-size: 0.66rem; color: #6aaa6a;
     letter-spacing: 0.04em;
   }
-  .banner svg { flex-shrink: 0; opacity: .7; }
   .banner b { color: #8acc8a; }
 
-  /* removed list */
-  .removed-section { margin-top: 20px; display: none; }
+  /* ── CHART CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 28px 20px;
+  }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3px; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text); }
+  .card-range { font-size: 0.62rem; color: var(--dim); letter-spacing: 0.04em; }
+  .card-desc { font-size: 0.61rem; color: var(--dim); letter-spacing: 0.05em; margin-bottom: 16px; }
+  canvas { display: block; cursor: crosshair; width: 100%; }
+
+  /* ── REMOVED SECTION ── */
+  .removed-section { margin-top: 18px; display: none; }
   .removed-section.visible { display: block; }
   .removed-header {
-    font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.14em;
-    color: var(--dim); margin-bottom: 10px;
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.14em;
+    color: var(--dim); margin-bottom: 9px;
     display: flex; align-items: center; gap: 12px;
   }
   .restore-all {
-    font-size: 0.62rem; letter-spacing: 0.06em;
+    font-size: 0.6rem; letter-spacing: 0.06em;
     color: #f97316; background: #f9731618; border: 1px solid #f9731630;
     border-radius: 5px; padding: 3px 10px; cursor: pointer;
-    transition: background .2s;
-    font-family: 'JetBrains Mono', monospace;
+    transition: background .2s; font-family: 'JetBrains Mono', monospace;
   }
   .restore-all:hover { background: #f9731630; }
   .removed-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -98,37 +151,78 @@
     display: flex; align-items: center; gap: 7px;
     background: var(--surface); border: 1px solid #ef444430;
     border-radius: 6px; padding: 5px 10px;
-    font-size: 0.65rem; color: var(--mid); cursor: pointer;
-    transition: border-color .2s, background .2s;
-    max-width: 320px;
+    font-size: 0.64rem; color: var(--mid); cursor: pointer;
+    transition: border-color .2s, background .2s; max-width: 320px;
   }
   .chip:hover { border-color: #ef4444aa; background: #ef444415; color: var(--hi); }
   .chip-lt { color: #ef4444; font-weight: 700; margin-left: 4px; }
-  .chip-restore { color: #ef444488; font-size: 0.7rem; }
-  .chip:hover .chip-restore { color: #ef4444; }
+  .chip-x { color: #ef444455; margin-left: 2px; }
+  .chip:hover .chip-x { color: #ef4444; }
 
-  /* chart */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px 32px 24px;
+  /* ── ADD PBI MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: #000000a0; backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
   }
-  .card-title { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
-  .card-desc  { font-size: 0.62rem; color: var(--dim); letter-spacing: 0.05em; margin-bottom: 18px; }
-  canvas { display: block; cursor: crosshair; width: 100%; }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #0d1520; border: 1px solid var(--muted);
+    border-radius: 14px; padding: 28px 32px; width: 480px; max-width: 95vw;
+    box-shadow: 0 24px 80px #00000090;
+    animation: modalIn .22s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(.96)translateY(8px)} to{opacity:1;transform:none} }
+  .modal-title {
+    font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800;
+    color: var(--hi); margin-bottom: 4px;
+  }
+  .modal-sub { font-size: 0.64rem; color: var(--dim); margin-bottom: 22px; letter-spacing: 0.04em; }
+  .field { margin-bottom: 16px; }
+  .field-label {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.13em;
+    color: var(--dim); margin-bottom: 6px; display: block;
+  }
+  .field input, .field select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 7px; padding: 10px 12px; color: var(--hi);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+    outline: none; transition: border-color .2s;
+  }
+  .field input:focus, .field select:focus { border-color: #6366f180; }
+  .field select option { background: #0d1520; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field-hint { font-size: 0.59rem; color: var(--dim); margin-top: 5px; }
+  .field-hint.computed { color: #818cf8; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+  .btn-cancel {
+    background: transparent; border: 1px solid var(--border); border-radius: 7px;
+    padding: 9px 18px; color: var(--mid); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  .btn-cancel:hover { border-color: var(--dim); color: var(--text); }
+  .btn-add {
+    background: #6366f125; border: 1px solid #6366f160; border-radius: 7px;
+    padding: 9px 22px; color: #a5b4fc; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; cursor: pointer; font-weight: 700;
+    transition: background .2s, border-color .2s;
+  }
+  .btn-add:hover { background: #6366f135; border-color: #6366f190; }
+  .btn-add:disabled { opacity: .4; cursor: not-allowed; }
+  .size-preview {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 5px; font-size: 0.65rem;
+    font-weight: 700; margin-top: 6px; letter-spacing: 0.06em;
+  }
 
-  /* tooltip */
+  /* ── TOOLTIP ── */
   #tt {
     position: fixed; z-index: 9999; pointer-events: none; display: none;
-    background: #0a1520f2;
-    border: 1px solid var(--muted);
+    background: #0a1520f2; border: 1px solid var(--muted);
     border-radius: 8px; padding: 12px 15px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.67rem; color: var(--text);
-    max-width: 340px; line-height: 1.7;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 12px 40px #00000070;
+    font-size: 0.67rem; color: var(--text); max-width: 340px; line-height: 1.7;
+    backdrop-filter: blur(10px); box-shadow: 0 12px 40px #00000070;
   }
   #tt .tt-name { font-size: 0.7rem; color: var(--hi); margin-bottom: 7px; line-height: 1.4; font-weight: 500; }
   #tt hr { border: none; border-top: 1px solid var(--border); margin: 7px 0; }
@@ -136,14 +230,15 @@
   #tt .tt-k { color: var(--dim); }
   #tt .tt-v { color: var(--hi); }
   #tt .tt-badge { display: inline-block; margin-top: 7px; padding: 2px 9px; border-radius: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; }
-  #tt .tt-hint { margin-top: 8px; font-size: 0.6rem; color: #ef444488; letter-spacing: 0.04em; }
-  #tt .tt-hint.removed-hint { color: #6aaa6a88; }
+  #tt .tt-hint { margin-top: 8px; font-size: 0.6rem; color: #ef444466; }
+  #tt .tt-new { margin-top: 4px; font-size: 0.59rem; color: #6366f188; }
 
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
   .stats   { animation: fadeUp .4s ease both .05s; }
   .legend  { animation: fadeUp .4s ease both .1s; }
-  .banner  { animation: fadeUp .4s ease both .15s; }
-  .card    { animation: fadeUp .4s ease both .2s; }
+  .toolbar { animation: fadeUp .4s ease both .14s; }
+  .banner  { animation: fadeUp .4s ease both .18s; }
+  .card    { animation: fadeUp .4s ease both .22s; }
 </style>
 </head>
 <body>
@@ -156,12 +251,13 @@
   </div>
 
   <div class="stats">
-    <div class="stat"><div class="stat-lbl">All Items</div><div class="stat-val" style="color:#93c5fd" id="s-total">42</div><div class="stat-sub">visible</div></div>
+    <div class="stat"><div class="stat-lbl">Visible</div><div class="stat-val" style="color:#93c5fd" id="s-total">42</div><div class="stat-sub">in range</div></div>
     <div class="stat"><div class="stat-lbl">Medium P50</div><div class="stat-val" style="color:var(--p50)" id="s-p50">32.5d</div><div class="stat-sub">50% done by</div></div>
     <div class="stat"><div class="stat-lbl">Medium P85</div><div class="stat-val" style="color:var(--p85)" id="s-p85">41.9d</div><div class="stat-sub">85% done by</div></div>
     <div class="stat"><div class="stat-lbl">Medium P95</div><div class="stat-val" style="color:var(--p95)" id="s-p95">45.0d</div><div class="stat-sub">95% done by</div></div>
-    <div class="stat"><div class="stat-lbl">Medium Items</div><div class="stat-val" style="color:var(--medium)" id="s-med">18</div><div class="stat-sub">in percentile calc</div></div>
-    <div class="stat"><div class="stat-lbl">Removed</div><div class="stat-val" style="color:#ef4444" id="s-rem">0</div><div class="stat-sub">excluded outliers</div></div>
+    <div class="stat"><div class="stat-lbl">Medium</div><div class="stat-val" style="color:var(--medium)" id="s-med">18</div><div class="stat-sub">in calc</div></div>
+    <div class="stat"><div class="stat-lbl">Removed</div><div class="stat-val" style="color:#ef4444" id="s-rem">0</div><div class="stat-sub">outliers</div></div>
+    <div class="stat"><div class="stat-lbl">Added</div><div class="stat-val" style="color:#818cf8" id="s-add">0</div><div class="stat-sub">new PBIs</div></div>
   </div>
 
   <div class="legend">
@@ -180,84 +276,189 @@
     </div>
   </div>
 
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="filter-box">
+      <div class="filter-label">📅 Last</div>
+      <div class="filter-btns">
+        <button class="fbtn" data-days="10"  onclick="setFilter(10)">10 dni</button>
+        <button class="fbtn" data-days="20"  onclick="setFilter(20)">20 dni</button>
+        <button class="fbtn" data-days="30"  onclick="setFilter(30)">30 dni</button>
+        <button class="fbtn" data-days="40"  onclick="setFilter(40)">40 dni</button>
+        <button class="fbtn" data-days="50"  onclick="setFilter(50)">50 dni</button>
+        <button class="fbtn" data-days="60"  onclick="setFilter(60)">60 dni</button>
+        <button class="fbtn active" data-days="0" onclick="setFilter(0)">Wszystkie</button>
+      </div>
+    </div>
+    <button class="add-btn" onclick="openModal()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="6" stroke="#818cf8" stroke-width="1.3"/>
+        <path d="M7 4v6M4 7h6" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Dodaj PBI
+    </button>
+  </div>
+
   <div class="banner">
-    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6.5" stroke="#6aaa6a" stroke-width="1.2"/><path d="M7.5 4.5v4M7.5 10.5v.5" stroke="#6aaa6a" stroke-width="1.4" stroke-linecap="round"/></svg>
-    <span><b>Click any dot</b> to remove it as an outlier. Percentile lines recalculate live. <b>Click a removed chip below</b> to restore it.</span>
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#6aaa6a" stroke-width="1.2"/><path d="M7 4v4M7 10v.4" stroke="#6aaa6a" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <span><b>Kliknij kropkę</b> aby usunąć jako outlier · <b>Filtry</b> zawężają widok X do ostatnich N dni · <b>Percentyle</b> przeliczają się live dla widocznych Medium</span>
   </div>
 
   <div class="card">
-    <div class="card-title">Closed Date vs Lead Time</div>
-    <div class="card-desc">Each dot = one work item · Dashed lines = P50 / P85 / P95 computed from visible <span style="color:var(--medium)">Medium</span> items only</div>
+    <div class="card-header">
+      <div class="card-title">Closed Date vs Lead Time</div>
+      <div class="card-range" id="range-label">Zakres: wszystkie daty</div>
+    </div>
+    <div class="card-desc">Każda kropka = jeden element · Przerywane linie = P50 / P85 / P95 tylko dla widocznych <span style="color:var(--medium)">Medium</span></div>
     <canvas id="chart"></canvas>
   </div>
 
   <div class="removed-section" id="removed-section">
     <div class="removed-header">
-      <span>Removed outliers</span>
-      <button class="restore-all" onclick="restoreAll()">↩ Restore all</button>
+      <span>Usunięte outliery</span>
+      <button class="restore-all" onclick="restoreAll()">↩ Przywróć wszystkie</button>
     </div>
     <div class="removed-chips" id="removed-chips"></div>
   </div>
 
+</div><!-- /page -->
+
+<!-- ADD PBI MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title">Dodaj nowe PBI</div>
+    <div class="modal-sub">Nowy element zostanie naniesiony na wykres i uwzględniony w percentylach</div>
+
+    <div class="field">
+      <label class="field-label">Nazwa zadania *</label>
+      <input type="text" id="f-task" placeholder="np. Nowa funkcja rozliczeń…" oninput="validateForm()">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label">Data rozpoczęcia *</label>
+        <input type="date" id="f-start" oninput="computeLT()">
+      </div>
+      <div class="field">
+        <label class="field-label">Data zamknięcia *</label>
+        <input type="date" id="f-closed" oninput="computeLT()">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">Lead Time</label>
+      <div id="lt-preview" style="font-size:0.8rem;color:var(--dim);padding:4px 0">— wprowadź obie daty</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="btn-add" id="btn-add-submit" disabled onclick="addPBI()">✚ Dodaj do wykresu</button>
+    </div>
+  </div>
 </div>
+
 <div id="tt"></div>
 
 <script>
+// ─────────────────────────────────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────────────────────────────────
 const RAW = [
-  {task:"Kopiowanie schematów v etykiety w laboratorium",type:"PBI",lt:147,size:"Large",start:"2025-08-13",closed:"2026-01-07"},
-  {task:"Biuro GT: problem z podłączaniem bazy danych",type:"PBI",lt:28,size:"Medium",start:"2025-12-10",closed:"2026-01-07"},
-  {task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - wydruk",type:"PBI",lt:28,size:"Medium",start:"2025-12-08",closed:"2026-01-05"},
-  {task:"Dodanie kolumny na wartość sprzedaży w module operacje na środkach trwałych KPIR i Rew",type:"PBI",lt:45,size:"Medium",start:"2025-11-25",closed:"2026-01-09"},
-  {task:"Odkrycie schematów OCR i KSeF i dodanie kolumny Typ schematu i Etykiety",type:"PBI",lt:99,size:"Large",start:"2025-10-02",closed:"2026-01-09"},
-  {task:"Nazwy filtrów po nowemu w Biurze GT",type:"PBI",lt:89,size:"Large",start:"2025-10-08",closed:"2026-01-05"},
-  {task:"Pomoc Biuro GT - Operacje na deklaracjach skarbowych - aktualizacja",type:"PBI",lt:148,size:"Large",start:"2025-08-14",closed:"2026-01-09"},
-  {task:"[Biuro GT] Biuro 1.25 wymaga GT w wersji 1.85 lub wyższej",type:"PBI",lt:11,size:"Small",start:"2025-12-19",closed:"2025-12-30"},
-  {task:"Biuro GT błąd podczas zakładania blokady",type:"PBI",lt:15,size:"Medium",start:"2025-12-16",closed:"2025-12-31"},
-  {task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - silnik",type:"PBI",lt:34,size:"Medium",start:"2025-12-02",closed:"2026-01-05"},
-  {task:"[INS-25884410] Kopiowanie schematów importu Biurem z GT 86",type:"Bug",lt:8,size:"Small",start:"2025-12-22",closed:"2025-12-30"},
-  {task:"Problem z sortowaniem w ewidencji sprzedaży - kolumna Kontrahent",type:"Bug",lt:6,size:"Small",start:"2025-12-23",closed:"2025-12-29"},
-  {task:"[Biuro GT] Biuro 1.25 nie działa z GT 1.85 HF2",type:"Bug",lt:12,size:"Small",start:"2025-12-18",closed:"2025-12-30"},
-  {task:"Generowanie deklaracji z Biura 1.25 nie działa, gdy deklaracje wymagają uprawnień do 1.87",type:"Bug",lt:3,size:"Small",start:"2026-01-05",closed:"2026-01-08"},
-  {task:"Nowy wydruk KPIR + zmiana nazwy starych",type:"PBI",lt:24,size:"Medium",start:"2025-10-28",closed:"2025-11-21"},
-  {task:"[INS-26260468] Zła kolejność zapisów - wydruk EP do 2025",type:"Bug",lt:9,size:"Small",start:"2026-01-12",closed:"2026-01-21"},
-  {task:"[INS-26914144] KPiR, a identyfikator podatkowy kontrahenta",type:"PBI",lt:8,size:"Small",start:"2026-01-13",closed:"2026-01-21"},
-  {task:"[MERGE] Problem z sortowaniem w ewidencji sprzedaży - Kontrahent",type:"Bug",lt:31,size:"Medium",start:"2025-12-23",closed:"2026-01-23"},
-  {task:"[Merge z 1.86] PIT-28(27) - wysyłka - zwrotki",type:"PBI",lt:43,size:"Medium",start:"2025-12-11",closed:"2026-01-23"},
-  {task:"Copyright biuro GT 1.25",type:"PBI",lt:1,size:"Small",start:"2026-01-14",closed:"2026-01-15"},
-  {task:"Dodanie kolumny i filtrów na status KSeF i forma faktury",type:"PBI",lt:37,size:"Medium",start:"2025-12-17",closed:"2026-01-23"},
-  {task:"Dodanie ostrzeżenia - kwota korekty ze sprzedaży środków trwałych",type:"PBI",lt:16,size:"Medium",start:"2026-01-07",closed:"2026-01-23"},
-  {task:"FA(3) Księgowanie ręczne EP",type:"PBI",lt:34,size:"Medium",start:"2025-12-16",closed:"2026-01-19"},
-  {task:"FA(3) Księgowanie ręczne KPIR",type:"PBI",lt:13,size:"Small",start:"2026-01-07",closed:"2026-01-20"},
-  {task:"FA(3) vs SI - EP",type:"PBI",lt:7,size:"Small",start:"2026-01-13",closed:"2026-01-20"},
-  {task:"FA(3) vs SI - KPIR",type:"PBI",lt:13,size:"Small",start:"2026-01-07",closed:"2026-01-20"},
-  {task:"FA(3) vs Tworzenie rozrachunku - dekret",type:"PBI",lt:22,size:"Medium",start:"2025-12-31",closed:"2026-01-22"},
-  {task:"FA(3) vs tworzenie rozrachunku - rach",type:"PBI",lt:8,size:"Small",start:"2026-01-12",closed:"2026-01-20"},
-  {task:"Kopiowanie schematów v etykiety",type:"PBI",lt:103,size:"Large",start:"2025-10-02",closed:"2026-01-13"},
-  {task:"Kopiowanie schematów v kategoria",type:"PBI",lt:103,size:"Large",start:"2025-10-02",closed:"2026-01-13"},
-  {task:"Kopiowanie schematów v kontrahent",type:"PBI",lt:103,size:"Large",start:"2025-10-02",closed:"2026-01-13"},
-  {task:"Kopiowanie, aktualizowanie, usuwanie schematów OCR i KSeF",type:"PBI",lt:102,size:"Large",start:"2025-10-02",closed:"2026-01-12"},
-  {task:"Kreator zmiany KPiR wyskakuje przy operacjach z Biura",type:"PBI",lt:8,size:"Small",start:"2026-01-15",closed:"2026-01-23"},
-  {task:"NR KSEF z dokumentu SP przepisuje się do wpisu KPIR",type:"PBI",lt:45,size:"Medium",start:"2025-12-02",closed:"2026-01-16"},
-  {task:"Odblokowanie pola wartość sprzedaży w dokumencie LT i SP",type:"PBI",lt:36,size:"Medium",start:"2025-12-10",closed:"2026-01-15"},
-  {task:"Okno naliczenia składki rocznej",type:"PBI",lt:26,size:"Medium",start:"2025-12-18",closed:"2026-01-13"},
-  {task:"Poprawa formuły - Podstawa składki zdrowotnej Ryczałt - miesięczna",type:"PBI",lt:36,size:"Medium",start:"2025-12-09",closed:"2026-01-14"},
-  {task:"Rachmistrz - poprawa odwołania ID dokumentu ksef",type:"Bug",lt:41,size:"Medium",start:"2025-12-12",closed:"2026-01-22"},
-  {task:"Roczna składka zdrowotna (skala/liniowy) - silnik",type:"PBI",lt:24,size:"Medium",start:"2025-12-23",closed:"2026-01-16"},
-  {task:"Wycofanie obowiązku wypełnienia pola Opis",type:"PBI",lt:3,size:"Small",start:"2026-01-12",closed:"2026-01-15"},
-  {task:"Zbiorczy parametr na ustawienia pobierania KSEF",type:"PBI",lt:109,size:"Large",start:"2025-09-26",closed:"2026-01-13"},
-  {task:"Zbiorczy parametr OCR w biurze GT",type:"PBI",lt:82,size:"Large",start:"2025-10-22",closed:"2026-01-12"},
+  {task:"Kopiowanie schematów v etykiety w laboratorium",type:"PBI",lt:147,start:"2025-08-13",closed:"2026-01-07"},
+  {task:"Biuro GT: problem z podłączaniem bazy danych",type:"PBI",lt:28,start:"2025-12-10",closed:"2026-01-07"},
+  {task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - wydruk",type:"PBI",lt:28,start:"2025-12-08",closed:"2026-01-05"},
+  {task:"Dodanie kolumny na wartość sprzedaży w module operacje na środkach trwałych KPIR i Rew",type:"PBI",lt:45,start:"2025-11-25",closed:"2026-01-09"},
+  {task:"Odkrycie schematów OCR i KSeF i dodanie kolumny Typ schematu i Etykiety",type:"PBI",lt:99,start:"2025-10-02",closed:"2026-01-09"},
+  {task:"Nazwy filtrów po nowemu w Biurze GT",type:"PBI",lt:89,start:"2025-10-08",closed:"2026-01-05"},
+  {task:"Pomoc Biuro GT - Operacje na deklaracjach skarbowych - aktualizacja",type:"PBI",lt:148,start:"2025-08-14",closed:"2026-01-09"},
+  {task:"[Biuro GT] Biuro 1.25 wymaga GT w wersji 1.85 lub wyższej",type:"PBI",lt:11,start:"2025-12-19",closed:"2025-12-30"},
+  {task:"Biuro GT błąd podczas zakładania blokady",type:"PBI",lt:15,start:"2025-12-16",closed:"2025-12-31"},
+  {task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - silnik",type:"PBI",lt:34,start:"2025-12-02",closed:"2026-01-05"},
+  {task:"[INS-25884410] Kopiowanie schematów importu Biurem z GT 86",type:"Bug",lt:8,start:"2025-12-22",closed:"2025-12-30"},
+  {task:"Problem z sortowaniem w ewidencji sprzedaży - kolumna Kontrahent",type:"Bug",lt:6,start:"2025-12-23",closed:"2025-12-29"},
+  {task:"[Biuro GT] Biuro 1.25 nie działa z GT 1.85 HF2",type:"Bug",lt:12,start:"2025-12-18",closed:"2025-12-30"},
+  {task:"Generowanie deklaracji z Biura 1.25 nie działa, gdy deklaracje wymagają uprawnień do 1.87",type:"Bug",lt:3,start:"2026-01-05",closed:"2026-01-08"},
+  {task:"Nowy wydruk KPIR + zmiana nazwy starych",type:"PBI",lt:24,start:"2025-10-28",closed:"2025-11-21"},
+  {task:"[INS-26260468] Zła kolejność zapisów - wydruk EP do 2025",type:"Bug",lt:9,start:"2026-01-12",closed:"2026-01-21"},
+  {task:"[INS-26914144] KPiR, a identyfikator podatkowy kontrahenta",type:"PBI",lt:8,start:"2026-01-13",closed:"2026-01-21"},
+  {task:"[MERGE] Problem z sortowaniem w ewidencji sprzedaży - Kontrahent",type:"Bug",lt:31,start:"2025-12-23",closed:"2026-01-23"},
+  {task:"[Merge z 1.86] PIT-28(27) - wysyłka - zwrotki",type:"PBI",lt:43,start:"2025-12-11",closed:"2026-01-23"},
+  {task:"Copyright biuro GT 1.25",type:"PBI",lt:1,start:"2026-01-14",closed:"2026-01-15"},
+  {task:"Dodanie kolumny i filtrów na status KSeF i forma faktury",type:"PBI",lt:37,start:"2025-12-17",closed:"2026-01-23"},
+  {task:"Dodanie ostrzeżenia - kwota korekty ze sprzedaży środków trwałych",type:"PBI",lt:16,start:"2026-01-07",closed:"2026-01-23"},
+  {task:"FA(3) Księgowanie ręczne EP",type:"PBI",lt:34,start:"2025-12-16",closed:"2026-01-19"},
+  {task:"FA(3) Księgowanie ręczne KPIR",type:"PBI",lt:13,start:"2026-01-07",closed:"2026-01-20"},
+  {task:"FA(3) vs SI - EP",type:"PBI",lt:7,start:"2026-01-13",closed:"2026-01-20"},
+  {task:"FA(3) vs SI - KPIR",type:"PBI",lt:13,start:"2026-01-07",closed:"2026-01-20"},
+  {task:"FA(3) vs Tworzenie rozrachunku - dekret",type:"PBI",lt:22,start:"2025-12-31",closed:"2026-01-22"},
+  {task:"FA(3) vs tworzenie rozrachunku - rach",type:"PBI",lt:8,start:"2026-01-12",closed:"2026-01-20"},
+  {task:"Kopiowanie schematów v etykiety",type:"PBI",lt:103,start:"2025-10-02",closed:"2026-01-13"},
+  {task:"Kopiowanie schematów v kategoria",type:"PBI",lt:103,start:"2025-10-02",closed:"2026-01-13"},
+  {task:"Kopiowanie schematów v kontrahent",type:"PBI",lt:103,start:"2025-10-02",closed:"2026-01-13"},
+  {task:"Kopiowanie, aktualizowanie, usuwanie schematów OCR i KSeF",type:"PBI",lt:102,start:"2025-10-02",closed:"2026-01-12"},
+  {task:"Kreator zmiany KPiR wyskakuje przy operacjach z Biura",type:"PBI",lt:8,start:"2026-01-15",closed:"2026-01-23"},
+  {task:"NR KSEF z dokumentu SP przepisuje się do wpisu KPIR",type:"PBI",lt:45,start:"2025-12-02",closed:"2026-01-16"},
+  {task:"Odblokowanie pola wartość sprzedaży w dokumencie LT i SP",type:"PBI",lt:36,start:"2025-12-10",closed:"2026-01-15"},
+  {task:"Okno naliczenia składki rocznej",type:"PBI",lt:26,start:"2025-12-18",closed:"2026-01-13"},
+  {task:"Poprawa formuły - Podstawa składki zdrowotnej Ryczałt - miesięczna",type:"PBI",lt:36,start:"2025-12-09",closed:"2026-01-14"},
+  {task:"Rachmistrz - poprawa odwołania ID dokumentu ksef",type:"Bug",lt:41,start:"2025-12-12",closed:"2026-01-22"},
+  {task:"Roczna składka zdrowotna (skala/liniowy) - silnik",type:"PBI",lt:24,start:"2025-12-23",closed:"2026-01-16"},
+  {task:"Wycofanie obowiązku wypełnienia pola Opis",type:"PBI",lt:3,start:"2026-01-12",closed:"2026-01-15"},
+  {task:"Zbiorczy parametr na ustawienia pobierania KSEF",type:"PBI",lt:109,start:"2025-09-26",closed:"2026-01-13"},
+  {task:"Zbiorczy parametr OCR w biurze GT",type:"PBI",lt:82,start:"2025-10-22",closed:"2026-01-12"},
 ];
 
-// State
-const DATA = RAW.map((d, i) => ({ ...d, id: i, closedDate: new Date(d.closed + 'T00:00:00'), removed: false }));
+function classify(lt) {
+  if (lt <= 14) return 'Small';
+  if (lt <= 59) return 'Medium';
+  return 'Large';
+}
+
+const DATA = RAW.map((d, i) => ({
+  ...d,
+  id: i,
+  size: classify(d.lt),
+  closedDate: new Date(d.closed + 'T00:00:00'),
+  removed: false,
+  isNew: false,
+}));
+
 const COLOR = { Small:'#34d058', Medium:'#f97316', Large:'#ef4444' };
 
-const canvas = document.getElementById('chart');
-const dpr = window.devicePixelRatio || 1;
-const PAD = { top:20, right:100, bottom:64, left:66 };
+// ─────────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────────
+let filterDays = 0;   // 0 = all
 let hov = null;
 
-// ── Percentile helpers ────────────────────────────────────────────
+// Compute the global max closed date across ALL data (including added)
+function getMaxDate() {
+  return DATA.reduce((mx, d) => d.closedDate > mx ? d.closedDate : mx, DATA[0].closedDate);
+}
+
+// Date window for current filter
+function getDateWindow() {
+  const maxDate = getMaxDate();
+  const padEnd   = new Date(maxDate); padEnd.setDate(padEnd.getDate() + 3);
+  if (filterDays === 0) {
+    const padStart = new Date('2025-11-10');
+    return { start: padStart, end: padEnd };
+  }
+  const start = new Date(maxDate);
+  start.setDate(start.getDate() - filterDays + 1 - 3);
+  return { start, end: padEnd };
+}
+
+// Is a data point visible in current date window (and not removed)?
+function isVisible(d) {
+  if (d.removed) return false;
+  const { start, end } = getDateWindow();
+  return d.closedDate >= start && d.closedDate <= end;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  PERCENTILES
+// ─────────────────────────────────────────────────────────────────────
 function pct(arr, p) {
   if (!arr.length) return 0;
   const s = [...arr].sort((a, b) => a - b);
@@ -267,47 +468,47 @@ function pct(arr, p) {
 }
 
 function getMediumPercentiles() {
-  const vals = DATA.filter(d => d.size === 'Medium' && !d.removed).map(d => d.lt);
-  return {
-    p50: pct(vals, 50),
-    p85: pct(vals, 85),
-    p95: pct(vals, 95),
-    count: vals.length,
-  };
+  const vals = DATA.filter(d => isVisible(d) && d.size === 'Medium').map(d => d.lt);
+  return { p50: pct(vals, 50), p85: pct(vals, 85), p95: pct(vals, 95), count: vals.length };
 }
 
-// ── Stats update ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
+//  STATS + REMOVED UI
+// ─────────────────────────────────────────────────────────────────────
 function updateStats() {
   const { p50, p85, p95, count } = getMediumPercentiles();
   const removed = DATA.filter(d => d.removed).length;
-  const visible = DATA.filter(d => !d.removed).length;
+  const visible = DATA.filter(d => isVisible(d)).length;
+  const added   = DATA.filter(d => d.isNew).length;
   document.getElementById('s-total').textContent = visible;
-  document.getElementById('s-p50').textContent  = p50.toFixed(1) + 'd';
-  document.getElementById('s-p85').textContent  = p85.toFixed(1) + 'd';
-  document.getElementById('s-p95').textContent  = p95.toFixed(1) + 'd';
-  document.getElementById('s-med').textContent  = count;
-  document.getElementById('s-rem').textContent  = removed;
+  document.getElementById('s-p50').textContent   = p50.toFixed(1) + 'd';
+  document.getElementById('s-p85').textContent   = p85.toFixed(1) + 'd';
+  document.getElementById('s-p95').textContent   = p95.toFixed(1) + 'd';
+  document.getElementById('s-med').textContent   = count;
+  document.getElementById('s-rem').textContent   = removed;
+  document.getElementById('s-add').textContent   = added;
+
+  const { start, end } = getDateWindow();
+  const fmt = d => d.toLocaleDateString('pl-PL', { day:'2-digit', month:'short', year:'numeric' });
+  document.getElementById('range-label').textContent =
+    filterDays === 0 ? 'Zakres: wszystkie daty' : `Zakres: ${fmt(start)} – ${fmt(end)}`;
 }
 
-// ── Removed chips ─────────────────────────────────────────────────
 function updateRemovedUI() {
   const removed = DATA.filter(d => d.removed);
-  const sec  = document.getElementById('removed-section');
+  const sec = document.getElementById('removed-section');
   const chips = document.getElementById('removed-chips');
-  if (removed.length === 0) { sec.classList.remove('visible'); return; }
+  if (!removed.length) { sec.classList.remove('visible'); return; }
   sec.classList.add('visible');
   chips.innerHTML = '';
   removed.forEach(d => {
     const col = COLOR[d.size];
     const chip = document.createElement('div');
     chip.className = 'chip';
-    chip.title = 'Click to restore';
-    chip.innerHTML = `
-      <div class="leg-dot" style="background:${col};width:8px;height:8px;border-radius:50%;flex-shrink:0"></div>
-      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px">${d.task}</span>
-      <span class="chip-lt">${d.lt}d</span>
-      <span class="chip-restore">↩</span>`;
-    chip.addEventListener('click', () => { d.removed = false; refresh(); });
+    chip.innerHTML = `<div class="leg-dot" style="background:${col}"></div>
+      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${d.task}</span>
+      <span class="chip-lt">${d.lt}d</span><span class="chip-x">↩</span>`;
+    chip.onclick = () => { d.removed = false; refresh(); };
     chips.appendChild(chip);
   });
 }
@@ -317,40 +518,127 @@ function restoreAll() {
   refresh();
 }
 
-function refresh() {
-  updateStats();
-  updateRemovedUI();
-  draw();
+function refresh() { updateStats(); updateRemovedUI(); draw(); }
+
+// ─────────────────────────────────────────────────────────────────────
+//  FILTER
+// ─────────────────────────────────────────────────────────────────────
+function setFilter(days) {
+  filterDays = days;
+  document.querySelectorAll('.fbtn').forEach(b => {
+    b.classList.toggle('active', +b.dataset.days === days);
+  });
+  hov = null;
+  refresh();
 }
 
-// ── Canvas helpers ────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  // default dates: today as closed, 14 days before as start
+  const today = new Date();
+  const prior = new Date(today); prior.setDate(prior.getDate() - 14);
+  document.getElementById('f-closed').value = today.toISOString().slice(0,10);
+  document.getElementById('f-start').value  = prior.toISOString().slice(0,10);
+  document.getElementById('f-task').value   = '';
+  computeLT();
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id === 'modal-overlay') closeModal(); }
+
+function computeLT() {
+  const s = document.getElementById('f-start').value;
+  const c = document.getElementById('f-closed').value;
+  const preview = document.getElementById('lt-preview');
+  if (s && c) {
+    const diff = Math.round((new Date(c) - new Date(s)) / 86400000);
+    if (diff < 0) {
+      preview.innerHTML = `<span style="color:#ef4444">⚠ Data zamknięcia przed datą startu</span>`;
+      document.getElementById('btn-add-submit').disabled = true;
+    } else {
+      const sz = classify(diff);
+      const col = COLOR[sz];
+      preview.innerHTML = `<b style="color:${col};font-size:1rem">${diff} dni</b>
+        <span class="size-preview" style="background:${col}20;color:${col}">${sz}</span>`;
+      validateForm();
+    }
+  } else {
+    preview.innerHTML = `<span style="color:var(--dim)">— wprowadź obie daty</span>`;
+    document.getElementById('btn-add-submit').disabled = true;
+  }
+}
+
+function validateForm() {
+  const task = document.getElementById('f-task').value.trim();
+  const s    = document.getElementById('f-start').value;
+  const c    = document.getElementById('f-closed').value;
+  const ok   = task.length > 0 && s && c && (new Date(c) >= new Date(s));
+  document.getElementById('btn-add-submit').disabled = !ok;
+}
+
+function addPBI() {
+  const task   = document.getElementById('f-task').value.trim();
+  const start  = document.getElementById('f-start').value;
+  const closed = document.getElementById('f-closed').value;
+  const lt     = Math.round((new Date(closed) - new Date(start)) / 86400000);
+  const size   = classify(lt);
+
+  DATA.push({
+    id: DATA.length,
+    task, type:'PBI', lt, size,
+    start, closed,
+    closedDate: new Date(closed + 'T00:00:00'),
+    removed: false,
+    isNew: true,
+  });
+
+  closeModal();
+  // if filter would hide the new item, reset filter
+  const newItem = DATA[DATA.length - 1];
+  const { start: ws, end: we } = getDateWindow();
+  if (newItem.closedDate < ws || newItem.closedDate > we) setFilter(0);
+  else refresh();
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  CANVAS
+// ─────────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('chart');
+const dpr = window.devicePixelRatio || 1;
+const PAD = { top:20, right:110, bottom:64, left:66 };
+const maxY = 165;
+
 function resize() {
-  const W = canvas.parentElement.clientWidth - 64;
-  const H = Math.min(520, Math.max(340, W * 0.44));
-  canvas.style.width  = W + 'px';
+  const W = canvas.parentElement.clientWidth - 56;
+  const H = Math.min(520, Math.max(320, W * 0.42));
+  canvas.style.width = W + 'px';
   canvas.style.height = H + 'px';
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   draw();
 }
 
-const DATE_MIN = new Date('2025-11-10'), DATE_MAX = new Date('2026-01-30');
-const maxY = 165;
-
 function cx(date, W) {
-  return PAD.left + ((date.getTime() - DATE_MIN.getTime()) / (DATE_MAX.getTime() - DATE_MIN.getTime())) * W;
+  const { start, end } = getDateWindow();
+  return PAD.left + ((date.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * W;
 }
-function cy(lt, H) {
-  return PAD.top + (1 - lt / maxY) * H;
-}
+function cy(lt, H) { return PAD.top + (1 - lt / maxY) * H; }
 
 function dateTicks() {
-  const ticks = [], d = new Date('2025-11-14'), end = new Date('2026-01-30');
-  while (d <= end) { ticks.push(new Date(d)); d.setDate(d.getDate() + 14); }
+  const { start, end } = getDateWindow();
+  const ticks = [];
+  const span = (end - start) / 86400000;
+  const step = span <= 15 ? 2 : span <= 35 ? 5 : span <= 70 ? 7 : 14;
+  const d = new Date(start); d.setDate(d.getDate() + 1);
+  while (d <= end) {
+    ticks.push(new Date(d));
+    d.setDate(d.getDate() + step);
+  }
   return ticks;
 }
 
-// ── Draw ─────────────────────────────────────────────────────────
 function draw() {
   const ctx = canvas.getContext('2d');
   const CW = canvas.width, CH = canvas.height;
@@ -358,187 +646,182 @@ function draw() {
   const H  = CH - PAD.top  - PAD.bottom;
 
   ctx.clearRect(0, 0, CW, CH);
-  const baseFont = `${10.5*dpr}px 'JetBrains Mono', monospace`;
+  const base = `${10.5*dpr}px 'JetBrains Mono',monospace`;
 
-  // ── Y grid ──
-  const yTicks = [0, 20, 40, 60, 80, 100, 120, 140, 160];
-  ctx.font = baseFont; ctx.textAlign = 'right';
+  // Y grid
+  const yTicks = [0,20,40,60,80,100,120,140,160];
+  ctx.font = base; ctx.textAlign = 'right';
   yTicks.forEach(v => {
     const y = cy(v, H);
-    ctx.beginPath();
-    ctx.strokeStyle = v === 0 ? '#1e2d3f' : '#10181f';
-    ctx.lineWidth = dpr; ctx.setLineDash([]);
-    ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + W, y); ctx.stroke();
-    ctx.fillStyle = '#3a5268';
-    ctx.fillText(v === 0 ? '0d' : v + 'd', PAD.left - 8*dpr, y + 4*dpr);
+    ctx.beginPath(); ctx.strokeStyle = v===0?'#1e2d3f':'#10181f';
+    ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
+    ctx.fillStyle='#3a5268';
+    ctx.fillText(v===0?'0d':v+'d', PAD.left-8*dpr, y+4*dpr);
   });
 
-  // ── X grid + date labels ──
-  ctx.textAlign = 'center';
+  // X grid + labels
+  ctx.textAlign='center';
   dateTicks().forEach(d => {
     const x = cx(d, W);
-    if (x < PAD.left || x > PAD.left + W) return;
-    ctx.beginPath(); ctx.strokeStyle = '#10181f'; ctx.lineWidth = dpr; ctx.setLineDash([]);
-    ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + H); ctx.stroke();
-    const lbl = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
-    ctx.fillStyle = '#3a5268'; ctx.font = baseFont;
-    ctx.fillText(lbl, x, PAD.top + H + 18*dpr);
+    if (x < PAD.left-2 || x > PAD.left+W+2) return;
+    ctx.beginPath(); ctx.strokeStyle='#10181f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top+H); ctx.stroke();
+    const lbl = d.toLocaleDateString('pl-PL',{day:'2-digit',month:'short'});
+    ctx.fillStyle='#3a5268'; ctx.font=base;
+    ctx.fillText(lbl, x, PAD.top+H+18*dpr);
   });
 
-  // ── Axes ──
-  ctx.beginPath(); ctx.strokeStyle = '#1e2d3f'; ctx.lineWidth = dpr; ctx.setLineDash([]);
-  ctx.moveTo(PAD.left, PAD.top); ctx.lineTo(PAD.left, PAD.top + H);
-  ctx.lineTo(PAD.left + W, PAD.top + H); ctx.stroke();
+  // Axes
+  ctx.beginPath(); ctx.strokeStyle='#1e2d3f'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+H);
+  ctx.lineTo(PAD.left+W,PAD.top+H); ctx.stroke();
 
-  // ── Axis labels ──
-  ctx.fillStyle = '#3a5268'; ctx.font = `${10*dpr}px 'JetBrains Mono', monospace`;
-  ctx.textAlign = 'center';
-  ctx.fillText('Closed Date', PAD.left + W / 2, CH - 10*dpr);
-  ctx.save(); ctx.translate(12*dpr, PAD.top + H / 2); ctx.rotate(-Math.PI / 2);
-  ctx.fillText('Lead Time (days)', 0, 0); ctx.restore();
+  // Axis labels
+  ctx.fillStyle='#3a5268'; ctx.font=`${10*dpr}px 'JetBrains Mono',monospace`;
+  ctx.textAlign='center';
+  ctx.fillText('Data zamknięcia', PAD.left+W/2, CH-10*dpr);
+  ctx.save(); ctx.translate(12*dpr,PAD.top+H/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Lead Time (dni)',0,0); ctx.restore();
 
-  // ── Zone bands ──
-  [[0,14,'#34d05806'],[15,59,'#f9731606'],[60,maxY,'#ef444406']].forEach(([from, to, col]) => {
-    ctx.fillStyle = col;
-    ctx.fillRect(PAD.left, cy(to, H), W, cy(from, H) - cy(to, H));
+  // Zone bands
+  [[0,14,'#34d05806'],[15,59,'#f9731606'],[60,maxY,'#ef444406']].forEach(([from,to,col])=>{
+    ctx.fillStyle=col;
+    ctx.fillRect(PAD.left,cy(to,H),W,cy(from,H)-cy(to,H));
   });
 
-  // ── Medium percentile lines (dynamic, right-side labels) ──
-  const { p50, p85, p95 } = getMediumPercentiles();
-  const percLines = [
-    [p50, '#facc15', 'P50'],
-    [p85, '#fb923c', 'P85'],
-    [p95, '#f87171', 'P95'],
-  ];
-  percLines.forEach(([val, color, label]) => {
-    const y = cy(val, H);
-    ctx.beginPath();
-    ctx.strokeStyle = color; ctx.lineWidth = 1.6*dpr;
-    ctx.setLineDash([7*dpr, 5*dpr]); ctx.globalAlpha = 0.9;
-    ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + W, y); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha = 1;
+  // Percentile lines (only visible Medium items)
+  const {p50,p85,p95} = getMediumPercentiles();
+  [[p50,'#facc15','P50'],[p85,'#fb923c','P85'],[p95,'#f87171','P95']].forEach(([val,color,lbl])=>{
+    if (!val) return;
+    const y = cy(val,H);
+    ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=1.6*dpr;
+    ctx.setLineDash([7*dpr,5*dpr]); ctx.globalAlpha=0.9;
+    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
 
-    // pill on right
-    const ltext = `${label} = ${val.toFixed(1)}d`;
-    ctx.font = `500 ${9*dpr}px 'JetBrains Mono', monospace`;
-    ctx.textAlign = 'left';
-    const tw = ctx.measureText(ltext).width + 12*dpr;
-    const th = 15*dpr;
-    const lx = PAD.left + W + 4*dpr;
-    const ly = y - th / 2;
-    ctx.fillStyle = color + '25';
-    ctx.beginPath(); ctx.roundRect(lx, ly, tw, th, 3*dpr); ctx.fill();
-    ctx.fillStyle = color;
-    ctx.fillText(ltext, lx + 6*dpr, ly + th - 4.5*dpr);
+    const txt = `${lbl} = ${val.toFixed(1)}d`;
+    ctx.font=`500 ${9*dpr}px 'JetBrains Mono',monospace`;
+    ctx.textAlign='left';
+    const tw=ctx.measureText(txt).width+12*dpr, th=15*dpr;
+    const lx=PAD.left+W+4*dpr, ly=y-th/2;
+    ctx.fillStyle=color+'25';
+    ctx.beginPath(); ctx.roundRect(lx,ly,tw,th,3*dpr); ctx.fill();
+    ctx.fillStyle=color;
+    ctx.fillText(txt,lx+6*dpr,ly+th-4.5*dpr);
   });
 
-  // ── Dots ──
-  DATA.forEach((d, i) => {
-    if (d.removed) return;
-    const x = cx(d.closedDate, W);
-    const y = cy(d.lt, H);
-    const col = COLOR[d.size];
-    const isH = hov === i;
-    const r = isH ? 8*dpr : 5.5*dpr;
+  // Dots (visible)
+  DATA.forEach((d,i)=>{
+    if (!isVisible(d)) return;
+    const x=cx(d.closedDate,W), y=cy(d.lt,H);
+    const col=COLOR[d.size];
+    const isH=hov===i;
+    const r=isH?8*dpr:5.5*dpr;
 
-    if (isH) {
-      const g = ctx.createRadialGradient(x, y, 0, x, y, 20*dpr);
-      g.addColorStop(0, col + '50'); g.addColorStop(1, col + '00');
-      ctx.beginPath(); ctx.arc(x, y, 20*dpr, 0, Math.PI*2); ctx.fillStyle = g; ctx.fill();
+    if(isH){
+      const g=ctx.createRadialGradient(x,y,0,x,y,22*dpr);
+      g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00');
+      ctx.beginPath(); ctx.arc(x,y,22*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
     }
-    ctx.beginPath(); ctx.arc(x, y, r + 2.5*dpr, 0, Math.PI*2);
-    ctx.fillStyle = col + (isH ? '45' : '20'); ctx.fill();
-    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = col; ctx.fill();
-    ctx.beginPath(); ctx.arc(x, y, r * 0.35, 0, Math.PI*2); ctx.fillStyle = '#00000055'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r+2.5*dpr,0,Math.PI*2);
+    ctx.fillStyle=col+(isH?'45':'20'); ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r*0.35,0,Math.PI*2);
+    ctx.fillStyle='#00000055'; ctx.fill();
+
+    // star badge for new items
+    if(d.isNew){
+      ctx.font=`bold ${11*dpr}px sans-serif`;
+      ctx.fillStyle='#a5b4fc';
+      ctx.textAlign='center';
+      ctx.fillText('★', x, y-r-3*dpr);
+    }
   });
 
-  // ── Removed dots (ghost) ──
-  DATA.forEach((d) => {
-    if (!d.removed) return;
-    const x = cx(d.closedDate, W);
-    const y = cy(d.lt, H);
-    ctx.beginPath(); ctx.arc(x, y, 5*dpr, 0, Math.PI*2);
-    ctx.strokeStyle = '#ffffff15'; ctx.lineWidth = 1*dpr; ctx.setLineDash([3*dpr, 3*dpr]);
+  // Ghost dots (removed but in date range)
+  DATA.forEach(d=>{
+    if(!d.removed) return;
+    const { start, end } = getDateWindow();
+    if(d.closedDate < start || d.closedDate > end) return;
+    const x=cx(d.closedDate,W), y=cy(d.lt,H);
+    const s=4*dpr;
+    ctx.beginPath(); ctx.arc(x,y,5*dpr,0,Math.PI*2);
+    ctx.strokeStyle='#ffffff13'; ctx.lineWidth=dpr; ctx.setLineDash([3*dpr,3*dpr]);
     ctx.stroke(); ctx.setLineDash([]);
-    // X mark
-    const s = 4*dpr;
-    ctx.beginPath();
-    ctx.strokeStyle = '#ffffff18'; ctx.lineWidth = 1.2*dpr;
-    ctx.moveTo(x-s, y-s); ctx.lineTo(x+s, y+s);
-    ctx.moveTo(x+s, y-s); ctx.lineTo(x-s, y+s);
+    ctx.beginPath(); ctx.strokeStyle='#ffffff15'; ctx.lineWidth=1.2*dpr;
+    ctx.moveTo(x-s,y-s); ctx.lineTo(x+s,y+s);
+    ctx.moveTo(x+s,y-s); ctx.lineTo(x-s,y+s);
     ctx.stroke();
   });
 }
 
-// ── Tooltip & click ──────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────
+//  TOOLTIP + CLICK
+// ─────────────────────────────────────────────────────────────────────
 const tt = document.getElementById('tt');
 
 function hitTest(mx, my) {
-  const W = canvas.width  - PAD.left - PAD.right;
-  const H = canvas.height - PAD.top  - PAD.bottom;
-  let closest = null, minD = 18*dpr;
-  DATA.forEach((d, i) => {
-    if (d.removed) return;
-    const x = cx(d.closedDate, W), y = cy(d.lt, H);
-    const dist = Math.hypot(mx - x, my - y);
-    if (dist < minD) { minD = dist; closest = i; }
+  const W=canvas.width-PAD.left-PAD.right;
+  const H=canvas.height-PAD.top-PAD.bottom;
+  let closest=null, minD=18*dpr;
+  DATA.forEach((d,i)=>{
+    if(!isVisible(d)) return;
+    const x=cx(d.closedDate,W), y=cy(d.lt,H);
+    const dist=Math.hypot(mx-x,my-y);
+    if(dist<minD){minD=dist;closest=i;}
   });
   return closest;
 }
 
-canvas.addEventListener('mousemove', e => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left) * dpr;
-  const my = (e.clientY - rect.top)  * dpr;
-  const found = hitTest(mx, my);
-
-  if (found !== null) {
-    const d = DATA[found];
-    const col = COLOR[d.size];
-    tt.style.display = 'block';
-    tt.innerHTML = `
-      <div class="tt-name">${d.task}</div>
-      <hr>
-      <div class="tt-row"><span class="tt-k">Lead Time</span><span class="tt-v" style="color:${col}">${d.lt} days</span></div>
-      <div class="tt-row"><span class="tt-k">Type</span><span class="tt-v">${d.type}</span></div>
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*dpr, my=(e.clientY-rect.top)*dpr;
+  const found=hitTest(mx,my);
+  if(found!==null){
+    const d=DATA[found]; const col=COLOR[d.size];
+    tt.style.display='block';
+    tt.innerHTML=`<div class="tt-name">${d.isNew?'★ ':''} ${d.task}</div><hr>
+      <div class="tt-row"><span class="tt-k">Lead Time</span><span class="tt-v" style="color:${col}">${d.lt} dni</span></div>
+      <div class="tt-row"><span class="tt-k">Typ</span><span class="tt-v">${d.type}</span></div>
       <div class="tt-row"><span class="tt-k">Start</span><span class="tt-v">${d.start}</span></div>
-      <div class="tt-row"><span class="tt-k">Closed</span><span class="tt-v">${d.closed}</span></div>
+      <div class="tt-row"><span class="tt-k">Zamknięto</span><span class="tt-v">${d.closed}</span></div>
       <div><span class="tt-badge" style="background:${col}22;color:${col}">${d.size}</span></div>
-      <div class="tt-hint">🖱 Click to remove as outlier</div>`;
-    let lx = e.clientX + 16, ly = e.clientY - 10;
-    if (lx + 340 > window.innerWidth)  lx = e.clientX - 356;
-    if (ly + 180 > window.innerHeight) ly = e.clientY - 185;
-    tt.style.left = lx + 'px'; tt.style.top = ly + 'px';
-    canvas.style.cursor = 'pointer';
-    if (hov !== found) { hov = found; draw(); }
+      <div class="tt-hint">🖱 Kliknij aby usunąć jako outlier</div>
+      ${d.isNew?'<div class="tt-new">★ Ręcznie dodany</div>':''}`;
+    let lx=e.clientX+16, ly=e.clientY-10;
+    if(lx+340>window.innerWidth)  lx=e.clientX-356;
+    if(ly+200>window.innerHeight) ly=e.clientY-205;
+    tt.style.left=lx+'px'; tt.style.top=ly+'px';
+    canvas.style.cursor='pointer';
+    if(hov!==found){hov=found;draw();}
   } else {
-    tt.style.display = 'none';
-    canvas.style.cursor = 'crosshair';
-    if (hov !== null) { hov = null; draw(); }
+    tt.style.display='none';
+    canvas.style.cursor='crosshair';
+    if(hov!==null){hov=null;draw();}
   }
 });
 
-canvas.addEventListener('mouseleave', () => {
-  tt.style.display = 'none';
-  if (hov !== null) { hov = null; draw(); }
+canvas.addEventListener('mouseleave',()=>{
+  tt.style.display='none';
+  if(hov!==null){hov=null;draw();}
 });
 
-canvas.addEventListener('click', e => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left) * dpr;
-  const my = (e.clientY - rect.top)  * dpr;
-  const found = hitTest(mx, my);
-  if (found !== null) {
-    DATA[found].removed = true;
-    hov = null;
-    tt.style.display = 'none';
+canvas.addEventListener('click',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*dpr, my=(e.clientY-rect.top)*dpr;
+  const found=hitTest(mx,my);
+  if(found!==null){
+    DATA[found].removed=true;
+    hov=null; tt.style.display='none';
     refresh();
   }
 });
 
-window.addEventListener('resize', resize);
+window.addEventListener('resize',resize);
 resize();
-updateStats();
+refresh();
 </script>
 </body>
 </html>
