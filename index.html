@@ -5,598 +5,448 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lead Time Scatterplot · v1.87</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@600;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #080c10;
-    --surface:   #0d1117;
-    --border:    #1a2230;
-    --muted:     #2a3a50;
-    --text-dim:  #4a6070;
-    --text-mid:  #7a9ab0;
-    --text:      #c8dce8;
-    --text-hi:   #e8f4fc;
-
-    --small:     #22c55e;
-    --small-glow:#22c55e40;
-    --medium:    #f97316;
-    --medium-glow:#f9731640;
-    --large:     #ef4444;
-    --large-glow:#ef444440;
-
-    --p50:       #facc15;
-    --p85:       #fb923c;
-    --p95:       #f87171;
-
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-disp: 'Syne', sans-serif;
+    --bg:       #07090d;
+    --surface:  #0c1018;
+    --border:   #161e2a;
+    --muted:    #1e2d3f;
+    --dim:      #3a5268;
+    --mid:      #6a8ea8;
+    --text:     #bdd4e4;
+    --hi:       #e4f2fc;
+    --small:    #34d058;
+    --medium:   #f97316;
+    --large:    #ef4444;
+    --p50:      #facc15;
+    --p85:      #fb923c;
+    --p95:      #f87171;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--font-mono);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 36px 44px 52px;
     min-height: 100vh;
-    padding: 40px 48px 60px;
-    position: relative;
-    overflow-x: hidden;
   }
-
-  /* grid bg */
   body::before {
     content: '';
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0; z-index: 0;
     background-image:
       linear-gradient(var(--border) 1px, transparent 1px),
       linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 48px 48px;
-    opacity: 0.35;
+    background-size: 44px 44px;
+    opacity: 0.4;
     pointer-events: none;
-    z-index: 0;
   }
+  .page { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; }
 
-  .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+  /* header */
+  .header { margin-bottom: 32px; }
+  .eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--hi); letter-spacing: -0.02em; }
+  .sub { font-size: 0.68rem; color: var(--dim); margin-top: 4px; letter-spacing: 0.06em; }
 
-  /* ── HEADER ── */
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 40px;
-    gap: 24px;
-  }
-  .header-left {}
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  h1 {
-    font-family: var(--font-disp);
-    font-size: 2.4rem;
-    font-weight: 800;
-    color: var(--text-hi);
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin-bottom: 8px;
-  }
-  .subtitle {
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    letter-spacing: 0.05em;
-  }
+  /* stats strip */
+  .stats { display: flex; gap: 1px; margin-bottom: 28px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--border); }
+  .stat { flex: 1; background: var(--surface); padding: 14px 18px; }
+  .stat-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--dim); margin-bottom: 6px; }
+  .stat-val { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; line-height: 1; }
+  .stat-sub { font-size: 0.6rem; color: var(--mid); margin-top: 3px; }
 
-  /* ── STAT STRIP ── */
-  .stats {
-    display: flex;
-    gap: 1px;
-    margin-bottom: 40px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    background: var(--border);
-  }
-  .stat {
-    flex: 1;
-    background: var(--surface);
-    padding: 18px 22px;
-    min-width: 110px;
-  }
-  .stat-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .stat-val {
-    font-family: var(--font-disp);
-    font-size: 1.7rem;
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .stat-sub { font-size: 0.65rem; color: var(--text-mid); }
+  /* legend */
+  .legend { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+  .leg-grp { display: flex; gap: 16px; align-items: center; }
+  .leg-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--dim); }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: var(--mid); }
+  .leg-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .leg-sep { width: 1px; height: 18px; background: var(--border); }
+  .perc-item { display: flex; align-items: center; gap: 7px; font-size: 0.68rem; color: var(--mid); }
+  .perc-dash { width: 20px; border-top: 2px dashed; }
 
-  /* ── LEGEND ── */
-  .legend {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-    margin-bottom: 28px;
-  }
-  .legend-group {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .legend-label {
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--text-dim);
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 0.72rem;
-    color: var(--text-mid);
-    cursor: pointer;
-    transition: color .2s;
-  }
-  .legend-item:hover { color: var(--text-hi); }
-  .legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    box-shadow: 0 0 6px currentColor;
-  }
-  .sep { width: 1px; height: 20px; background: var(--border); }
-
-  .perc-items { display: flex; gap: 16px; align-items: center; }
-  .perc-item { display: flex; align-items: center; gap: 7px; font-size: 0.72rem; color: var(--text-mid); }
-  .perc-dash { width: 22px; height: 0; border-top: 2px dashed; }
-
-  /* ── CHART WRAPPER ── */
-  .chart-card {
+  /* chart card */
+  .card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 32px 36px 28px;
-    position: relative;
+    padding: 28px 32px 24px;
   }
-  .chart-title {
-    font-family: var(--font-disp);
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: 0.04em;
-    margin-bottom: 4px;
-  }
-  .chart-desc {
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 0.04em;
-    margin-bottom: 24px;
-  }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .card-desc  { font-size: 0.62rem; color: var(--dim); letter-spacing: 0.05em; margin-bottom: 20px; }
+  canvas { display: block; cursor: crosshair; width: 100%; }
 
-  /* ── TOOLTIP ── */
-  #tooltip {
-    position: fixed;
-    pointer-events: none;
-    background: #0d1825ee;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    color: var(--text);
-    z-index: 9999;
-    display: none;
-    max-width: 300px;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 32px #00000060;
-    line-height: 1.6;
+  /* tooltip */
+  #tt {
+    position: fixed; z-index: 9999; pointer-events: none; display: none;
+    background: #0a1520f0;
+    border: 1px solid var(--muted);
+    border-radius: 8px; padding: 12px 15px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.67rem; color: var(--text);
+    max-width: 320px; line-height: 1.7;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 40px #00000070;
   }
-  #tooltip .tt-task { font-size: 0.72rem; color: var(--text-hi); margin-bottom: 6px; font-weight: 500; line-height: 1.4; }
-  #tooltip .tt-row { display: flex; justify-content: space-between; gap: 20px; }
-  #tooltip .tt-key { color: var(--text-dim); }
-  #tooltip .tt-val { color: var(--text-hi); font-weight: 500; }
-  #tooltip .tt-badge {
-    display: inline-block;
-    padding: 1px 8px;
-    border-radius: 4px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    margin-top: 6px;
-    letter-spacing: 0.06em;
-  }
-  #tooltip .tt-divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  #tt .tt-name { font-size: 0.7rem; color: var(--hi); margin-bottom: 7px; line-height: 1.4; font-weight: 500; }
+  #tt hr { border: none; border-top: 1px solid var(--border); margin: 7px 0; }
+  #tt .tt-row { display: flex; justify-content: space-between; gap: 18px; }
+  #tt .tt-k { color: var(--dim); }
+  #tt .tt-v { color: var(--hi); }
+  #tt .tt-badge { display: inline-block; margin-top: 7px; padding: 2px 9px; border-radius: 4px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em; }
 
-  canvas { cursor: crosshair; }
-
-  /* ── FADE IN ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .stats  { animation: fadeUp .5s ease both .1s; }
-  .legend { animation: fadeUp .5s ease both .2s; }
-  .chart-card { animation: fadeUp .5s ease both .3s; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  .stats { animation: fadeUp .45s ease both .05s; }
+  .legend { animation: fadeUp .45s ease both .12s; }
+  .card { animation: fadeUp .45s ease both .2s; }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <!-- HEADER -->
   <div class="header">
-    <div class="header-left">
-      <div class="eyebrow">Flow Metrics · Release v1.87</div>
-      <h1>Lead Time<br>Distribution</h1>
-      <div class="subtitle">42 closed items · calendar days from Start Date → Closed Date</div>
-    </div>
+    <div class="eyebrow">Flow Metrics · Release v1.87</div>
+    <h1>Lead Time Scatterplot</h1>
+    <div class="sub">X = Closed Date · Y = Lead Time (days from Start to Close) · 42 items</div>
   </div>
 
-  <!-- STATS -->
   <div class="stats">
-    <div class="stat">
-      <div class="stat-label">Items</div>
-      <div class="stat-val" style="color:#93c5fd">42</div>
-      <div class="stat-sub">closed</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">P50 Median</div>
-      <div class="stat-val" style="color:var(--p50)">28d</div>
-      <div class="stat-sub">50% done by</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">P85</div>
-      <div class="stat-val" style="color:var(--p85)">102d</div>
-      <div class="stat-sub">85% done by</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">P95</div>
-      <div class="stat-val" style="color:var(--p95)">109d</div>
-      <div class="stat-sub">95% done by</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Average</div>
-      <div class="stat-val" style="color:#a78bfa">42d</div>
-      <div class="stat-sub">mean</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Small ≤14d</div>
-      <div class="stat-val" style="color:var(--small)">14</div>
-      <div class="stat-sub">33% of items</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Medium 15–59d</div>
-      <div class="stat-val" style="color:var(--medium)">18</div>
-      <div class="stat-sub">43% of items</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Large ≥60d</div>
-      <div class="stat-val" style="color:var(--large)">10</div>
-      <div class="stat-sub">24% of items</div>
-    </div>
+    <div class="stat"><div class="stat-lbl">Items</div><div class="stat-val" style="color:#93c5fd">42</div><div class="stat-sub">closed</div></div>
+    <div class="stat"><div class="stat-lbl">P50 Median</div><div class="stat-val" style="color:var(--p50)">28d</div><div class="stat-sub">50% done by</div></div>
+    <div class="stat"><div class="stat-lbl">P85</div><div class="stat-val" style="color:var(--p85)">102d</div><div class="stat-sub">85% done by</div></div>
+    <div class="stat"><div class="stat-lbl">P95</div><div class="stat-val" style="color:var(--p95)">109d</div><div class="stat-sub">95% done by</div></div>
+    <div class="stat"><div class="stat-lbl">Average</div><div class="stat-val" style="color:#a78bfa">42d</div><div class="stat-sub">mean</div></div>
+    <div class="stat"><div class="stat-lbl">Small ≤14d</div><div class="stat-val" style="color:var(--small)">14</div><div class="stat-sub">33%</div></div>
+    <div class="stat"><div class="stat-lbl">Medium 15–59d</div><div class="stat-val" style="color:var(--medium)">18</div><div class="stat-sub">43%</div></div>
+    <div class="stat"><div class="stat-lbl">Large ≥60d</div><div class="stat-val" style="color:var(--large)">10</div><div class="stat-sub">24%</div></div>
   </div>
 
-  <!-- LEGEND -->
   <div class="legend">
-    <div class="legend-group">
-      <span class="legend-label">Size:</span>
-      <div class="legend-item"><div class="legend-dot" style="color:var(--small);background:var(--small)"></div>Small (≤14d)</div>
-      <div class="legend-item"><div class="legend-dot" style="color:var(--medium);background:var(--medium)"></div>Medium (15–59d)</div>
-      <div class="legend-item"><div class="legend-dot" style="color:var(--large);background:var(--large)"></div>Large (≥60d)</div>
+    <div class="leg-grp">
+      <span class="leg-lbl">Size:</span>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--small)"></div>Small (≤14d)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--medium)"></div>Medium (15–59d)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--large)"></div>Large (≥60d)</div>
     </div>
-    <div class="sep"></div>
-    <div class="perc-items">
-      <span class="legend-label">Percentiles:</span>
+    <div class="leg-sep"></div>
+    <div class="leg-grp">
+      <span class="leg-lbl">Percentiles:</span>
       <div class="perc-item"><div class="perc-dash" style="border-color:var(--p50)"></div>P50 = 28d</div>
       <div class="perc-item"><div class="perc-dash" style="border-color:var(--p85)"></div>P85 = 102d</div>
       <div class="perc-item"><div class="perc-dash" style="border-color:var(--p95)"></div>P95 = 109d</div>
     </div>
   </div>
 
-  <!-- CHART -->
-  <div class="chart-card">
-    <div class="chart-title">Lead Time Scatterplot</div>
-    <div class="chart-desc">Items sorted ascending by lead time. Hover for details. Dashed lines = percentile thresholds.</div>
-    <canvas id="scatter"></canvas>
+  <div class="card">
+    <div class="card-title">Closed Date vs Lead Time</div>
+    <div class="card-desc">Each dot = one work item. Hover for details.</div>
+    <canvas id="chart"></canvas>
   </div>
+</div>
 
-</div><!-- /page -->
-
-<div id="tooltip"></div>
+<div id="tt"></div>
 
 <script>
-const DATA = [
-  {idx:1,  task:"Copyright biuro GT 1.25",                                                 type:"PBI", lt:1,   size:"Small",  start:"2026-01-14", closed:"2026-01-15"},
-  {idx:2,  task:"Generowanie deklaracji z Biura 1.25 nie działa, gdy deklaracje...",        type:"Bug", lt:3,   size:"Small",  start:"2026-01-05", closed:"2026-01-08"},
-  {idx:3,  task:"Wycofanie obowiązku wypełnienia pola Opis",                                type:"PBI", lt:3,   size:"Small",  start:"2026-01-12", closed:"2026-01-15"},
-  {idx:4,  task:"Problem z sortowaniem w ewidencji sprzedaży - kolumna Kontrahent",         type:"Bug", lt:6,   size:"Small",  start:"2025-12-23", closed:"2025-12-29"},
-  {idx:5,  task:"FA(3) vs SI - EP",                                                         type:"PBI", lt:7,   size:"Small",  start:"2026-01-13", closed:"2026-01-20"},
-  {idx:6,  task:"[INS-26914144] KPiR, a identyfikator podatkowy kontrahenta",               type:"PBI", lt:8,   size:"Small",  start:"2026-01-13", closed:"2026-01-21"},
-  {idx:7,  task:"[INS-25884410] Kopiowanie schematów importu Biurem z GT 86",               type:"Bug", lt:8,   size:"Small",  start:"2025-12-22", closed:"2025-12-30"},
-  {idx:8,  task:"FA(3) vs tworzenie rozrachunku - rach",                                    type:"PBI", lt:8,   size:"Small",  start:"2026-01-12", closed:"2026-01-20"},
-  {idx:9,  task:"Kreator zmiany KPiR wyskakuje przy operacjach z Biura",                    type:"PBI", lt:8,   size:"Small",  start:"2026-01-15", closed:"2026-01-23"},
-  {idx:10, task:"[INS-26260468] Zła kolejność zapisów - wydruk EP do 2025",                 type:"Bug", lt:9,   size:"Small",  start:"2026-01-12", closed:"2026-01-21"},
-  {idx:11, task:"[Biuro GT] Biuro 1.25 wymaga GT w wersji 1.85 lub wyższej",                type:"PBI", lt:11,  size:"Small",  start:"2025-12-19", closed:"2025-12-30"},
-  {idx:12, task:"[Biuro GT] Biuro 1.25 nie działa z GT 1.85 HF2",                           type:"Bug", lt:12,  size:"Small",  start:"2025-12-18", closed:"2025-12-30"},
-  {idx:13, task:"FA(3) vs SI - KPIR",                                                       type:"PBI", lt:13,  size:"Small",  start:"2026-01-07", closed:"2026-01-20"},
-  {idx:14, task:"FA(3) Księgowanie ręczne KPIR",                                            type:"PBI", lt:13,  size:"Small",  start:"2026-01-07", closed:"2026-01-20"},
-  {idx:15, task:"Biuro GT błąd podczas zakładania blokady",                                 type:"PBI", lt:15,  size:"Medium", start:"2025-12-16", closed:"2025-12-31"},
-  {idx:16, task:"Dodanie ostrzeżenia - kwota korekty ze sprzedaży środków trwałych",        type:"PBI", lt:16,  size:"Medium", start:"2026-01-07", closed:"2026-01-23"},
-  {idx:17, task:"FA(3) vs Tworzenie rozrachunku - dekret",                                  type:"PBI", lt:22,  size:"Medium", start:"2025-12-31", closed:"2026-01-22"},
-  {idx:18, task:"Roczna składka zdrowotna (skala/liniowy) - silnik",                        type:"PBI", lt:24,  size:"Medium", start:"2025-12-23", closed:"2026-01-16"},
-  {idx:19, task:"Nowy wydruk KPIR + zmiana nazwy starych",                                  type:"PBI", lt:24,  size:"Medium", start:"2025-10-28", closed:"2025-11-21"},
-  {idx:20, task:"Okno naliczenia składki rocznej",                                          type:"PBI", lt:26,  size:"Medium", start:"2025-12-18", closed:"2026-01-13"},
-  {idx:21, task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - wydruk",              type:"PBI", lt:28,  size:"Medium", start:"2025-12-08", closed:"2026-01-05"},
-  {idx:22, task:"Biuro GT: problem z podłączaniem bazy danych",                             type:"PBI", lt:28,  size:"Medium", start:"2025-12-10", closed:"2026-01-07"},
-  {idx:23, task:"[MERGE] Problem z sortowaniem w ewidencji sprzedaży - Kontrahent",         type:"Bug", lt:31,  size:"Medium", start:"2025-12-23", closed:"2026-01-23"},
-  {idx:24, task:"FA(3) Księgowanie ręczne EP",                                              type:"PBI", lt:34,  size:"Medium", start:"2025-12-16", closed:"2026-01-19"},
-  {idx:25, task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - silnik",              type:"PBI", lt:34,  size:"Medium", start:"2025-12-02", closed:"2026-01-05"},
-  {idx:26, task:"Poprawa formuły - Podstawa składki zdrowotnej Ryczałt - miesięczna",       type:"PBI", lt:36,  size:"Medium", start:"2025-12-09", closed:"2026-01-14"},
-  {idx:27, task:"Odblokowanie pola wartość sprzedaży w dokumencie LT i SP",                 type:"PBI", lt:36,  size:"Medium", start:"2025-12-10", closed:"2026-01-15"},
-  {idx:28, task:"Dodanie kolumny i filtrów na status KSeF i forma faktury",                 type:"PBI", lt:37,  size:"Medium", start:"2025-12-17", closed:"2026-01-23"},
-  {idx:29, task:"Rachmistrz - poprawa odwołania ID dokumentu ksef",                         type:"Bug", lt:41,  size:"Medium", start:"2025-12-12", closed:"2026-01-22"},
-  {idx:30, task:"[Merge z 1.86] PIT-28(27) - wysyłka - zwrotki",                           type:"PBI", lt:43,  size:"Medium", start:"2025-12-11", closed:"2026-01-23"},
-  {idx:31, task:"NR KSEF z dokumentu SP przepisuje się do wpisu KPIR",                     type:"PBI", lt:45,  size:"Medium", start:"2025-12-02", closed:"2026-01-16"},
-  {idx:32, task:"Dodanie kolumny wartość sprzedaży - moduł operacje na środkach trwałych",  type:"PBI", lt:45,  size:"Medium", start:"2025-11-25", closed:"2026-01-09"},
-  {idx:33, task:"Zbiorczy parametr OCR w biurze GT",                                        type:"PBI", lt:82,  size:"Large",  start:"2025-10-22", closed:"2026-01-12"},
-  {idx:34, task:"Nazwy filtrów po nowemu w Biurze GT",                                      type:"PBI", lt:89,  size:"Large",  start:"2025-10-08", closed:"2026-01-05"},
-  {idx:35, task:"Odkrycie schematów OCR i KSeF + kolumna Typ schematu i Etykiety",          type:"PBI", lt:99,  size:"Large",  start:"2025-10-02", closed:"2026-01-09"},
-  {idx:36, task:"Kopiowanie, aktualizowanie, usuwanie schematów OCR i KSeF",                type:"PBI", lt:102, size:"Large",  start:"2025-10-02", closed:"2026-01-12"},
-  {idx:37, task:"Kopiowanie schematów v etykiety",                                          type:"PBI", lt:103, size:"Large",  start:"2025-10-02", closed:"2026-01-13"},
-  {idx:38, task:"Kopiowanie schematów v kategoria",                                         type:"PBI", lt:103, size:"Large",  start:"2025-10-02", closed:"2026-01-13"},
-  {idx:39, task:"Kopiowanie schematów v kontrahent",                                        type:"PBI", lt:103, size:"Large",  start:"2025-10-02", closed:"2026-01-13"},
-  {idx:40, task:"Zbiorczy parametr na ustawienia pobierania KSEF",                          type:"PBI", lt:109, size:"Large",  start:"2025-09-26", closed:"2026-01-13"},
-  {idx:41, task:"Kopiowanie schematów v etykiety w laboratorium",                           type:"PBI", lt:147, size:"Large",  start:"2025-08-13", closed:"2026-01-07"},
-  {idx:42, task:"Pomoc Biuro GT - Operacje na deklaracjach skarbowych",                     type:"PBI", lt:148, size:"Large",  start:"2025-08-14", closed:"2026-01-09"},
+const RAW = [
+  {task:"Kopiowanie schematów v etykiety w laboratorium",type:"PBI",lt:147,size:"Large",start:"2025-08-13",closed:"2026-01-07"},
+  {task:"Biuro GT: problem z podłączaniem bazy danych",type:"PBI",lt:28,size:"Medium",start:"2025-12-10",closed:"2026-01-07"},
+  {task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - wydruk",type:"PBI",lt:28,size:"Medium",start:"2025-12-08",closed:"2026-01-05"},
+  {task:"Dodanie kolumny na wartość sprzedaży w module operacje na środkach trwałych KPIR i Rew",type:"PBI",lt:45,size:"Medium",start:"2025-11-25",closed:"2026-01-09"},
+  {task:"Odkrycie schematów OCR i KSeF i dodanie kolumny Typ schematu i Etykiety",type:"PBI",lt:99,size:"Large",start:"2025-10-02",closed:"2026-01-09"},
+  {task:"Nazwy filtrów po nowemu w Biurze GT",type:"PBI",lt:89,size:"Large",start:"2025-10-08",closed:"2026-01-05"},
+  {task:"Pomoc Biuro GT - Operacje na deklaracjach skarbowych - aktualizacja",type:"PBI",lt:148,size:"Large",start:"2025-08-14",closed:"2026-01-09"},
+  {task:"[Biuro GT] Biuro 1.25 wymaga GT w wersji 1.85 lub wyższej",type:"PBI",lt:11,size:"Small",start:"2025-12-19",closed:"2025-12-30"},
+  {task:"Biuro GT błąd podczas zakładania blokady",type:"PBI",lt:15,size:"Medium",start:"2025-12-16",closed:"2025-12-31"},
+  {task:"Roczne rozliczenie składki zdrowotnej (ryczałt)(2) - silnik",type:"PBI",lt:34,size:"Medium",start:"2025-12-02",closed:"2026-01-05"},
+  {task:"[INS-25884410] Kopiowanie schematów importu Biurem z GT 86",type:"Bug",lt:8,size:"Small",start:"2025-12-22",closed:"2025-12-30"},
+  {task:"Problem z sortowaniem w ewidencji sprzedaży - kolumna Kontrahent",type:"Bug",lt:6,size:"Small",start:"2025-12-23",closed:"2025-12-29"},
+  {task:"[Biuro GT] Biuro 1.25 nie działa z GT 1.85 HF2",type:"Bug",lt:12,size:"Small",start:"2025-12-18",closed:"2025-12-30"},
+  {task:"Generowanie deklaracji z Biura 1.25 nie działa, gdy deklaracje wymagają uprawnień do 1.87",type:"Bug",lt:3,size:"Small",start:"2026-01-05",closed:"2026-01-08"},
+  {task:"Nowy wydruk KPIR + zmiana nazwy starych",type:"PBI",lt:24,size:"Medium",start:"2025-10-28",closed:"2025-11-21"},
+  {task:"[INS-26260468] Zła kolejność zapisów - wydruk EP do 2025",type:"Bug",lt:9,size:"Small",start:"2026-01-12",closed:"2026-01-21"},
+  {task:"[INS-26914144] KPiR, a identyfikator podatkowy kontrahenta",type:"PBI",lt:8,size:"Small",start:"2026-01-13",closed:"2026-01-21"},
+  {task:"[MERGE] Problem z sortowaniem w ewidencji sprzedaży - Kontrahent",type:"Bug",lt:31,size:"Medium",start:"2025-12-23",closed:"2026-01-23"},
+  {task:"[Merge z 1.86] PIT-28(27) - wysyłka - zwrotki",type:"PBI",lt:43,size:"Medium",start:"2025-12-11",closed:"2026-01-23"},
+  {task:"Copyright biuro GT 1.25",type:"PBI",lt:1,size:"Small",start:"2026-01-14",closed:"2026-01-15"},
+  {task:"Dodanie kolumny i filtrów na status KSeF i forma faktury",type:"PBI",lt:37,size:"Medium",start:"2025-12-17",closed:"2026-01-23"},
+  {task:"Dodanie ostrzeżenia - kwota korekty ze sprzedaży środków trwałych",type:"PBI",lt:16,size:"Medium",start:"2026-01-07",closed:"2026-01-23"},
+  {task:"FA(3) Księgowanie ręczne EP",type:"PBI",lt:34,size:"Medium",start:"2025-12-16",closed:"2026-01-19"},
+  {task:"FA(3) Księgowanie ręczne KPIR",type:"PBI",lt:13,size:"Small",start:"2026-01-07",closed:"2026-01-20"},
+  {task:"FA(3) vs SI - EP",type:"PBI",lt:7,size:"Small",start:"2026-01-13",closed:"2026-01-20"},
+  {task:"FA(3) vs SI - KPIR",type:"PBI",lt:13,size:"Small",start:"2026-01-07",closed:"2026-01-20"},
+  {task:"FA(3) vs Tworzenie rozrachunku - dekret",type:"PBI",lt:22,size:"Medium",start:"2025-12-31",closed:"2026-01-22"},
+  {task:"FA(3) vs tworzenie rozrachunku - rach",type:"PBI",lt:8,size:"Small",start:"2026-01-12",closed:"2026-01-20"},
+  {task:"Kopiowanie schematów v etykiety",type:"PBI",lt:103,size:"Large",start:"2025-10-02",closed:"2026-01-13"},
+  {task:"Kopiowanie schematów v kategoria",type:"PBI",lt:103,size:"Large",start:"2025-10-02",closed:"2026-01-13"},
+  {task:"Kopiowanie schematów v kontrahent",type:"PBI",lt:103,size:"Large",start:"2025-10-02",closed:"2026-01-13"},
+  {task:"Kopiowanie, aktualizowanie, usuwanie schematów OCR i KSeF",type:"PBI",lt:102,size:"Large",start:"2025-10-02",closed:"2026-01-12"},
+  {task:"Kreator zmiany KPiR wyskakuje przy operacjach z Biura",type:"PBI",lt:8,size:"Small",start:"2026-01-15",closed:"2026-01-23"},
+  {task:"NR KSEF z dokumentu SP przepisuje się do wpisu KPIR",type:"PBI",lt:45,size:"Medium",start:"2025-12-02",closed:"2026-01-16"},
+  {task:"Odblokowanie pola wartość sprzedaży w dokumencie LT i SP",type:"PBI",lt:36,size:"Medium",start:"2025-12-10",closed:"2026-01-15"},
+  {task:"Okno naliczenia składki rocznej",type:"PBI",lt:26,size:"Medium",start:"2025-12-18",closed:"2026-01-13"},
+  {task:"Poprawa formuły - Podstawa składki zdrowotnej Ryczałt - miesięczna",type:"PBI",lt:36,size:"Medium",start:"2025-12-09",closed:"2026-01-14"},
+  {task:"Rachmistrz - poprawa odwołania ID dokumentu ksef",type:"Bug",lt:41,size:"Medium",start:"2025-12-12",closed:"2026-01-22"},
+  {task:"Roczna składka zdrowotna (skala/liniowy) - silnik",type:"PBI",lt:24,size:"Medium",start:"2025-12-23",closed:"2026-01-16"},
+  {task:"Wycofanie obowiązku wypełnienia pola Opis",type:"PBI",lt:3,size:"Small",start:"2026-01-12",closed:"2026-01-15"},
+  {task:"Zbiorczy parametr na ustawienia pobierania KSEF",type:"PBI",lt:109,size:"Large",start:"2025-09-26",closed:"2026-01-13"},
+  {task:"Zbiorczy parametr OCR w biurze GT",type:"PBI",lt:82,size:"Large",start:"2025-10-22",closed:"2026-01-12"},
 ];
 
-const COLOR  = { Small:'#22c55e', Medium:'#f97316', Large:'#ef4444' };
-const GLOW   = { Small:'#22c55e', Medium:'#f97316', Large:'#ef4444' };
+// parse dates → timestamps
+const DATA = RAW.map(d => ({ ...d, closedDate: new Date(d.closed + 'T00:00:00') }));
+
+const COLOR = { Small:'#34d058', Medium:'#f97316', Large:'#ef4444' };
 const P50=28, P85=101.55, P95=108.7;
 
-// ── CANVAS SCATTER ──────────────────────────────────────────────────
-const canvas = document.getElementById('scatter');
-const dpr    = window.devicePixelRatio || 1;
+const canvas = document.getElementById('chart');
+const dpr = window.devicePixelRatio || 1;
 
-const PAD = { top:24, right:40, bottom:56, left:64 };
+// padding
+const PAD = { top:20, right:56, bottom:64, left:66 };
+
+let hov = null;
+
+function allDates() {
+  return DATA.map(d => d.closedDate.getTime());
+}
 
 function resize() {
-  const w = canvas.parentElement.clientWidth - 72;
-  canvas.style.width  = w + 'px';
-  canvas.style.height = Math.min(480, Math.max(320, w * 0.42)) + 'px';
-  canvas.width  = w * dpr;
-  canvas.height = parseInt(canvas.style.height) * dpr;
+  const W = canvas.parentElement.clientWidth - 64;
+  const H = Math.min(520, Math.max(340, W * 0.44));
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
   draw();
 }
 
-function toCanvasX(idx, W) {
-  return PAD.left + (idx / (DATA.length + 1)) * W;
+function dateRange() {
+  const ts = allDates();
+  const minD = new Date('2025-11-10');
+  const maxD = new Date('2026-01-30');
+  return { minTs: minD.getTime(), maxTs: maxD.getTime() };
 }
-function toCanvasY(lt, H, maxY) {
+
+function cx(date, W) {
+  const { minTs, maxTs } = dateRange();
+  return PAD.left + ((date.getTime() - minTs) / (maxTs - minTs)) * W;
+}
+function cy(lt, H, maxY=165) {
   return PAD.top + (1 - lt / maxY) * H;
 }
 
-let hovered = null;
+function formatDate(d) {
+  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// generate x-axis date ticks (weekly or biweekly)
+function dateTicks() {
+  const ticks = [];
+  const d = new Date('2025-11-14');
+  const end = new Date('2026-01-30');
+  while (d <= end) {
+    ticks.push(new Date(d));
+    d.setDate(d.getDate() + 14);
+  }
+  return ticks;
+}
 
 function draw() {
   const ctx = canvas.getContext('2d');
-  const CW  = canvas.width;
-  const CH  = canvas.height;
-  const W   = CW - PAD.left - PAD.right;
-  const H   = CH - PAD.top  - PAD.bottom;
+  const CW = canvas.width, CH = canvas.height;
+  const W  = CW - PAD.left - PAD.right;
+  const H  = CH - PAD.top  - PAD.bottom;
   const maxY = 165;
 
   ctx.clearRect(0, 0, CW, CH);
 
-  // ── grid lines (Y axis) ──
+  const baseFont = `${10.5*dpr}px 'JetBrains Mono', monospace`;
+
+  // ── Y grid + ticks ──
   const yTicks = [0,20,40,60,80,100,120,140,160];
-  ctx.font = `${11*dpr}px 'JetBrains Mono', monospace`;
+  ctx.font = baseFont;
   ctx.textAlign = 'right';
+
   yTicks.forEach(v => {
-    const y = toCanvasY(v, H, maxY);
+    const y = cy(v, H, maxY);
+    // grid line
     ctx.beginPath();
-    ctx.strokeStyle = v === 0 ? '#2a3a50' : '#151e2a';
+    ctx.strokeStyle = v === 0 ? '#1e2d3f' : '#10181f';
     ctx.lineWidth = dpr;
     ctx.setLineDash([]);
     ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + W, y);
     ctx.stroke();
-    ctx.fillStyle = '#3a5060';
-    ctx.fillText(v + 'd', PAD.left - 10, y + 4*dpr);
+    // tick label
+    ctx.fillStyle = '#3a5268';
+    ctx.fillText(v === 0 ? '0d' : v + 'd', PAD.left - 8*dpr, y + 4*dpr);
   });
 
-  // ── X axis ticks ──
+  // ── X grid + date ticks ──
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#2a4050';
-  for (let i = 5; i <= DATA.length; i += 5) {
-    const x = toCanvasX(i, W);
-    ctx.fillText(i, x, PAD.top + H + 20*dpr);
-  }
+  dateTicks().forEach(d => {
+    const x = cx(d, W);
+    if (x < PAD.left || x > PAD.left + W) return;
+    ctx.beginPath();
+    ctx.strokeStyle = '#10181f';
+    ctx.lineWidth = dpr;
+    ctx.setLineDash([]);
+    ctx.moveTo(x, PAD.top); ctx.lineTo(x, PAD.top + H);
+    ctx.stroke();
+    const label = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short' });
+    ctx.fillStyle = '#3a5268';
+    ctx.fillText(label, x, PAD.top + H + 18*dpr);
+  });
+
+  // ── Axis lines ──
+  ctx.beginPath();
+  ctx.strokeStyle = '#1e2d3f';
+  ctx.lineWidth = dpr;
+  ctx.setLineDash([]);
+  ctx.moveTo(PAD.left, PAD.top);
+  ctx.lineTo(PAD.left, PAD.top + H);
+  ctx.lineTo(PAD.left + W, PAD.top + H);
+  ctx.stroke();
 
   // ── Axis labels ──
-  ctx.fillStyle = '#3a5060';
+  ctx.fillStyle = '#3a5268';
   ctx.font = `${10*dpr}px 'JetBrains Mono', monospace`;
   ctx.textAlign = 'center';
-  ctx.fillText('Item rank (sorted by lead time)', PAD.left + W/2, CH - 8*dpr);
+  ctx.fillText('Closed Date', PAD.left + W / 2, CH - 10*dpr);
 
   ctx.save();
-  ctx.translate(14*dpr, PAD.top + H/2);
-  ctx.rotate(-Math.PI/2);
-  ctx.fillText('Lead Time (calendar days)', 0, 0);
+  ctx.translate(12*dpr, PAD.top + H / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText('Lead Time (days)', 0, 0);
   ctx.restore();
 
+  // ── Zone bands ──
+  [[0,14,'#34d05806'],[15,59,'#f9731606'],[60,maxY,'#ef444406']].forEach(([from,to,col]) => {
+    const y1 = cy(to,   H, maxY);
+    const y2 = cy(from, H, maxY);
+    ctx.fillStyle = col;
+    ctx.fillRect(PAD.left, y1, W, y2 - y1);
+  });
+
   // ── Percentile lines ──
-  const percLines = [
-    { val: P50, color: '#facc15', label: 'P50' },
-    { val: P85, color: '#fb923c', label: 'P85' },
-    { val: P95, color: '#f87171', label: 'P95' },
-  ];
-  percLines.forEach(({ val, color, label }) => {
-    const y = toCanvasY(val, H, maxY);
+  [
+    [P50, '#facc15', 'P50 = 28d'],
+    [P85, '#fb923c', 'P85 = 102d'],
+    [P95, '#f87171', 'P95 = 109d'],
+  ].forEach(([val, color, label]) => {
+    const y = cy(val, H, maxY);
     ctx.beginPath();
     ctx.strokeStyle = color;
     ctx.lineWidth = 1.5 * dpr;
-    ctx.setLineDash([8*dpr, 5*dpr]);
-    ctx.globalAlpha = 0.8;
+    ctx.setLineDash([7*dpr, 5*dpr]);
+    ctx.globalAlpha = 0.85;
     ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left + W, y);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.globalAlpha = 1;
 
-    // label pill
-    ctx.font = `500 ${9.5*dpr}px 'JetBrains Mono', monospace`;
+    // pill label on right
+    ctx.font = `500 ${9*dpr}px 'JetBrains Mono', monospace`;
     ctx.textAlign = 'left';
-    const lw = ctx.measureText(label + ' = ' + Math.round(val) + 'd').width + 12*dpr;
-    const lh = 16*dpr;
-    const lx = PAD.left + W - lw - 4*dpr;
-    const ly = y - lh - 2*dpr;
-    ctx.fillStyle = color + '22';
-    roundRect(ctx, lx, ly, lw, lh, 3*dpr);
+    const tw = ctx.measureText(label).width + 12*dpr;
+    const th = 15*dpr;
+    const lx = PAD.left + W + 3*dpr;
+    const ly = y - th / 2;
+    ctx.fillStyle = color + '25';
+    ctx.beginPath();
+    ctx.roundRect(lx, ly, tw, th, 3*dpr);
     ctx.fill();
     ctx.fillStyle = color;
-    ctx.fillText(label + ' = ' + Math.round(val) + 'd', lx + 6*dpr, ly + lh - 4*dpr);
+    ctx.fillText(label, lx + 6*dpr, ly + th - 4.5*dpr);
   });
-
-  // ── SIZE zone bands (subtle) ──
-  const zones = [
-    { from:0, to:14,  color:'#22c55e08' },
-    { from:15, to:59, color:'#f9731608' },
-    { from:60, to:maxY, color:'#ef444408' },
-  ];
-  zones.forEach(z => {
-    const y1 = toCanvasY(z.to,   H, maxY);
-    const y2 = toCanvasY(z.from, H, maxY);
-    ctx.fillStyle = z.color;
-    ctx.fillRect(PAD.left, y1, W, y2 - y1);
-  });
-
-  // ── Connection line (sorted asc) ──
-  ctx.beginPath();
-  ctx.strokeStyle = '#1a2e40';
-  ctx.lineWidth = 1 * dpr;
-  ctx.setLineDash([]);
-  DATA.forEach((d, i) => {
-    const x = toCanvasX(i+1, W);
-    const y = toCanvasY(d.lt, H, maxY);
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  });
-  ctx.stroke();
 
   // ── Dots ──
   DATA.forEach((d, i) => {
-    const x = toCanvasX(i+1, W);
-    const y = toCanvasY(d.lt, H, maxY);
+    const x = cx(d.closedDate, W);
+    const y = cy(d.lt, H, maxY);
     const col = COLOR[d.size];
-    const isHov = hovered === i;
-    const r = isHov ? 8*dpr : 5.5*dpr;
+    const isH = hov === i;
+    const r = isH ? 8*dpr : 5.5*dpr;
 
-    // glow
-    if (isHov) {
-      const grad = ctx.createRadialGradient(x, y, 0, x, y, 18*dpr);
-      grad.addColorStop(0, col + '55');
-      grad.addColorStop(1, col + '00');
+    // glow on hover
+    if (isH) {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 20*dpr);
+      g.addColorStop(0, col + '50');
+      g.addColorStop(1, col + '00');
       ctx.beginPath();
-      ctx.arc(x, y, 18*dpr, 0, Math.PI*2);
-      ctx.fillStyle = grad;
+      ctx.arc(x, y, 20*dpr, 0, Math.PI*2);
+      ctx.fillStyle = g;
       ctx.fill();
     }
 
-    // ring
+    // outer ring
     ctx.beginPath();
-    ctx.arc(x, y, r + 2*dpr, 0, Math.PI*2);
-    ctx.fillStyle = col + (isHov ? '40' : '20');
+    ctx.arc(x, y, r + 2.5*dpr, 0, Math.PI*2);
+    ctx.fillStyle = col + (isH ? '45' : '20');
     ctx.fill();
 
-    // dot
+    // main dot
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI*2);
     ctx.fillStyle = col;
     ctx.fill();
 
-    // center
+    // inner dark
     ctx.beginPath();
-    ctx.arc(x, y, r * 0.38, 0, Math.PI*2);
-    ctx.fillStyle = '#00000050';
+    ctx.arc(x, y, r * 0.35, 0, Math.PI*2);
+    ctx.fillStyle = '#00000055';
     ctx.fill();
   });
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w, y, x+w, y+r, r);
-  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w, y+h, x+w-r, y+h, r);
-  ctx.lineTo(x+r, y+h); ctx.arcTo(x, y+h, x, y+h-r, r);
-  ctx.lineTo(x, y+r); ctx.arcTo(x, y, x+r, y, r);
-  ctx.closePath();
-}
-
-// ── TOOLTIP ──────────────────────────────────────────────────────────
-const tooltip = document.getElementById('tooltip');
+// ── Tooltip ──────────────────────────────────────────────────────────
+const tt = document.getElementById('tt');
 
 canvas.addEventListener('mousemove', e => {
-  const rect   = canvas.getBoundingClientRect();
-  const mx     = (e.clientX - rect.left) * dpr;
-  const my     = (e.clientY - rect.top)  * dpr;
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * dpr;
+  const my = (e.clientY - rect.top)  * dpr;
   const W = canvas.width  - PAD.left - PAD.right;
   const H = canvas.height - PAD.top  - PAD.bottom;
-  const maxY = 165;
 
-  let closest = null, minDist = 20 * dpr;
+  let closest = null, minD = 18 * dpr;
   DATA.forEach((d, i) => {
-    const x = toCanvasX(i+1, W);
-    const y = toCanvasY(d.lt, H, maxY);
-    const dist = Math.sqrt((mx-x)**2 + (my-y)**2);
-    if (dist < minDist) { minDist = dist; closest = i; }
+    const x = cx(d.closedDate, W);
+    const y = cy(d.lt, H);
+    const dist = Math.hypot(mx - x, my - y);
+    if (dist < minD) { minD = dist; closest = i; }
   });
 
   if (closest !== null) {
     const d = DATA[closest];
     const col = COLOR[d.size];
-    tooltip.style.display = 'block';
-    tooltip.style.left = (e.clientX + 16) + 'px';
-    tooltip.style.top  = (e.clientY - 10) + 'px';
-    tooltip.innerHTML = `
-      <div class="tt-task">${d.task}</div>
-      <hr class="tt-divider">
-      <div class="tt-row"><span class="tt-key">Lead Time</span><span class="tt-val" style="color:${col}">${d.lt} days</span></div>
-      <div class="tt-row"><span class="tt-key">Type</span><span class="tt-val">${d.type}</span></div>
-      <div class="tt-row"><span class="tt-key">Start</span><span class="tt-val">${d.start}</span></div>
-      <div class="tt-row"><span class="tt-key">Closed</span><span class="tt-val">${d.closed}</span></div>
+    tt.style.display = 'block';
+    tt.innerHTML = `
+      <div class="tt-name">${d.task}</div>
+      <hr>
+      <div class="tt-row"><span class="tt-k">Lead Time</span><span class="tt-v" style="color:${col}">${d.lt} days</span></div>
+      <div class="tt-row"><span class="tt-k">Type</span><span class="tt-v">${d.type}</span></div>
+      <div class="tt-row"><span class="tt-k">Start</span><span class="tt-v">${d.start}</span></div>
+      <div class="tt-row"><span class="tt-k">Closed</span><span class="tt-v">${d.closed}</span></div>
       <div><span class="tt-badge" style="background:${col}22;color:${col}">${d.size}</span></div>`;
-    if (hovered !== closest) { hovered = closest; draw(); }
+
+    // position
+    let lx = e.clientX + 16, ly = e.clientY - 10;
+    if (lx + 320 > window.innerWidth)  lx = e.clientX - 336;
+    if (ly + 160 > window.innerHeight) ly = e.clientY - 165;
+    tt.style.left = lx + 'px';
+    tt.style.top  = ly + 'px';
+
+    if (hov !== closest) { hov = closest; draw(); }
   } else {
-    tooltip.style.display = 'none';
-    if (hovered !== null) { hovered = null; draw(); }
+    tt.style.display = 'none';
+    if (hov !== null) { hov = null; draw(); }
   }
 });
 
 canvas.addEventListener('mouseleave', () => {
-  tooltip.style.display = 'none';
-  hovered = null;
-  draw();
-});
-
-// ensure tooltip stays in viewport
-canvas.addEventListener('mousemove', e => {
-  const tw = 280, th = 140;
-  let lx = e.clientX + 18, ly = e.clientY - 10;
-  if (lx + tw > window.innerWidth)  lx = e.clientX - tw - 18;
-  if (ly + th > window.innerHeight) ly = e.clientY - th;
-  tooltip.style.left = lx + 'px';
-  tooltip.style.top  = ly + 'px';
+  tt.style.display = 'none';
+  if (hov !== null) { hov = null; draw(); }
 });
 
 window.addEventListener('resize', resize);
