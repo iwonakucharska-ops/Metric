@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Throughput — Process Behaviour Chart · Sygnały</title>
+<title>Weekly Throughput — Process Behaviour Chart</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
@@ -17,13 +17,14 @@
     --mid:     #4a6a8a;
     --text:    #8ab0d0;
     --hi:      #d0e8f8;
-    --accent:  #00c8ff;
-    --green:   #00e87a;
-    /* signal colours */
-    --r1:      #ff4060;   /* rule1: beyond NPL */
-    --r2:      #e040fb;   /* rule2: 2of3 beyond 2σ */
-    --r3:      #ff9800;   /* rule3: 3of5 beyond 1σ */
-    --r4:      #ffe040;   /* rule4: run 8 same side */
+    --c-sum:   #00c8ff;
+    --c-med:   #00e87a;
+    --c-mean:  #818cf8;
+    --ucl:     #ff4060;
+    --r1:      #ff4060;
+    --r2:      #e040fb;
+    --r3:      #ff9800;
+    --r4:      #ffe040;
     --mono:    'IBM Plex Mono', monospace;
     --disp:    'Bebas Neue', sans-serif;
   }
@@ -31,99 +32,101 @@
   body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden;}
   body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
     background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);}
-
   .page{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:36px 44px 64px;}
 
-  /* ── TOPBAR ── */
+  /* TOPBAR */
   .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
     border-bottom:1px solid var(--bord2);padding-bottom:22px;margin-bottom:28px;}
-  .brand-eye{font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+  .brand-eye{font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
   h1{font-family:var(--disp);font-size:2.8rem;line-height:1;color:var(--hi);letter-spacing:.04em;}
-  h1 span{color:var(--accent);}
-  .brand-sub{font-size:.6rem;letter-spacing:.08em;color:var(--mid);margin-top:4px;}
+  h1 .c1{color:var(--c-sum);}
+  h1 .c2{color:var(--c-med);}
+  .brand-sub{font-size:.6rem;letter-spacing:.08em;color:var(--mid);margin-top:5px;}
   .period{background:var(--surf);border:1px solid var(--bord2);border-radius:8px;padding:10px 18px;
-    font-size:.63rem;letter-spacing:.07em;color:var(--mid);white-space:nowrap;}
-  .period b{color:var(--accent);}
+    font-size:.63rem;letter-spacing:.06em;color:var(--mid);white-space:nowrap;text-align:right;}
+  .period b{color:var(--c-sum);}
 
-  /* ── KPI STRIP ── */
-  .kpi-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--bord);
-    border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:22px;}
-  .kpi{background:var(--surf);padding:15px 18px;}
-  .kpi-lbl{font-size:.52rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);margin-bottom:7px;}
-  .kpi-val{font-family:var(--disp);font-size:1.85rem;line-height:1;margin-bottom:3px;}
-  .kpi-sub{font-size:.57rem;color:var(--mid);}
+  /* KPI STRIP */
+  .kpi-strip{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;background:var(--bord);
+    border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+  .kpi{background:var(--surf);padding:14px 16px;}
+  .kpi-lbl{font-size:.51rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);margin-bottom:6px;}
+  .kpi-val{font-family:var(--disp);font-size:1.75rem;line-height:1;margin-bottom:3px;}
+  .kpi-sub{font-size:.56rem;color:var(--mid);}
+  .kpi-divider{background:var(--bord2);grid-column:span 1;display:flex;align-items:center;justify-content:center;
+    font-size:.5rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);writing-mode:vertical-lr;}
 
-  /* ── RULES LEGEND ── */
-  .rules-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
-  .rule-card{background:var(--surf);border:1px solid var(--bord2);border-radius:9px;
-    padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
-  .rule-badge{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;
-    justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;margin-top:1px;}
-  .rule-title{font-size:.67rem;color:var(--hi);margin-bottom:4px;letter-spacing:.04em;}
-  .rule-desc{font-size:.58rem;color:var(--mid);line-height:1.5;}
-  .rule-count{font-size:.62rem;font-weight:600;margin-top:6px;}
+  /* SECTION HEADER */
+  .section-hdr{display:flex;align-items:center;gap:14px;margin-bottom:14px;margin-top:8px;}
+  .section-pill{padding:4px 14px;border-radius:5px;font-size:.65rem;letter-spacing:.08em;font-weight:600;}
+  .section-title{font-family:var(--disp);font-size:1rem;letter-spacing:.08em;color:var(--hi);}
+  .section-sub{font-size:.59rem;color:var(--dim);}
 
-  /* ── FILTER BAR ── */
-  .filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
-  .filter-lbl{font-size:.56rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);}
-  .pills{display:flex;gap:1px;background:var(--bord);border-radius:7px;overflow:hidden;}
-  .pill{background:var(--surf);border:none;color:var(--mid);font-family:var(--mono);
-    font-size:.63rem;padding:8px 14px;cursor:pointer;transition:background .15s,color .15s;letter-spacing:.04em;}
-  .pill:hover{background:var(--bord2);color:var(--text);}
-  .pill.active{background:rgba(0,200,255,.1);color:var(--accent);}
+  /* LEGEND */
+  .legend{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+  .leg-grp{display:flex;gap:14px;align-items:center;}
+  .leg-lbl{font-size:.52rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);}
+  .leg-item{display:flex;align-items:center;gap:6px;font-size:.63rem;color:var(--mid);}
+  .leg-line{width:20px;height:2px;}
+  .leg-line.dashed{border-top:2px dashed;background:none!important;}
+  .leg-dot{width:8px;height:8px;border-radius:50%;}
+  .leg-sep{width:1px;height:18px;background:var(--bord2);}
 
-  /* ── CHART CARDS ── */
+  /* CARDS */
+  .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  @media(max-width:900px){.charts-row{grid-template-columns:1fr;}}
   .chart-card{background:var(--surf);border:1px solid var(--bord2);border-radius:12px;
-    padding:24px 28px 18px;margin-bottom:16px;position:relative;overflow:hidden;}
-  .chart-card::before{content:'';position:absolute;top:0;left:0;width:56px;height:3px;
-    background:linear-gradient(90deg,var(--accent),transparent);border-radius:12px 0 0 0;}
-  .ch-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
-  .ch-title{font-family:var(--disp);font-size:1.05rem;letter-spacing:.06em;color:var(--hi);}
-  .ch-meta{font-size:.58rem;color:var(--dim);}
-  .ch-desc{font-size:.58rem;color:var(--dim);margin-bottom:14px;letter-spacing:.04em;}
+    padding:22px 26px 16px;position:relative;overflow:hidden;}
+  .chart-card.full{grid-column:1/-1;}
+  .chart-card::before{content:'';position:absolute;top:0;left:0;width:50px;height:3px;border-radius:12px 0 0 0;}
+  .card-sum::before{background:linear-gradient(90deg,var(--c-sum),transparent);}
+  .card-med::before{background:linear-gradient(90deg,var(--c-med),transparent);}
+  .card-mr::before{background:linear-gradient(90deg,var(--mid),transparent);}
+  .ch-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;}
+  .ch-title{font-family:var(--disp);font-size:.95rem;letter-spacing:.06em;color:var(--hi);}
+  .ch-meta{font-size:.57rem;color:var(--dim);}
+  .ch-desc{font-size:.57rem;color:var(--dim);margin-bottom:12px;letter-spacing:.04em;}
   canvas{display:block;width:100%;cursor:crosshair;}
 
-  /* ── SIGNAL TABLE ── */
+  /* SIGNAL SECTION */
   .sig-section{margin-top:20px;}
-  .sig-header{font-size:.56rem;text-transform:uppercase;letter-spacing:.16em;color:var(--dim);
-    margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .sig-tab-pills{display:flex;gap:1px;background:var(--bord);border-radius:6px;overflow:hidden;}
-  .sig-tab{background:var(--surf);border:none;font-family:var(--mono);font-size:.6rem;
+  .sig-hdr{font-size:.55rem;text-transform:uppercase;letter-spacing:.16em;color:var(--dim);
+    margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .sig-tabs{display:flex;gap:1px;background:var(--bord);border-radius:6px;overflow:hidden;}
+  .sig-tab{background:var(--surf);border:none;font-family:var(--mono);font-size:.59rem;
     padding:5px 12px;cursor:pointer;color:var(--mid);transition:background .15s,color .15s;letter-spacing:.04em;}
   .sig-tab:hover{background:var(--bord2);}
   .sig-tab.active{color:var(--hi);}
-  .sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:7px;margin-top:10px;}
-  .sig-item{display:flex;align-items:center;gap:9px;background:var(--bg2);
-    border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:9px 13px;font-size:.63rem;
-    transition:border-color .2s;}
+  .sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:7px;margin-top:10px;}
+  .sig-item{display:flex;align-items:center;gap:8px;background:var(--bg2);
+    border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:9px 12px;font-size:.62rem;transition:border-color .2s;}
   .sig-item:hover{border-color:rgba(255,255,255,.15);}
-  .sig-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-  .sig-rule{font-size:.52rem;text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;padding:1px 7px;border-radius:3px;}
-  .sig-date{color:var(--mid);flex-shrink:0;min-width:66px;}
-  .sig-val{font-weight:600;flex-shrink:0;min-width:22px;}
+  .sig-dot2{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .sig-rule{font-size:.5rem;text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;padding:1px 7px;border-radius:3px;}
+  .sig-src{font-size:.52rem;padding:1px 6px;border-radius:3px;flex-shrink:0;}
+  .sig-date{color:var(--mid);flex-shrink:0;min-width:60px;}
+  .sig-val{font-weight:600;flex-shrink:0;min-width:20px;}
   .sig-desc{color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-  /* ── TOOLTIP ── */
+  /* TOOLTIP */
   #tt{position:fixed;z-index:9999;pointer-events:none;display:none;
     background:#060f1ef5;border:1px solid var(--bord2);border-radius:9px;padding:13px 16px;
-    font-family:var(--mono);font-size:.66rem;color:var(--text);max-width:290px;line-height:1.8;
+    font-family:var(--mono);font-size:.65rem;color:var(--text);max-width:300px;line-height:1.8;
     backdrop-filter:blur(14px);box-shadow:0 18px 52px rgba(0,0,0,.75);}
-  .tt-date{font-size:.7rem;color:var(--accent);margin-bottom:6px;font-weight:600;}
+  .tt-date{font-size:.7rem;margin-bottom:6px;font-weight:600;}
   .tt-hr{border:none;border-top:1px solid var(--bord2);margin:7px 0;}
   .tt-row{display:flex;justify-content:space-between;gap:18px;}
   .tt-k{color:var(--dim);}
   .tt-v{color:var(--hi);}
-  .tt-sigs{margin-top:8px;display:flex;flex-direction:column;gap:3px;}
-  .tt-sig{font-size:.59rem;display:flex;align-items:center;gap:6px;}
+  .tt-sigs{margin-top:7px;display:flex;flex-direction:column;gap:3px;}
+  .tt-sig{font-size:.58rem;display:flex;align-items:center;gap:6px;}
   .tt-sig .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-  .kpi-strip{animation:fadeUp .45s ease both .05s;}
-  .rules-legend{animation:fadeUp .45s ease both .1s;}
-  .filter-bar{animation:fadeUp .45s ease both .14s;}
-  .chart-card{animation:fadeUp .45s ease both .18s;}
-  .chart-card:nth-of-type(2){animation-delay:.24s;}
-  .sig-section{animation:fadeUp .45s ease both .3s;}
+  .kpi-strip{animation:fadeUp .4s ease both .05s;}
+  .section-hdr,.legend{animation:fadeUp .4s ease both .1s;}
+  .charts-row{animation:fadeUp .4s ease both .15s;}
+  .sig-section{animation:fadeUp .4s ease both .25s;}
 </style>
 </head>
 <body>
@@ -132,662 +135,623 @@
 <!-- TOPBAR -->
 <div class="topbar">
   <div>
-    <div class="brand-eye">Flow Metrics · XmR Process Behaviour Chart</div>
-    <h1>THROUGHPUT <span>DAILY</span></h1>
-    <div class="brand-sub">Sygnały wg 4 reguł Wheelera · 07 sty – 19 kwi 2025</div>
+    <div class="brand-eye">Flow Metrics · Weekly Aggregation · XmR Process Behaviour Chart</div>
+    <h1>WEEKLY <span class="c1">THROUGHPUT</span><br>& <span class="c2">MEDIAN</span></h1>
+    <div class="brand-sub">Agregacja tygodniowa · Suma + Mediana z aktywnych dni · 4 reguły sygnałów Wheelera</div>
   </div>
-  <div class="period">Okres: <b>07 sty 2025</b> – <b>19 kwi 2025</b><br><span style="color:var(--dim)">103 dni obserwacji</span></div>
+  <div class="period">
+    <b>15 tygodni</b> obserwacji<br>
+    07 sty – 19 kwi 2025<br>
+    <span style="color:var(--dim)">Mediana: z dni z throughput &gt; 0</span>
+  </div>
 </div>
 
-<!-- KPI -->
-<div class="kpi-strip">
-  <div class="kpi"><div class="kpi-lbl">Obserwacje</div><div class="kpi-val" style="color:var(--accent)" id="kn">103</div><div class="kpi-sub">dni</div></div>
-  <div class="kpi"><div class="kpi-lbl">Średnia X̄</div><div class="kpi-val" style="color:#818cf8" id="km">—</div><div class="kpi-sub">elem./dzień</div></div>
-  <div class="kpi"><div class="kpi-lbl">UCL (3σ)</div><div class="kpi-val" style="color:var(--r1)" id="ku">—</div><div class="kpi-sub">górny limit</div></div>
-  <div class="kpi"><div class="kpi-lbl">2σ linia</div><div class="kpi-val" style="color:var(--r2)" id="k2s">—</div><div class="kpi-sub">= X̄+2σ̂</div></div>
-  <div class="kpi"><div class="kpi-lbl">1σ linia</div><div class="kpi-val" style="color:var(--r3)" id="k1s">—</div><div class="kpi-sub">= X̄+σ̂</div></div>
-  <div class="kpi"><div class="kpi-lbl">mR̄</div><div class="kpi-val" style="color:var(--mid)" id="kmr">—</div><div class="kpi-sub">avg moving range</div></div>
-  <div class="kpi"><div class="kpi-lbl">Sygnały łącznie</div><div class="kpi-val" style="color:var(--r1)" id="ktot">—</div><div class="kpi-sub">unikalne punkty</div></div>
+<!-- KPI STRIP -->
+<div class="kpi-strip" id="kpi-strip">
+  <!-- SUM -->
+  <div class="kpi"><div class="kpi-lbl">Tygodnie</div><div class="kpi-val" style="color:var(--c-sum)" id="kn">15</div><div class="kpi-sub">obserwacji</div></div>
+  <div class="kpi"><div class="kpi-lbl">X̄ Suma</div><div class="kpi-val" style="color:var(--c-mean)" id="km-sum">—</div><div class="kpi-sub">elem./tydzień</div></div>
+  <div class="kpi"><div class="kpi-lbl">UCL Suma</div><div class="kpi-val" style="color:var(--ucl)" id="ku-sum">—</div><div class="kpi-sub">= X̄+3σ̂</div></div>
+  <div class="kpi"><div class="kpi-lbl">Syg. Suma</div><div class="kpi-val" style="color:var(--ucl)" id="ks-sum">—</div><div class="kpi-sub">unikalne punkty</div></div>
+  <!-- MEDIAN -->
+  <div class="kpi"><div class="kpi-lbl">X̄ Mediany</div><div class="kpi-val" style="color:var(--c-mean)" id="km-med">—</div><div class="kpi-sub">mediana/aktywny dzień</div></div>
+  <div class="kpi"><div class="kpi-lbl">UCL Mediana</div><div class="kpi-val" style="color:var(--ucl)" id="ku-med">—</div><div class="kpi-sub">= X̄+3σ̂</div></div>
+  <div class="kpi"><div class="kpi-lbl">Syg. Mediana</div><div class="kpi-val" style="color:var(--ucl)" id="ks-med">—</div><div class="kpi-sub">unikalne punkty</div></div>
+  <div class="kpi"><div class="kpi-lbl">Syg. łącznie</div><div class="kpi-val" style="color:var(--r1)" id="ks-tot">—</div><div class="kpi-sub">obie serie</div></div>
 </div>
 
-<!-- RULES LEGEND -->
-<div class="rules-legend">
-  <div class="rule-card">
-    <div class="rule-badge" style="background:rgba(255,64,96,.15);color:var(--r1)">R1</div>
-    <div>
-      <div class="rule-title">Poza korytarzem NPL (3σ)</div>
-      <div class="rule-desc">Pojedynczy punkt powyżej UCL lub poniżej LCL.<br>Zjawisko o przypisywalnej przyczynie.</div>
-      <div class="rule-count" style="color:var(--r1)" id="rc1">— punktów</div>
+<!-- ─── SECTION: X CHARTS ─── -->
+<div class="section-hdr">
+  <div class="section-pill" style="background:rgba(0,200,255,.1);color:var(--c-sum)">X CHARTS</div>
+  <div class="section-title">Tygodniowe wartości w sekwencji chronologicznej</div>
+  <div class="section-sub">Sygnały: 🔴 R1 poza NPL &nbsp;·&nbsp; 🟣 R2 (2/3&gt;2σ) &nbsp;·&nbsp; 🟠 R3 (3/5&gt;1σ) &nbsp;·&nbsp; 🟡 R4 (run 8+)</div>
+</div>
+
+<div class="legend">
+  <div class="leg-grp">
+    <span class="leg-lbl">Suma:</span>
+    <div class="leg-item"><div class="leg-line" style="background:var(--c-sum)"></div>Throughput/tydzień</div>
+    <div class="leg-item"><div class="leg-line" style="background:var(--c-mean)"></div>X̄</div>
+    <div class="leg-item"><div class="leg-line dashed" style="border-color:var(--ucl)"></div>UCL/LCL</div>
+    <div class="leg-item"><div class="leg-line dashed" style="border-color:var(--r2)"></div>±2σ</div>
+    <div class="leg-item"><div class="leg-line dashed" style="border-color:var(--r3)"></div>±1σ</div>
+  </div>
+  <div class="leg-sep"></div>
+  <div class="leg-grp">
+    <span class="leg-lbl">Mediana:</span>
+    <div class="leg-item"><div class="leg-dot" style="background:var(--c-med)"></div>Mediana z aktywnych dni</div>
+  </div>
+</div>
+
+<div class="charts-row">
+  <div class="chart-card card-sum">
+    <div class="ch-header">
+      <div class="ch-title">X CHART — Suma tygodniowa</div>
+      <div class="ch-meta">Łączna liczba elem. zamkniętych w tygodniu</div>
     </div>
+    <div class="ch-desc">Każdy punkt = suma throughputu w danym tygodniu</div>
+    <canvas id="xsum"></canvas>
   </div>
-  <div class="rule-card">
-    <div class="rule-badge" style="background:rgba(224,64,251,.15);color:var(--r2)">R2</div>
-    <div>
-      <div class="rule-title">2 z 3 poza 2σ</div>
-      <div class="rule-desc">2 z 3 kolejnych punktów po tej samej stronie, powyżej linii 2σ.<br>Umiarkowany sygnał zmiany.</div>
-      <div class="rule-count" style="color:var(--r2)" id="rc2">— punktów</div>
+  <div class="chart-card card-med">
+    <div class="ch-header">
+      <div class="ch-title">X CHART — Mediana tygodniowa</div>
+      <div class="ch-meta">Mediana throughputu z dni aktywnych (&gt;0)</div>
     </div>
-  </div>
-  <div class="rule-card">
-    <div class="rule-badge" style="background:rgba(255,152,0,.15);color:var(--r3)">R3</div>
-    <div>
-      <div class="rule-title">3 z 5 poza 1σ</div>
-      <div class="rule-desc">3 z 5 kolejnych punktów po tej samej stronie, powyżej linii 1σ.<br>Umiarkowany sygnał zmiany.</div>
-      <div class="rule-count" style="color:var(--r3)" id="rc3">— punktów</div>
-    </div>
-  </div>
-  <div class="rule-card">
-    <div class="rule-badge" style="background:rgba(255,224,64,.12);color:var(--r4)">R4</div>
-    <div>
-      <div class="rule-title">8 kolejnych po jednej stronie X̄</div>
-      <div class="rule-desc">8 lub więcej kolejnych punktów po tej samej stronie średniej.<br>Sygnał niewielkiej trwałej zmiany.</div>
-      <div class="rule-count" style="color:var(--r4)" id="rc4">— punktów</div>
-    </div>
+    <div class="ch-desc">Każdy punkt = mediana z dni, w których cokolwiek dostarczono</div>
+    <canvas id="xmed"></canvas>
   </div>
 </div>
 
-<!-- FILTER -->
-<div class="filter-bar">
-  <span class="filter-lbl">Widok:</span>
-  <div class="pills">
-    <button class="pill active" data-r="all"    onclick="setRange('all')">Wszystkie</button>
-    <button class="pill" data-r="jan"    onclick="setRange('jan')">Styczeń</button>
-    <button class="pill" data-r="feb"    onclick="setRange('feb')">Luty</button>
-    <button class="pill" data-r="mar"    onclick="setRange('mar')">Marzec</button>
-    <button class="pill" data-r="apr"    onclick="setRange('apr')">Kwiecień</button>
-    <button class="pill" data-r="last30" onclick="setRange('last30')">Ostatnie 30d</button>
-  </div>
+<!-- ─── SECTION: mR CHARTS ─── -->
+<div class="section-hdr" style="margin-top:8px;">
+  <div class="section-pill" style="background:rgba(74,106,138,.15);color:var(--mid)">mR CHARTS</div>
+  <div class="section-title">Moving Range — zmienność między tygodniami</div>
+  <div class="section-sub">UCL(mR) = 3.267 × mR̄ &nbsp;·&nbsp; σ̂ = mR̄/d₂ &nbsp;(d₂=1.128)</div>
 </div>
 
-<!-- X CHART -->
-<div class="chart-card">
-  <div class="ch-header">
-    <div class="ch-title">X CHART — Throughput dzienny z sygnałami</div>
-    <div class="ch-meta" id="xmeta">103 obs. · 07 sty – 19 kwi 2025</div>
+<div class="charts-row">
+  <div class="chart-card card-mr">
+    <div class="ch-header">
+      <div class="ch-title">mR CHART — Suma</div>
+      <div class="ch-meta">|Suma(i) − Suma(i−1)|</div>
+    </div>
+    <div class="ch-desc">Zmienność tygodniowego throughputu (suma)</div>
+    <canvas id="mrsum"></canvas>
   </div>
-  <div class="ch-desc">Kolory punktów: 🔴 R1 poza NPL &nbsp;|&nbsp; 🟣 R2 (2/3 powyżej 2σ) &nbsp;|&nbsp; 🟠 R3 (3/5 powyżej 1σ) &nbsp;|&nbsp; 🟡 R4 (run ≥8) &nbsp;|&nbsp; Szare linie sigma = ±1σ̂, ±2σ̂</div>
-  <canvas id="xc"></canvas>
-</div>
-
-<!-- MR CHART -->
-<div class="chart-card">
-  <div class="ch-header">
-    <div class="ch-title">mR CHART — Moving Range</div>
-    <div class="ch-meta">|X<sub>i</sub> − X<sub>i−1</sub>| · UCL(mR) = 3.267 × mR̄</div>
+  <div class="chart-card card-mr">
+    <div class="ch-header">
+      <div class="ch-title">mR CHART — Mediana</div>
+      <div class="ch-meta">|Mediana(i) − Mediana(i−1)|</div>
+    </div>
+    <div class="ch-desc">Zmienność mediany throughputu między tygodniami</div>
+    <canvas id="mrmed"></canvas>
   </div>
-  <div class="ch-desc">Zmienność między kolejnymi obserwacjami · Czerwone słupki = poza UCL(mR)</div>
-  <canvas id="mrc"></canvas>
 </div>
 
 <!-- SIGNAL TABLE -->
 <div class="sig-section">
-  <div class="sig-header">
+  <div class="sig-hdr">
     Wykryte sygnały
-    <div class="sig-tab-pills">
+    <div class="sig-tabs">
       <button class="sig-tab active" data-st="all"  onclick="setSigTab('all')">Wszystkie</button>
-      <button class="sig-tab" data-st="r1" onclick="setSigTab('r1')" style="color:var(--r1)">R1</button>
-      <button class="sig-tab" data-st="r2" onclick="setSigTab('r2')" style="color:var(--r2)">R2</button>
-      <button class="sig-tab" data-st="r3" onclick="setSigTab('r3')" style="color:var(--r3)">R3</button>
-      <button class="sig-tab" data-st="r4" onclick="setSigTab('r4')" style="color:var(--r4)">R4</button>
+      <button class="sig-tab" data-st="sum"  onclick="setSigTab('sum')" style="color:var(--c-sum)">Suma</button>
+      <button class="sig-tab" data-st="med"  onclick="setSigTab('med')" style="color:var(--c-med)">Mediana</button>
+      <button class="sig-tab" data-st="r1"   onclick="setSigTab('r1')"  style="color:var(--r1)">R1</button>
+      <button class="sig-tab" data-st="r2"   onclick="setSigTab('r2')"  style="color:var(--r2)">R2</button>
+      <button class="sig-tab" data-st="r3"   onclick="setSigTab('r3')"  style="color:var(--r3)">R3</button>
+      <button class="sig-tab" data-st="r4"   onclick="setSigTab('r4')"  style="color:var(--r4)">R4</button>
     </div>
   </div>
   <div class="sig-grid" id="siggrid"></div>
 </div>
 
-</div><!-- /page -->
+</div>
 <div id="tt"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  DATA
+//  WEEKLY DATA
 // ═══════════════════════════════════════════════════════
-const ALL = [
-  {d:"2025-01-07",v:0},{d:"2025-01-08",v:2},{d:"2025-01-09",v:10},{d:"2025-01-10",v:3},
-  {d:"2025-01-11",v:0},{d:"2025-01-12",v:0},{d:"2025-01-13",v:2},{d:"2025-01-14",v:3},
-  {d:"2025-01-15",v:7},{d:"2025-01-16",v:0},{d:"2025-01-17",v:0},{d:"2025-01-18",v:0},
-  {d:"2025-01-19",v:0},{d:"2025-01-20",v:5},{d:"2025-01-21",v:2},{d:"2025-01-22",v:0},
-  {d:"2025-01-23",v:0},{d:"2025-01-24",v:0},{d:"2025-01-25",v:0},{d:"2025-01-26",v:0},
-  {d:"2025-01-27",v:1},{d:"2025-01-28",v:1},{d:"2025-01-29",v:0},{d:"2025-01-30",v:5},
-  {d:"2025-01-31",v:4},{d:"2025-02-01",v:0},{d:"2025-02-02",v:0},{d:"2025-02-03",v:7},
-  {d:"2025-02-04",v:0},{d:"2025-02-05",v:2},{d:"2025-02-06",v:2},{d:"2025-02-07",v:12},
-  {d:"2025-02-08",v:0},{d:"2025-02-09",v:0},{d:"2025-02-10",v:1},{d:"2025-02-11",v:0},
-  {d:"2025-02-12",v:0},{d:"2025-02-13",v:2},{d:"2025-02-14",v:12},{d:"2025-02-15",v:0},
-  {d:"2025-02-16",v:0},{d:"2025-02-17",v:1},{d:"2025-02-18",v:0},{d:"2025-02-19",v:0},
-  {d:"2025-02-20",v:3},{d:"2025-02-21",v:11},{d:"2025-02-22",v:0},{d:"2025-02-23",v:0},
-  {d:"2025-02-24",v:6},{d:"2025-02-25",v:0},{d:"2025-02-26",v:0},{d:"2025-02-27",v:6},
-  {d:"2025-02-28",v:7},{d:"2025-03-01",v:0},{d:"2025-03-02",v:0},{d:"2025-03-03",v:2},
-  {d:"2025-03-04",v:0},{d:"2025-03-05",v:0},{d:"2025-03-06",v:3},{d:"2025-03-07",v:5},
-  {d:"2025-03-08",v:0},{d:"2025-03-09",v:0},{d:"2025-03-10",v:1},{d:"2025-03-11",v:0},
-  {d:"2025-03-12",v:0},{d:"2025-03-13",v:9},{d:"2025-03-14",v:7},{d:"2025-03-15",v:0},
-  {d:"2025-03-16",v:0},{d:"2025-03-17",v:3},{d:"2025-03-18",v:0},{d:"2025-03-19",v:0},
-  {d:"2025-03-20",v:4},{d:"2025-03-21",v:10},{d:"2025-03-22",v:0},{d:"2025-03-23",v:0},
-  {d:"2025-03-24",v:1},{d:"2025-03-25",v:0},{d:"2025-03-26",v:0},{d:"2025-03-27",v:5},
-  {d:"2025-03-28",v:1},{d:"2025-03-29",v:0},{d:"2025-03-30",v:0},{d:"2025-03-31",v:2},
-  {d:"2025-04-01",v:0},{d:"2025-04-02",v:0},{d:"2025-04-03",v:2},{d:"2025-04-04",v:11},
-  {d:"2025-04-05",v:0},{d:"2025-04-06",v:0},{d:"2025-04-07",v:1},{d:"2025-04-08",v:0},
-  {d:"2025-04-09",v:0},{d:"2025-04-10",v:5},{d:"2025-04-11",v:2},{d:"2025-04-12",v:0},
-  {d:"2025-04-13",v:0},{d:"2025-04-14",v:1},{d:"2025-04-15",v:0},{d:"2025-04-16",v:0},
-  {d:"2025-04-17",v:4},{d:"2025-04-18",v:7},{d:"2025-04-19",v:0},
+const WEEKS = [
+  {label:"07–12 Jan",start:"2025-01-07",total:15,days:6,med:3.0,active:3},
+  {label:"13–19 Jan",start:"2025-01-13",total:12,days:7,med:3.0,active:3},
+  {label:"20–26 Jan",start:"2025-01-20",total:7, days:7,med:3.5,active:2},
+  {label:"27 Jan–02 Feb",start:"2025-01-27",total:11,days:7,med:2.5,active:4},
+  {label:"03–09 Feb",start:"2025-02-03",total:23,days:7,med:4.5,active:4},
+  {label:"10–16 Feb",start:"2025-02-10",total:15,days:7,med:2.0,active:3},
+  {label:"17–23 Feb",start:"2025-02-17",total:15,days:7,med:3.0,active:3},
+  {label:"24 Feb–02 Mar",start:"2025-02-24",total:19,days:7,med:6.0,active:3},
+  {label:"03–09 Mar",start:"2025-03-03",total:10,days:7,med:3.0,active:3},
+  {label:"10–16 Mar",start:"2025-03-10",total:17,days:7,med:7.0,active:3},
+  {label:"17–23 Mar",start:"2025-03-17",total:17,days:7,med:4.0,active:3},
+  {label:"24–30 Mar",start:"2025-03-24",total:7, days:7,med:1.0,active:3},
+  {label:"31 Mar–06 Apr",start:"2025-03-31",total:15,days:7,med:2.0,active:3},
+  {label:"07–13 Apr",start:"2025-04-07",total:8, days:7,med:2.0,active:3},
+  {label:"14–19 Apr",start:"2025-04-14",total:12,days:6,med:4.0,active:3},
 ];
 
-const RCOL = { r1:'#ff4060', r2:'#e040fb', r3:'#ff9800', r4:'#ffe040' };
-const dpr  = window.devicePixelRatio || 1;
-const tt   = document.getElementById('tt');
+const RCOL  = {r1:'#ff4060',r2:'#e040fb',r3:'#ff9800',r4:'#ffe040'};
+const RLBL  = {r1:'R1·NPL',r2:'R2·2/3>2σ',r3:'R3·3/5>1σ',r4:'R4·Run8+'};
+const RDESC = {r1:'Poza korytarzem NPL (3σ)',r2:'2 z 3 kolejnych > 2σ',r3:'3 z 5 kolejnych > 1σ',r4:'8+ punktów po jednej stronie X̄'};
+const dpr   = window.devicePixelRatio||1;
+const tt    = document.getElementById('tt');
 
-let currentRange = 'all';
 let sigTab = 'all';
-let xHov = null, mrHov = null;
+let hovs = {xsum:null,xmed:null,mrsum:null,mrmed:null};
 
 // ═══════════════════════════════════════════════════════
 //  STATS
 // ═══════════════════════════════════════════════════════
-function computeStats(pts) {
-  const n    = pts.length;
-  const vals = pts.map(p => p.v);
-  const mean = vals.reduce((s,v)=>s+v,0) / n;
+function computeXmR(vals) {
+  const n    = vals.length;
+  const mean = vals.reduce((s,v)=>s+v,0)/n;
   const mr   = [];
-  for (let i=1;i<n;i++) mr.push(Math.abs(vals[i]-vals[i-1]));
-  const mrMean = mr.reduce((s,v)=>s+v,0) / (mr.length||1);
-  // σ̂ = mR̄ / d2 ; d2=1.128 for n=2
-  const sigma = mrMean / 1.128;
-  const ucl   = mean + 3*sigma;
-  const lcl   = Math.max(0, mean - 3*sigma);
-  const s2hi  = mean + 2*sigma;
-  const s2lo  = mean - 2*sigma;  // may be negative, clamp when used
-  const s1hi  = mean + 1*sigma;
-  const s1lo  = mean - 1*sigma;
-  const uclMr = 3.267 * mrMean;
-  return { n, mean, ucl, lcl, sigma, s2hi, s2lo, s1hi, s1lo, mr, mrMean, uclMr, vals };
+  for(let i=1;i<n;i++) mr.push(Math.abs(vals[i]-vals[i-1]));
+  const mrMean = mr.reduce((s,v)=>s+v,0)/(mr.length||1);
+  const sigma  = mrMean/1.128;
+  return {
+    mean, sigma, mrMean,
+    ucl:  mean+3*sigma,
+    lcl:  Math.max(0,mean-3*sigma),
+    s2hi: mean+2*sigma, s2lo: mean-2*sigma,
+    s1hi: mean+sigma,   s1lo: mean-sigma,
+    uclMr: 3.267*mrMean, mr,
+  };
 }
 
 // ═══════════════════════════════════════════════════════
-//  SIGNAL DETECTION — 4 RULES
+//  SIGNAL DETECTION (4 rules)
 // ═══════════════════════════════════════════════════════
-function detectAll(pts, st) {
-  const { mean, ucl, lcl, sigma, s2hi, s2lo, s1hi, s1lo, vals } = st;
+function detectAll(vals, st) {
   const n = vals.length;
+  const {mean,ucl,lcl,s2hi,s2lo,s1hi,s1lo} = st;
+  const sigs = Array.from({length:n},()=>new Set());
 
-  // Result: per-point set of triggered rules
-  const ptSigs = Array.from({length:n}, ()=>new Set());
+  // R1
+  vals.forEach((v,i)=>{ if(v>ucl||v<lcl) sigs[i].add('r1'); });
 
-  // ── RULE 1: single point beyond UCL or LCL ──────────
-  vals.forEach((v,i) => {
-    if (v > ucl || v < lcl) ptSigs[i].add('r1');
-  });
-
-  // ── RULE 2: 2 of 3 consecutive beyond SAME ±2σ ──────
-  // Check both upper (>s2hi) and lower (<s2lo) sides
-  for (let i=0; i<=n-3; i++) {
-    const win = [vals[i], vals[i+1], vals[i+2]];
-    const abv = win.filter(v=>v>s2hi).length;
-    const blw = win.filter(v=>v<s2lo).length;
-    if (abv >= 2) { win.forEach((_,k)=>{ if(vals[i+k]>s2hi) ptSigs[i+k].add('r2'); }); }
-    if (blw >= 2) { win.forEach((_,k)=>{ if(vals[i+k]<s2lo) ptSigs[i+k].add('r2'); }); }
+  // R2: 2/3 beyond ±2σ same side
+  for(let i=0;i<=n-3;i++){
+    const w=[vals[i],vals[i+1],vals[i+2]];
+    if(w.filter(v=>v>s2hi).length>=2) w.forEach((_,k)=>{if(vals[i+k]>s2hi)sigs[i+k].add('r2');});
+    if(w.filter(v=>v<s2lo).length>=2) w.forEach((_,k)=>{if(vals[i+k]<s2lo)sigs[i+k].add('r2');});
   }
 
-  // ── RULE 3: 3 of 5 consecutive beyond SAME ±1σ ──────
-  for (let i=0; i<=n-5; i++) {
-    const win = [vals[i], vals[i+1], vals[i+2], vals[i+3], vals[i+4]];
-    const abv = win.filter(v=>v>s1hi).length;
-    const blw = win.filter(v=>v<s1lo).length;
-    if (abv >= 3) { win.forEach((_,k)=>{ if(vals[i+k]>s1hi) ptSigs[i+k].add('r3'); }); }
-    if (blw >= 3) { win.forEach((_,k)=>{ if(vals[i+k]<s1lo) ptSigs[i+k].add('r3'); }); }
+  // R3: 3/5 beyond ±1σ same side
+  for(let i=0;i<=n-5;i++){
+    const w=[vals[i],vals[i+1],vals[i+2],vals[i+3],vals[i+4]];
+    if(w.filter(v=>v>s1hi).length>=3) w.forEach((_,k)=>{if(vals[i+k]>s1hi)sigs[i+k].add('r3');});
+    if(w.filter(v=>v<s1lo).length>=3) w.forEach((_,k)=>{if(vals[i+k]<s1lo)sigs[i+k].add('r3');});
   }
 
-  // ── RULE 4: 8+ consecutive on same side of mean ─────
-  let runDir = null, runStart = 0, runLen = 0;
-  vals.forEach((v, i) => {
-    const above = v > mean;
-    // points exactly ON mean don't count
-    if (v === mean) { runLen = 0; runDir = null; return; }
-    if (runDir === above) {
-      runLen++;
-    } else {
-      runDir = above; runLen = 1; runStart = i;
-    }
-    if (runLen >= 8) {
-      // mark all points in this run
-      for (let k = i - runLen + 1; k <= i; k++) ptSigs[k].add('r4');
-    }
+  // R4: 8+ same side of mean
+  let dir=null,runLen=0;
+  vals.forEach((v,i)=>{
+    if(v===mean){runLen=0;dir=null;return;}
+    const above=v>mean;
+    if(dir===above){runLen++;}else{dir=above;runLen=1;}
+    if(runLen>=8) for(let k=i-runLen+1;k<=i;k++) sigs[k].add('r4');
   });
 
-  return ptSigs;
+  return sigs;
 }
 
-// Priority colour: R1 > R2 > R3 > R4 > normal
-function topRule(ruleSet) {
-  if (ruleSet.has('r1')) return 'r1';
-  if (ruleSet.has('r2')) return 'r2';
-  if (ruleSet.has('r3')) return 'r3';
-  if (ruleSet.has('r4')) return 'r4';
+function topRule(s){
+  if(s.has('r1'))return'r1'; if(s.has('r2'))return'r2';
+  if(s.has('r3'))return'r3'; if(s.has('r4'))return'r4';
   return null;
 }
 
 // ═══════════════════════════════════════════════════════
-//  FILTER / RANGE
+//  KPI UPDATE
 // ═══════════════════════════════════════════════════════
-const RFNS = {
-  all:    (d,i,a) => true,
-  jan:    (d,i,a) => d.d.startsWith('2025-01'),
-  feb:    (d,i,a) => d.d.startsWith('2025-02'),
-  mar:    (d,i,a) => d.d.startsWith('2025-03'),
-  apr:    (d,i,a) => d.d.startsWith('2025-04'),
-  last30: (d,i,a) => i >= a.length-30,
-};
-
-function getPts() { return ALL.filter((d,i,a)=>RFNS[currentRange](d,i,a)); }
-
-function setRange(r) {
-  currentRange = r;
-  document.querySelectorAll('.pill').forEach(b=>b.classList.toggle('active',b.dataset.r===r));
-  xHov=null; mrHov=null; rebuildAll();
-}
-
-function setSigTab(t) {
-  sigTab = t;
-  document.querySelectorAll('.sig-tab').forEach(b=>b.classList.toggle('active',b.dataset.st===t));
-  buildSigGrid(getPts(), computeStats(getPts()), detectAll(getPts(), computeStats(getPts())));
-}
-
-// ═══════════════════════════════════════════════════════
-//  KPI + LEGEND UPDATE
-// ═══════════════════════════════════════════════════════
-function updateKPI(pts, st, ptSigs) {
-  const r1 = ptSigs.filter(s=>s.has('r1')).length;
-  const r2 = ptSigs.filter(s=>s.has('r2')).length;
-  const r3 = ptSigs.filter(s=>s.has('r3')).length;
-  const r4 = ptSigs.filter(s=>s.has('r4')).length;
-  const tot = ptSigs.filter(s=>s.size>0).length;
-
-  document.getElementById('kn').textContent   = pts.length;
-  document.getElementById('km').textContent   = st.mean.toFixed(2);
-  document.getElementById('ku').textContent   = st.ucl.toFixed(2);
-  document.getElementById('k2s').textContent  = st.s2hi.toFixed(2);
-  document.getElementById('k1s').textContent  = st.s1hi.toFixed(2);
-  document.getElementById('kmr').textContent  = st.mrMean.toFixed(2);
-  document.getElementById('ktot').textContent = tot;
-
-  const fmt = n => `${n} punkt${n===1?'':'ów'}`;
-  document.getElementById('rc1').textContent = fmt(r1);
-  document.getElementById('rc2').textContent = fmt(r2);
-  document.getElementById('rc3').textContent = fmt(r3);
-  document.getElementById('rc4').textContent = fmt(r4);
-
-  const f = d => { const [y,m,dd]=d.split('-'); const mo=['','sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru']; return `${+dd} ${mo[+m]}`; };
-  document.getElementById('xmeta').textContent = `${pts.length} obs. · ${f(pts[0].d)} – ${f(pts[pts.length-1].d)} 2025`;
+function updateKPI(stS,sigsS,stM,sigsM){
+  const usS=sigsS.filter(s=>s.size>0).length;
+  const usM=sigsM.filter(s=>s.size>0).length;
+  document.getElementById('kn').textContent    = WEEKS.length;
+  document.getElementById('km-sum').textContent= stS.mean.toFixed(1);
+  document.getElementById('ku-sum').textContent= stS.ucl.toFixed(1);
+  document.getElementById('ks-sum').textContent= usS;
+  document.getElementById('km-med').textContent= stM.mean.toFixed(2);
+  document.getElementById('ku-med').textContent= stM.ucl.toFixed(2);
+  document.getElementById('ks-med').textContent= usM;
+  document.getElementById('ks-tot').textContent= usS+usM;
 }
 
 // ═══════════════════════════════════════════════════════
 //  SIGNAL GRID
 // ═══════════════════════════════════════════════════════
-function buildSigGrid(pts, st, ptSigs) {
-  const grid = document.getElementById('siggrid');
-  const RLABEL = { r1:'R1 · NPL', r2:'R2 · 2/3 za 2σ', r3:'R3 · 3/5 za 1σ', r4:'R4 · Run 8+' };
-  const RDESC  = { r1:'Poza korytarzem NPL', r2:'2 z 3 konsekutywnych > 2σ', r3:'3 z 5 konsekutywnych > 1σ', r4:'8+ punkt. po jednej stronie X̄' };
+function setSigTab(t){
+  sigTab=t;
+  document.querySelectorAll('.sig-tab').forEach(b=>b.classList.toggle('active',b.dataset.st===t));
+  buildSigGrid();
+}
 
-  const items = [];
-  ptSigs.forEach((rSet, i) => {
-    if (!rSet.size) return;
-    const p = pts[i];
-    rSet.forEach(rule => {
-      if (sigTab !== 'all' && sigTab !== rule) return;
-      items.push({ i, p, rule, top: topRule(rSet) });
+function buildSigGrid(){
+  const valsS = WEEKS.map(w=>w.total);
+  const valsM = WEEKS.map(w=>w.med);
+  const stS   = computeXmR(valsS), sigsS = detectAll(valsS,stS);
+  const stM   = computeXmR(valsM), sigsM = detectAll(valsM,stM);
+
+  const grid = document.getElementById('siggrid');
+  const items=[];
+
+  sigsS.forEach((rSet,i)=>{
+    if(!rSet.size)return;
+    rSet.forEach(rule=>{
+      if(sigTab!=='all'&&sigTab!=='sum'&&sigTab!==rule)return;
+      if(sigTab==='med')return;
+      items.push({i,rule,src:'sum',val:WEEKS[i].total,label:WEEKS[i].label});
+    });
+  });
+  sigsM.forEach((rSet,i)=>{
+    if(!rSet.size)return;
+    rSet.forEach(rule=>{
+      if(sigTab!=='all'&&sigTab!=='med'&&sigTab!==rule)return;
+      if(sigTab==='sum')return;
+      items.push({i,rule,src:'med',val:WEEKS[i].med,label:WEEKS[i].label});
     });
   });
 
-  if (!items.length) { grid.innerHTML = `<div style="color:var(--dim);font-size:.65rem;grid-column:1/-1">Brak sygnałów dla wybranego filtra</div>`; return; }
+  if(!items.length){grid.innerHTML=`<div style="color:var(--dim);font-size:.64rem;grid-column:1/-1">Brak sygnałów dla wybranego filtra</div>`;return;}
 
-  grid.innerHTML = items.map(({i,p,rule}) => `
+  grid.innerHTML=items.map(({rule,src,val,label})=>`
     <div class="sig-item">
-      <div class="sig-dot" style="background:${RCOL[rule]}"></div>
-      <span class="sig-rule" style="background:${RCOL[rule]}18;color:${RCOL[rule]}">${RLABEL[rule]}</span>
-      <span class="sig-date">${p.d.slice(5)}</span>
-      <span class="sig-val" style="color:${RCOL[rule]}">${p.v}</span>
+      <div class="sig-dot2" style="background:${RCOL[rule]}"></div>
+      <span class="sig-rule" style="background:${RCOL[rule]}18;color:${RCOL[rule]}">${RLBL[rule]}</span>
+      <span class="sig-src" style="background:${src==='sum'?'rgba(0,200,255,.1)':'rgba(0,232,122,.1)'};color:${src==='sum'?'var(--c-sum)':'var(--c-med)'}">${src==='sum'?'SUMA':'MED'}</span>
+      <span class="sig-date">${label.slice(0,10)}</span>
+      <span class="sig-val" style="color:${RCOL[rule]}">${val}</span>
       <span class="sig-desc">${RDESC[rule]}</span>
     </div>`).join('');
 }
 
 // ═══════════════════════════════════════════════════════
-//  CANVAS HELPERS
+//  CANVAS DRAWING ENGINE
 // ═══════════════════════════════════════════════════════
-const XPAD  = {top:30,right:106,bottom:44,left:54};
-const MRPAD = {top:22,right:106,bottom:44,left:54};
+const PAD = {top:28,right:96,bottom:40,left:50};
+const MRP = {top:20,right:96,bottom:40,left:50};
 
-function setupCanvas(c, h) {
-  const W = c.parentElement.clientWidth - 56;
+function setupCanvas(c,h){
+  const W=c.parentElement.clientWidth-52;
   c.style.width=W+'px'; c.style.height=h+'px';
   c.width=W*dpr; c.height=h*dpr;
 }
 
-// ═══════════════════════════════════════════════════════
-//  X CHART
-// ═══════════════════════════════════════════════════════
-const xc = document.getElementById('xc');
-
-function drawX() {
-  const pts    = getPts();
-  if (!pts.length) return;
-  const st     = computeStats(pts);
-  const ptSigs = detectAll(pts, st);
-  const {mean,ucl,lcl,sigma,s2hi,s2lo,s1hi,s1lo} = st;
-
-  const ctx = xc.getContext('2d');
-  const CW=xc.width, CH=xc.height;
-  const W=CW-XPAD.left-XPAD.right, H=CH-XPAD.top-XPAD.bottom;
-  const n=pts.length;
+// Generic X-chart draw
+function drawXChart(canvas, vals, st, sigs, lineCol, hovKey) {
+  const ctx=canvas.getContext('2d');
+  const CW=canvas.width,CH=canvas.height;
+  const W=CW-PAD.left-PAD.right, H=CH-PAD.top-PAD.bottom;
+  const n=vals.length;
   ctx.clearRect(0,0,CW,CH);
+  if(!n)return;
 
-  const maxV = Math.max(...pts.map(p=>p.v), ucl) * 1.08 + 0.5;
-  const minV = 0;
-  function px(i) { return XPAD.left + (i/Math.max(n-1,1))*W; }
-  function py(v) { return XPAD.top + (1-(v-minV)/(maxV-minV))*H; }
+  const {mean,ucl,lcl,s2hi,s2lo,s1hi,s1lo,sigma}=st;
+  const allMax=Math.max(...vals,ucl);
+  const allMin=0;
+  const span=allMax-allMin;
+  const maxV=allMax+span*0.08+0.5;
+  const minV=0;
 
-  const base = `${10*dpr}px 'IBM Plex Mono',monospace`;
+  function px(i){return PAD.left+(i/(n-1||1))*W;}
+  function py(v){return PAD.top+(1-(v-minV)/(maxV-minV))*H;}
 
-  // ── Y GRID ──
-  const yStep = maxV>12?2:1;
-  for(let v=0; v<=Math.ceil(maxV); v+=yStep) {
+  const base=`${10*dpr}px 'IBM Plex Mono',monospace`;
+
+  // Y grid
+  const yStep=maxV>20?5:maxV>10?2:1;
+  for(let v=0;v<=Math.ceil(maxV);v+=yStep){
     const y=py(v);
     ctx.beginPath(); ctx.strokeStyle='#0d1824'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(XPAD.left,y); ctx.lineTo(XPAD.left+W,y); ctx.stroke();
+    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
     ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#2a3f5c';
-    ctx.fillText(v, XPAD.left-7*dpr, y+4*dpr);
+    ctx.fillText(v,PAD.left-6*dpr,y+4*dpr);
   }
 
-  // ── X GRID + LABELS ──
-  const step = Math.max(1,Math.round(n/12));
+  // X labels
   ctx.textAlign='center';
-  pts.forEach((p,i)=>{
-    if(i%step!==0 && i!==n-1) return;
+  WEEKS.forEach((w,i)=>{
     const x=px(i);
     ctx.beginPath(); ctx.strokeStyle='#0a1420'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(x,XPAD.top); ctx.lineTo(x,XPAD.top+H); ctx.stroke();
-    ctx.fillStyle='#2a3f5c'; ctx.font=`${9.5*dpr}px 'IBM Plex Mono',monospace`;
-    ctx.fillText(p.d.slice(5),x,XPAD.top+H+15*dpr);
+    ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+H); ctx.stroke();
+    ctx.fillStyle='#2a3f5c'; ctx.font=`${8.5*dpr}px 'IBM Plex Mono',monospace`;
+    ctx.fillText(w.label.slice(0,6),x,PAD.top+H+14*dpr);
   });
 
-  // ── AXES ──
+  // Axes
   ctx.beginPath(); ctx.strokeStyle='#1a2840'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-  ctx.moveTo(XPAD.left,XPAD.top); ctx.lineTo(XPAD.left,XPAD.top+H); ctx.lineTo(XPAD.left+W,XPAD.top+H); ctx.stroke();
+  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+H); ctx.lineTo(PAD.left+W,PAD.top+H); ctx.stroke();
 
-  // ── ZONE FILLS ──
-  // above UCL (R1 zone)
-  ctx.fillStyle='rgba(255,64,96,.04)';
-  ctx.fillRect(XPAD.left,XPAD.top,W,py(ucl)-XPAD.top);
-  // UCL–2σ zone
-  ctx.fillStyle='rgba(224,64,251,.03)';
-  ctx.fillRect(XPAD.left,py(ucl),W,py(s2hi)-py(ucl));
-  // 2σ–1σ zone
-  ctx.fillStyle='rgba(255,152,0,.025)';
-  ctx.fillRect(XPAD.left,py(s2hi),W,py(s1hi)-py(s2hi));
-  // 1σ–mean zone (both sides)
-  ctx.fillStyle='rgba(0,200,255,.015)';
-  ctx.fillRect(XPAD.left,py(s1hi),W,py(mean)-py(s1hi));
-  ctx.fillRect(XPAD.left,py(mean),W,py(Math.max(s1lo,0))-py(mean));
+  // Zone fills
+  if(py(ucl)>PAD.top){ctx.fillStyle='rgba(255,64,96,.04)'; ctx.fillRect(PAD.left,PAD.top,W,py(ucl)-PAD.top);}
+  ctx.fillStyle='rgba(224,64,251,.025)'; ctx.fillRect(PAD.left,py(ucl),W,py(s2hi)-py(ucl));
+  ctx.fillStyle='rgba(255,152,0,.02)'; ctx.fillRect(PAD.left,py(s2hi),W,py(s1hi)-py(s2hi));
+  ctx.fillStyle='rgba(0,200,255,.012)'; ctx.fillRect(PAD.left,py(s1hi),W,py(mean)-py(s1hi));
+  if(s1lo>0){ctx.fillStyle='rgba(0,200,255,.012)'; ctx.fillRect(PAD.left,py(mean),W,py(Math.max(s1lo,0))-py(mean));}
 
-  // ── WEEKEND SHADING ──
-  pts.forEach((p,i)=>{
-    const dow=new Date(p.d+'T00:00:00').getDay();
-    if(dow===0||dow===6){
-      const x0=i>0?(px(i-1)+px(i))/2:px(i);
-      const x1=i<n-1?(px(i)+px(i+1))/2:px(i);
-      ctx.fillStyle='rgba(255,255,255,.016)';
-      ctx.fillRect(x0,XPAD.top,x1-x0,H);
-    }
-  });
-
-  // ── SIGMA LINES ──
-  const sigmaLines = [
-    [s1hi, '#ff9800', '1σ', 0.45],
-    [s2hi, '#e040fb', '2σ', 0.55],
-    [ucl,  '#ff4060', 'UCL(3σ)', 0.9],
+  // Sigma lines
+  const lines=[
+    [ucl, '#ff4060','UCL',0.85], [s2hi,'#e040fb','2σ',0.5], [s1hi,'#ff9800','1σ',0.4],
   ];
-  if (s1lo > 0) sigmaLines.push([s1lo, '#ff9800', '-1σ', 0.35]);
-  if (s2lo > 0) sigmaLines.push([s2lo, '#e040fb', '-2σ', 0.45]);
-  if (lcl  > 0) sigmaLines.push([lcl,  '#ff4060', 'LCL', 0.9]);
+  if(s1lo>0) lines.push([s1lo,'#ff9800','-1σ',0.4]);
+  if(s2lo>0) lines.push([s2lo,'#e040fb','-2σ',0.5]);
+  if(lcl>0)  lines.push([lcl, '#ff4060','LCL',0.85]);
 
-  sigmaLines.forEach(([val,col,lbl,alpha])=>{
-    if(val<0) return;
+  lines.forEach(([val,col,lbl,a])=>{
     const y=py(val);
-    ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1.4*dpr;
-    ctx.setLineDash([5*dpr,4*dpr]); ctx.globalAlpha=alpha;
-    ctx.moveTo(XPAD.left,y); ctx.lineTo(XPAD.left+W,y); ctx.stroke();
+    ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1.3*dpr;
+    ctx.setLineDash([5*dpr,4*dpr]); ctx.globalAlpha=a;
+    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
     ctx.setLineDash([]); ctx.globalAlpha=1;
-    ctx.font=`${8.5*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=col;
-    ctx.globalAlpha=alpha+0.1;
-    ctx.fillText(`${lbl}=${val.toFixed(1)}`, XPAD.left+W+4*dpr, y+4*dpr);
+    ctx.font=`${8*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=col;
+    ctx.globalAlpha=a+0.1;
+    ctx.fillText(`${lbl}=${val.toFixed(1)}`,PAD.left+W+4*dpr,y+4*dpr);
     ctx.globalAlpha=1;
   });
 
-  // ── MEAN LINE ──
+  // Mean line
   const ym=py(mean);
   ctx.beginPath(); ctx.strokeStyle='#818cf8'; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
-  ctx.moveTo(XPAD.left,ym); ctx.lineTo(XPAD.left+W,ym); ctx.stroke();
+  ctx.moveTo(PAD.left,ym); ctx.lineTo(PAD.left+W,ym); ctx.stroke();
   ctx.font=`500 ${9*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#818cf8';
-  ctx.fillText(`X̄=${mean.toFixed(2)}`,XPAD.left+W+4*dpr,ym+4*dpr);
+  ctx.fillText(`X̄=${mean.toFixed(1)}`,PAD.left+W+4*dpr,ym+4*dpr);
 
-  // ── AREA FILL ──
+  // Area fill
   ctx.beginPath();
-  pts.forEach((p,i)=>{ const x=px(i),y=py(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  vals.forEach((v,i)=>{const x=px(i),y=py(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
   ctx.lineTo(px(n-1),py(0)); ctx.lineTo(px(0),py(0)); ctx.closePath();
-  ctx.fillStyle='rgba(0,200,255,.04)'; ctx.fill();
+  ctx.fillStyle=lineCol+'10'; ctx.fill();
 
-  // ── CONNECTING LINE ──
-  ctx.beginPath(); ctx.strokeStyle='#1a3858'; ctx.lineWidth=1.2*dpr; ctx.setLineDash([]);
-  pts.forEach((p,i)=>{ const x=px(i),y=py(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.stroke();
+  // Line
+  ctx.beginPath(); ctx.strokeStyle=lineCol+'50'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([]);
+  vals.forEach((v,i)=>{const x=px(i),y=py(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}); ctx.stroke();
 
-  // ── DOTS ──
-  pts.forEach((p,i)=>{
-    const x=px(i), y=py(p.v);
-    const rSet=ptSigs[i];
-    const rule=topRule(rSet);
-    const col=rule ? RCOL[rule] : (p.v>0?'#00c8ff':'#2a4a6a');
-    const isH=xHov===i;
-    const r=isH ? 8.5*dpr : (p.v>0 ? 5*dpr : 3.5*dpr);
+  // Dots
+  vals.forEach((v,i)=>{
+    const x=px(i),y=py(v);
+    const rSet=sigs[i], rule=topRule(rSet);
+    const col=rule?RCOL[rule]:lineCol;
+    const isH=hovs[hovKey]===i;
+    const r=isH?8.5*dpr:5*dpr;
 
     if(isH){
-      const g=ctx.createRadialGradient(x,y,0,x,y,22*dpr);
+      const g=ctx.createRadialGradient(x,y,0,x,y,20*dpr);
       g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00');
-      ctx.beginPath(); ctx.arc(x,y,22*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      ctx.beginPath(); ctx.arc(x,y,20*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
     }
     if(rule){
-      // pulsing ring
       ctx.beginPath(); ctx.arc(x,y,r+4*dpr,0,Math.PI*2); ctx.fillStyle=col+'20'; ctx.fill();
       ctx.beginPath(); ctx.arc(x,y,r+2*dpr,0,Math.PI*2); ctx.fillStyle=col+'35'; ctx.fill();
     }
     ctx.beginPath(); ctx.arc(x,y,r+1.5*dpr,0,Math.PI*2); ctx.fillStyle=col+'25'; ctx.fill();
     ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
-    if(r>4*dpr){ ctx.beginPath(); ctx.arc(x,y,r*0.32,0,Math.PI*2); ctx.fillStyle='#00000060'; ctx.fill(); }
+    if(r>4*dpr){ctx.beginPath(); ctx.arc(x,y,r*0.32,0,Math.PI*2); ctx.fillStyle='#00000060'; ctx.fill();}
 
-    // rule label above signal dots
-    if(rule && r>4*dpr){
-      const rn=rule.toUpperCase();
+    if(rule&&r>4*dpr){
       ctx.font=`600 ${7.5*dpr}px 'IBM Plex Mono',monospace`;
-      ctx.textAlign='center'; ctx.fillStyle=col;
-      ctx.globalAlpha=isH?1:0.8;
-      ctx.fillText(rn, x, y-r-4*dpr);
-      ctx.globalAlpha=1;
+      ctx.textAlign='center'; ctx.fillStyle=col; ctx.globalAlpha=isH?1:0.85;
+      ctx.fillText(rule.toUpperCase(),x,y-r-4*dpr); ctx.globalAlpha=1;
     }
   });
 }
 
-// ═══════════════════════════════════════════════════════
-//  mR CHART
-// ═══════════════════════════════════════════════════════
-const mrc = document.getElementById('mrc');
-
-function drawMR() {
-  const pts = getPts();
-  if(pts.length<2) return;
-  const st  = computeStats(pts);
-  const {mr,mrMean,uclMr} = st;
-
-  const ctx=mrc.getContext('2d');
-  const CW=mrc.width, CH=mrc.height;
-  const W=CW-MRPAD.left-MRPAD.right, H=CH-MRPAD.top-MRPAD.bottom;
+// Generic mR chart draw
+function drawMRChart(canvas, mr, st, hovKey) {
+  const ctx=canvas.getContext('2d');
+  const CW=canvas.width,CH=canvas.height;
+  const W=CW-MRP.left-MRP.right, H=CH-MRP.top-MRP.bottom;
   const n=mr.length;
   ctx.clearRect(0,0,CW,CH);
+  if(!n)return;
 
-  const maxV=Math.max(...mr,uclMr)*1.1+0.5;
-  function px(i){return MRPAD.left+(i/Math.max(n-1,1))*W;}
-  function py(v){return MRPAD.top+(1-v/maxV)*H;}
+  const {mrMean,uclMr}=st;
+  const maxV=Math.max(...mr,uclMr)*1.12+0.5;
+  function px(i){return MRP.left+(i/(n-1||1))*W;}
+  function py(v){return MRP.top+(1-v/maxV)*H;}
 
   const base=`${10*dpr}px 'IBM Plex Mono',monospace`;
+
   const yStep=maxV>10?2:1;
   for(let v=0;v<=Math.ceil(maxV);v+=yStep){
     const y=py(v);
     ctx.beginPath(); ctx.strokeStyle='#0d1824'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(MRPAD.left,y); ctx.lineTo(MRPAD.left+W,y); ctx.stroke();
+    ctx.moveTo(MRP.left,y); ctx.lineTo(MRP.left+W,y); ctx.stroke();
     ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#2a3f5c';
-    ctx.fillText(v,MRPAD.left-7*dpr,y+4*dpr);
+    ctx.fillText(v,MRP.left-6*dpr,y+4*dpr);
   }
 
-  const step=Math.max(1,Math.round(n/12));
-  const mrPts=pts.slice(1);
+  // X labels (aligned to weeks[1..])
   ctx.textAlign='center';
-  mrPts.forEach((p,i)=>{
-    if(i%step!==0 && i!==n-1) return;
+  WEEKS.slice(1).forEach((w,i)=>{
     const x=px(i);
     ctx.beginPath(); ctx.strokeStyle='#0a1420'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(x,MRPAD.top); ctx.lineTo(x,MRPAD.top+H); ctx.stroke();
-    ctx.fillStyle='#2a3f5c'; ctx.font=`${9.5*dpr}px 'IBM Plex Mono',monospace`;
-    ctx.fillText(p.d.slice(5),x,MRPAD.top+H+15*dpr);
+    ctx.moveTo(x,MRP.top); ctx.lineTo(x,MRP.top+H); ctx.stroke();
+    ctx.fillStyle='#2a3f5c'; ctx.font=`${8.5*dpr}px 'IBM Plex Mono',monospace`;
+    ctx.fillText(w.label.slice(0,6),x,MRP.top+H+14*dpr);
   });
 
   ctx.beginPath(); ctx.strokeStyle='#1a2840'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-  ctx.moveTo(MRPAD.left,MRPAD.top); ctx.lineTo(MRPAD.left,MRPAD.top+H); ctx.lineTo(MRPAD.left+W,MRPAD.top+H); ctx.stroke();
+  ctx.moveTo(MRP.left,MRP.top); ctx.lineTo(MRP.left,MRP.top+H); ctx.lineTo(MRP.left+W,MRP.top+H); ctx.stroke();
 
-  // zone
+  // UCL zone
   ctx.fillStyle='rgba(255,64,96,.04)';
-  ctx.fillRect(MRPAD.left,MRPAD.top,W,py(uclMr)-MRPAD.top);
+  ctx.fillRect(MRP.left,MRP.top,W,py(uclMr)-MRP.top);
 
-  // bars
-  const barW=Math.max(2*dpr, Math.min(14*dpr, W/n*0.55));
+  // Bars
+  const barW=Math.max(3*dpr,Math.min(20*dpr,W/n*0.55));
   mr.forEach((v,i)=>{
-    const x=px(i), bH=py(0)-py(v), y2=py(v);
-    const isHi=v>uclMr, isH=mrHov===i;
-    const col=isHi?'#ff4060':'#ffaa20';
-    ctx.fillStyle=col+(isH?'cc':'55'); ctx.fillRect(x-barW/2,y2,barW,bH);
-    ctx.strokeStyle=col+(isH?'ff':'88'); ctx.lineWidth=dpr; ctx.setLineDash([]);
+    const x=px(i),bH=py(0)-py(v),y2=py(v);
+    const isHi=v>uclMr, isH=hovs[hovKey]===i;
+    const col=isHi?'#ff4060':'#5a8aaa';
+    ctx.fillStyle=col+(isH?'bb':'55'); ctx.fillRect(x-barW/2,y2,barW,bH);
+    ctx.strokeStyle=col+(isH?'ff':'90'); ctx.lineWidth=dpr; ctx.setLineDash([]);
     ctx.strokeRect(x-barW/2,y2,barW,bH);
   });
 
-  // line
-  ctx.beginPath(); ctx.strokeStyle='#3a4428'; ctx.lineWidth=dpr; ctx.setLineDash([3*dpr,3*dpr]);
-  mr.forEach((v,i)=>{ const x=px(i),y=py(v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
+  // Connecting line
+  ctx.beginPath(); ctx.strokeStyle='#2a3a50'; ctx.lineWidth=dpr; ctx.setLineDash([3*dpr,3*dpr]);
+  mr.forEach((v,i)=>{const x=px(i),y=py(v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}); ctx.stroke();
   ctx.setLineDash([]);
 
-  // mR̄
+  // mR̄ line
   const ym=py(mrMean);
   ctx.beginPath(); ctx.strokeStyle='#4a6a8a'; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
-  ctx.moveTo(MRPAD.left,ym); ctx.lineTo(MRPAD.left+W,ym); ctx.stroke();
+  ctx.moveTo(MRP.left,ym); ctx.lineTo(MRP.left+W,ym); ctx.stroke();
   ctx.font=`500 ${9*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#4a6a8a';
-  ctx.fillText(`mR̄=${mrMean.toFixed(2)}`,MRPAD.left+W+4*dpr,ym+4*dpr);
+  ctx.fillText(`mR̄=${mrMean.toFixed(2)}`,MRP.left+W+4*dpr,ym+4*dpr);
 
   // UCL(mR)
   const yu=py(uclMr);
   ctx.beginPath(); ctx.strokeStyle='#ff4060'; ctx.lineWidth=1.4*dpr; ctx.setLineDash([5*dpr,4*dpr]); ctx.globalAlpha=.9;
-  ctx.moveTo(MRPAD.left,yu); ctx.lineTo(MRPAD.left+W,yu); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+  ctx.moveTo(MRP.left,yu); ctx.lineTo(MRP.left+W,yu); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
   ctx.textAlign='left'; ctx.fillStyle='#ff4060';
-  ctx.fillText(`UCL=${uclMr.toFixed(2)}`,MRPAD.left+W+4*dpr,yu+4*dpr);
+  ctx.fillText(`UCL=${uclMr.toFixed(2)}`,MRP.left+W+4*dpr,yu+4*dpr);
 
-  // dots
+  // Dots
   mr.forEach((v,i)=>{
-    const x=px(i),y=py(v),isHi=v>uclMr,isH=mrHov===i,col=isHi?'#ff4060':'#ffaa20';
-    if(isH){const g=ctx.createRadialGradient(x,y,0,x,y,14*dpr);g.addColorStop(0,col+'50');g.addColorStop(1,col+'00');ctx.beginPath();ctx.arc(x,y,14*dpr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();}
-    ctx.beginPath(); ctx.arc(x,y,isH?6*dpr:3.5*dpr,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    const x=px(i),y=py(v),isHi=v>uclMr,isH=hovs[hovKey]===i,col=isHi?'#ff4060':'#5a8aaa';
+    if(isH){const g=ctx.createRadialGradient(x,y,0,x,y,14*dpr);g.addColorStop(0,col+'55');g.addColorStop(1,col+'00');ctx.beginPath();ctx.arc(x,y,14*dpr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();}
+    ctx.beginPath(); ctx.arc(x,y,isH?6.5*dpr:4*dpr,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    if(isH){ctx.beginPath();ctx.arc(x,y,2*dpr,0,Math.PI*2);ctx.fillStyle='#00000060';ctx.fill();}
   });
 }
 
 // ═══════════════════════════════════════════════════════
-//  RESIZE + REBUILD
+//  REBUILD ALL
 // ═══════════════════════════════════════════════════════
-function rebuildAll() {
-  const pts    = getPts();
-  const st     = computeStats(pts);
-  const ptSigs = detectAll(pts, st);
-  updateKPI(pts, st, ptSigs);
-  buildSigGrid(pts, st, ptSigs);
+const canvases = {
+  xsum:  document.getElementById('xsum'),
+  xmed:  document.getElementById('xmed'),
+  mrsum: document.getElementById('mrsum'),
+  mrmed: document.getElementById('mrmed'),
+};
 
-  const xH  = Math.min(460, Math.max(300, (xc.parentElement.clientWidth-56)*0.36));
-  const mrH = Math.min(240, Math.max(150, (mrc.parentElement.clientWidth-56)*0.19));
-  setupCanvas(xc,  xH);
-  setupCanvas(mrc, mrH);
-  drawX(); drawMR();
+function rebuildAll(){
+  const valsS = WEEKS.map(w=>w.total);
+  const valsM = WEEKS.map(w=>w.med);
+  const stS   = computeXmR(valsS);
+  const stM   = computeXmR(valsM);
+  const sigsS = detectAll(valsS,stS);
+  const sigsM = detectAll(valsM,stM);
+
+  updateKPI(stS,sigsS,stM,sigsM);
+  buildSigGrid();
+
+  // Heights
+  const xH  = Math.min(380,Math.max(260,(canvases.xsum.parentElement.clientWidth-52)*0.42));
+  const mrH = Math.min(220,Math.max(140,(canvases.mrsum.parentElement.clientWidth-52)*0.28));
+
+  setupCanvas(canvases.xsum,  xH);
+  setupCanvas(canvases.xmed,  xH);
+  setupCanvas(canvases.mrsum, mrH);
+  setupCanvas(canvases.mrmed, mrH);
+
+  drawXChart(canvases.xsum,  valsS, stS, sigsS, '#00c8ff', 'xsum');
+  drawXChart(canvases.xmed,  valsM, stM, sigsM, '#00e87a', 'xmed');
+  drawMRChart(canvases.mrsum, stS.mr, stS, 'mrsum');
+  drawMRChart(canvases.mrmed, stM.mr, stM, 'mrmed');
 }
 
 // ═══════════════════════════════════════════════════════
 //  TOOLTIPS
 // ═══════════════════════════════════════════════════════
-const WDAY = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];
-const RLABEL = { r1:'R1 – poza NPL', r2:'R2 – 2/3 za 2σ', r3:'R3 – 3/5 za 1σ', r4:'R4 – run 8+' };
-
-function posTT(e) {
-  let lx=e.clientX+16, ly=e.clientY-10;
-  if(lx+290>window.innerWidth) lx=e.clientX-306;
-  if(ly+240>window.innerHeight) ly=e.clientY-245;
+function posTT(e){
+  let lx=e.clientX+16,ly=e.clientY-10;
+  if(lx+300>window.innerWidth)lx=e.clientX-316;
+  if(ly+240>window.innerHeight)ly=e.clientY-245;
   tt.style.left=lx+'px'; tt.style.top=ly+'px';
 }
 
-xc.addEventListener('mousemove', e=>{
-  const pts=getPts(); if(!pts.length) return;
-  const st=computeStats(pts); const ptSigs=detectAll(pts,st);
-  const n=pts.length, W=xc.width-XPAD.left-XPAD.right;
-  const rect=xc.getBoundingClientRect(), mx=(e.clientX-rect.left)*dpr;
-  function px(i){return XPAD.left+(i/Math.max(n-1,1))*W;}
-  let found=null, minD=20*dpr;
-  pts.forEach((_,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
-  if(found!==null){
-    const p=pts[found], rSet=ptSigs[found];
-    const wday=WDAY[new Date(p.d+'T00:00:00').getDay()];
-    const mr=found>0?Math.abs(p.v-pts[found-1].v):'-';
-    const sigsHtml=rSet.size?[...rSet].map(r=>`<div class="tt-sig"><div class="dot" style="background:${RCOL[r]}"></div>${RLABEL[r]}</div>`).join(''):'';
-    tt.style.display='block';
-    tt.innerHTML=`<div class="tt-date">${wday} · ${p.d}</div>
-      <div class="tt-hr"></div>
-      <div class="tt-row"><span class="tt-k">Throughput</span><span class="tt-v" style="color:${topRule(rSet)?RCOL[topRule(rSet)]:'#00c8ff'}">${p.v} elem.</span></div>
-      <div class="tt-row"><span class="tt-k">Moving Range</span><span class="tt-v">${mr}</span></div>
-      <div class="tt-row"><span class="tt-k">X̄ / 1σ / 2σ / UCL</span><span class="tt-v">${st.mean.toFixed(1)} / ${st.s1hi.toFixed(1)} / ${st.s2hi.toFixed(1)} / ${st.ucl.toFixed(1)}</span></div>
-      ${sigsHtml?`<div class="tt-hr"></div><div class="tt-sigs">${sigsHtml}</div>`:''}`;
-    posTT(e); xc.style.cursor='default';
-    if(xHov!==found){xHov=found;drawX();}
-  } else {
-    tt.style.display='none'; xc.style.cursor='crosshair';
-    if(xHov!==null){xHov=null;drawX();}
-  }
-});
-xc.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(xHov!==null){xHov=null;drawX();} });
+function makeXHover(canvas, vals, stFn, sigsArr, lineCol, hovKey, extraFn) {
+  const n=vals.length;
+  canvas.addEventListener('mousemove',e=>{
+    const W=canvas.width-PAD.left-PAD.right;
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*dpr;
+    function px(i){return PAD.left+(i/(n-1||1))*W;}
+    let found=null,minD=20*dpr;
+    vals.forEach((_,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
+    if(found!==null){
+      const w=WEEKS[found], rSet=sigsArr[found];
+      const rule=topRule(rSet), col=rule?RCOL[rule]:lineCol;
+      const sigsHtml=rSet.size?[...rSet].map(r=>`<div class="tt-sig"><div class="dot" style="background:${RCOL[r]}"></div>${RLBL[r]}: ${RDESC[r]}</div>`).join(''):'';
+      const st=stFn();
+      const mr=found>0?Math.abs(vals[found]-vals[found-1]).toFixed(1):'-';
+      tt.style.display='block';
+      tt.innerHTML=`<div class="tt-date" style="color:${lineCol}">${w.label}</div>
+        <div class="tt-hr"></div>
+        ${extraFn(w,found,col)}
+        <div class="tt-row"><span class="tt-k">mR</span><span class="tt-v">${mr}</span></div>
+        <div class="tt-row"><span class="tt-k">X̄</span><span class="tt-v">${st.mean.toFixed(2)}</span></div>
+        <div class="tt-row"><span class="tt-k">1σ/2σ/UCL</span><span class="tt-v">${st.s1hi.toFixed(1)}/${st.s2hi.toFixed(1)}/${st.ucl.toFixed(1)}</span></div>
+        ${sigsHtml?`<div class="tt-hr"></div><div class="tt-sigs">${sigsHtml}</div>`:''}`;
+      posTT(e); canvas.style.cursor='default';
+      if(hovs[hovKey]!==found){hovs[hovKey]=found;rebuildCharts();}
+    } else {
+      tt.style.display='none'; canvas.style.cursor='crosshair';
+      if(hovs[hovKey]!==null){hovs[hovKey]=null;rebuildCharts();}
+    }
+  });
+  canvas.addEventListener('mouseleave',()=>{tt.style.display='none';if(hovs[hovKey]!==null){hovs[hovKey]=null;rebuildCharts();}});
+}
 
-mrc.addEventListener('mousemove', e=>{
-  const pts=getPts(); if(pts.length<2) return;
-  const st=computeStats(pts); const {mr,mrMean,uclMr}=st;
-  const n=mr.length, W=mrc.width-MRPAD.left-MRPAD.right;
-  const rect=mrc.getBoundingClientRect(), mx=(e.clientX-rect.left)*dpr;
-  function px(i){return MRPAD.left+(i/Math.max(n-1,1))*W;}
-  let found=null, minD=22*dpr;
-  mr.forEach((_,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
-  if(found!==null){
-    const v=mr[found], p1=pts[found], p2=pts[found+1], isHi=v>uclMr;
-    tt.style.display='block';
-    tt.innerHTML=`<div class="tt-date">mR #${found+1} · ${p2.d}</div>
-      <div class="tt-hr"></div>
-      <div class="tt-row"><span class="tt-k">|ΔThroughput|</span><span class="tt-v" style="color:${isHi?'#ff4060':'#ffaa20'}">${v}</span></div>
-      <div class="tt-row"><span class="tt-k">Od → Do</span><span class="tt-v">${p1.v} → ${p2.v}</span></div>
-      <div class="tt-row"><span class="tt-k">mR̄ / UCL(mR)</span><span class="tt-v">${mrMean.toFixed(2)} / ${uclMr.toFixed(2)}</span></div>
-      ${isHi?`<div class="tt-hr"></div><div class="tt-sigs"><div class="tt-sig"><div class="dot" style="background:#ff4060"></div>Powyżej UCL(mR) – wysoka zmienność</div></div>`:''}`;
-    posTT(e); mrc.style.cursor='default';
-    if(mrHov!==found){mrHov=found;drawMR();}
-  } else {
-    tt.style.display='none'; mrc.style.cursor='crosshair';
-    if(mrHov!==null){mrHov=null;drawMR();}
-  }
-});
-mrc.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(mrHov!==null){mrHov=null;drawMR();} });
+function makeMRHover(canvas, vals, stFn, hovKey) {
+  const mr = stFn().mr;
+  canvas.addEventListener('mousemove',e=>{
+    const n=mr.length, W=canvas.width-MRP.left-MRP.right;
+    const rect=canvas.getBoundingClientRect(), mx=(e.clientX-rect.left)*dpr;
+    function px(i){return MRP.left+(i/(n-1||1))*W;}
+    let found=null,minD=24*dpr;
+    mr.forEach((_,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
+    if(found!==null){
+      const st=stFn(), v=mr[found], isHi=v>st.uclMr;
+      const w1=WEEKS[found], w2=WEEKS[found+1];
+      tt.style.display='block';
+      tt.innerHTML=`<div class="tt-date" style="color:${isHi?'#ff4060':'#5a8aaa'}">mR #${found+1}</div>
+        <div class="tt-hr"></div>
+        <div class="tt-row"><span class="tt-k">|Δ|</span><span class="tt-v" style="color:${isHi?'#ff4060':'var(--hi)'}">${v.toFixed(1)}</span></div>
+        <div class="tt-row"><span class="tt-k">Od (${w1.label.slice(0,6)})</span><span class="tt-v">${vals[found]}</span></div>
+        <div class="tt-row"><span class="tt-k">Do (${w2.label.slice(0,6)})</span><span class="tt-v">${vals[found+1]}</span></div>
+        <div class="tt-row"><span class="tt-k">mR̄/UCL</span><span class="tt-v">${st.mrMean.toFixed(2)}/${st.uclMr.toFixed(2)}</span></div>
+        ${isHi?`<div class="tt-hr"></div><div class="tt-sigs"><div class="tt-sig"><div class="dot" style="background:#ff4060"></div>Powyżej UCL(mR)</div></div>`:''}`;
+      posTT(e); canvas.style.cursor='default';
+      if(hovs[hovKey]!==found){hovs[hovKey]=found;rebuildCharts();}
+    } else {
+      tt.style.display='none'; canvas.style.cursor='crosshair';
+      if(hovs[hovKey]!==null){hovs[hovKey]=null;rebuildCharts();}
+    }
+  });
+  canvas.addEventListener('mouseleave',()=>{tt.style.display='none';if(hovs[hovKey]!==null){hovs[hovKey]=null;rebuildCharts();}});
+}
 
-// ═══════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════
+// only redraw charts (not full rebuild) for hover updates
+function rebuildCharts(){
+  const valsS=WEEKS.map(w=>w.total), valsM=WEEKS.map(w=>w.med);
+  const stS=computeXmR(valsS), stM=computeXmR(valsM);
+  const sigsS=detectAll(valsS,stS), sigsM=detectAll(valsM,stM);
+  drawXChart(canvases.xsum,  valsS,stS,sigsS,'#00c8ff','xsum');
+  drawXChart(canvases.xmed,  valsM,stM,sigsM,'#00e87a','xmed');
+  drawMRChart(canvases.mrsum,stS.mr,stS,'mrsum');
+  drawMRChart(canvases.mrmed,stM.mr,stM,'mrmed');
+}
+
+// Attach hover handlers
+const valsS=()=>WEEKS.map(w=>w.total), valsM=()=>WEEKS.map(w=>w.med);
+const stS=()=>computeXmR(valsS()), stM=()=>computeXmR(valsM());
+const sigsS=()=>detectAll(valsS(),stS()), sigsM=()=>detectAll(valsM(),stM());
+
+makeXHover(canvases.xsum, WEEKS.map(w=>w.total), stS, sigsS(), '#00c8ff', 'xsum',
+  (w,i,col)=>`<div class="tt-row"><span class="tt-k">Suma/tydzień</span><span class="tt-v" style="color:${col}">${w.total} elem.</span></div>
+    <div class="tt-row"><span class="tt-k">Aktywne dni</span><span class="tt-v">${w.active}/${w.days}</span></div>`);
+
+makeXHover(canvases.xmed, WEEKS.map(w=>w.med), stM, sigsM(), '#00e87a', 'xmed',
+  (w,i,col)=>`<div class="tt-row"><span class="tt-k">Mediana (aktywne)</span><span class="tt-v" style="color:${col}">${w.med} elem./dzień</span></div>
+    <div class="tt-row"><span class="tt-k">Suma/tydzień</span><span class="tt-v">${w.total} elem.</span></div>`);
+
+makeMRHover(canvases.mrsum, WEEKS.map(w=>w.total), stS, 'mrsum');
+makeMRHover(canvases.mrmed, WEEKS.map(w=>w.med),   stM, 'mrmed');
+
 window.addEventListener('resize', rebuildAll);
 rebuildAll();
 </script>
