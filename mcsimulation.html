@@ -1,355 +1,402 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flow Metrics — Scope Creep + Team Changes</title>
+<title>Epic Delivery Forecast — 6 Epics · 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:       #eef1f7;
-    --surface:  #ffffff;
-    --bord:     #dde3ef;
-    --dim:      #8a9bb5;
-    --mid:      #536075;
-    --text:     #28374c;
-    --hi:       #141f2e;
+:root {
+  --bg:      #eef1f7;
+  --surface: #ffffff;
+  --bord:    #dde3ef;
+  --dim:     #8a9bb5;
+  --mid:     #536075;
+  --text:    #28374c;
+  --hi:      #141f2e;
 
-    /* Base scenario */
-    --b-bar:    #a8c4e4;
-    --b-teal:   #146050;
-    --b-amber:  #b07808;
+  /* Epic colours */
+  --e1: #2563eb; --e1l: #93c5fd;
+  --e2: #7c3aed; --e2l: #c4b5fd;
+  --e3: #059669; --e3l: #6ee7b7;
+  --e4: #d97706; --e4l: #fcd34d;
+  --e5: #db2777; --e5l: #f9a8d4;
+  --e6: #dc2626; --e6l: #fca5a5;
 
-    /* Adjusted scenario (darker/warmer) */
-    --a-bar:    #7a9dbf;
-    --a-teal:   #0e5040;
-    --a-amber:  #956006;
-    --a-red:    #9a2020;
+  /* percentile lines */
+  --p50: #146050;
+  --p85: #b07808;
+  --p95: #902020;
 
-    /* Impact colours */
-    --delay:    #d04040;
-    --gain:     #1a8050;
-    --neutral:  #4a6090;
-    --creep:    #c07010;
+  --deadline: #dc2626;
+  --avg-ln:   #c89018;
+  --sans:     'DM Sans', sans-serif;
+  --mono:     'DM Mono', monospace;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; padding:22px 28px 52px; }
 
-    --avg-ln:   #c89018;
-    --sans:     'DM Sans', sans-serif;
-    --mono:     'DM Mono', monospace;
-  }
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; padding:24px 30px 52px; }
+/* ── TABS ── */
+.tabs { display:flex; gap:0; margin-bottom:20px; border-bottom:2px solid var(--bord); }
+.tab-btn {
+  padding:10px 22px; font-size:.78rem; font-weight:600; font-family:var(--mono);
+  background:transparent; border:none; cursor:pointer; color:var(--dim);
+  letter-spacing:.04em; border-bottom:2px solid transparent; margin-bottom:-2px;
+  transition:color .15s, border-color .15s;
+}
+.tab-btn:hover { color:var(--text); }
+.tab-btn.active { color:var(--hi); border-bottom-color:var(--hi); }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
 
-  /* ── PAGE HEADER ── */
-  .ph { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; }
-  .ph-icon { font-size:1.4rem; margin-right:2px; }
-  .ph-title { font-size:1.08rem; font-weight:700; color:var(--hi); }
-  .ph-sub   { font-size:.69rem; color:var(--dim); margin-top:2px; font-family:var(--mono); }
-  .ph-badges { display:flex; gap:7px; flex-wrap:wrap; align-items:flex-start; padding-top:2px; }
-  .badge {
-    display:inline-flex; align-items:center; gap:5px;
-    padding:4px 11px; border-radius:20px; border:1px solid var(--bord);
-    font-size:.65rem; background:var(--surface); color:var(--mid); font-family:var(--mono);
-    white-space:nowrap;
-  }
-  .badge.warn  { background:#fff5e6; border-color:#e8b060; color:#a06010; }
-  .badge.alert { background:#fff0f0; border-color:#e09090; color:#a02020; }
-  .badge.ok    { background:#f0fff6; border-color:#80d0a0; color:#207040; }
+/* ── PAGE HEADER ── */
+.ph { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.ph-title { font-size:1.08rem; font-weight:700; color:var(--hi); }
+.ph-sub   { font-size:.68rem; color:var(--dim); margin-top:2px; font-family:var(--mono); }
+.ph-badges { display:flex; gap:7px; flex-wrap:wrap; align-items:flex-start; }
+.badge {
+  display:inline-flex; align-items:center; gap:5px; padding:4px 11px;
+  border-radius:20px; border:1px solid var(--bord);
+  font-size:.64rem; background:var(--surface); color:var(--mid); font-family:var(--mono);
+  white-space:nowrap;
+}
+.badge.warn  { background:#fff8ec; border-color:#e8c060; color:#8a6010; }
+.badge.alert { background:#fff1f1; border-color:#e09090; color:#902020; }
+.badge.ok    { background:#f0fff7; border-color:#70d090; color:#1a7040; }
+.badge.info  { background:#f0f5ff; border-color:#90b0e8; color:#2050a0; }
 
-  /* ── IMPACT STRIP ── */
-  .impact-strip {
-    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
-    background:var(--bord); border:1px solid var(--bord);
-    border-radius:12px; overflow:hidden; margin-bottom:18px;
-  }
-  .imp {
-    background:var(--surface); padding:14px 16px;
-  }
-  .imp-lbl { font-size:.52rem; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); margin-bottom:6px; }
-  .imp-val { font-family:var(--mono); font-size:1.5rem; font-weight:700; line-height:1; margin-bottom:3px; }
-  .imp-sub { font-size:.6rem; color:var(--mid); }
-  .imp-delta {
-    display:inline-flex; align-items:center; gap:4px;
-    margin-top:6px; padding:2px 8px; border-radius:4px;
-    font-size:.62rem; font-weight:600; font-family:var(--mono);
-  }
+/* ── IMPACT STRIP ── */
+.kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--bord); border:1px solid var(--bord); border-radius:11px; overflow:hidden; margin-bottom:16px; }
+.kpi { background:var(--surface); padding:13px 16px; }
+.kpi-lbl { font-size:.51rem; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); margin-bottom:5px; }
+.kpi-val { font-family:var(--mono); font-size:1.45rem; font-weight:700; line-height:1; margin-bottom:2px; }
+.kpi-sub { font-size:.58rem; color:var(--mid); }
+.kpi-delta { display:inline-flex; align-items:center; gap:4px; margin-top:5px; padding:2px 8px; border-radius:4px; font-size:.6rem; font-weight:600; font-family:var(--mono); }
 
-  /* ── SCENARIO LEGEND ── */
-  .scenario-legend {
-    display:flex; gap:20px; align-items:center; flex-wrap:wrap;
-    margin-bottom:16px; padding:10px 16px;
-    background:var(--surface); border:1px solid var(--bord);
-    border-radius:9px;
-  }
-  .sl-item { display:flex; align-items:center; gap:8px; font-size:.7rem; color:var(--mid); }
-  .sl-sq   { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
-  .sl-sep  { width:1px; height:20px; background:var(--bord); }
+/* ── CARDS ── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+.grid-1 { margin-bottom:14px; }
+@media(max-width:860px){ .grid-2{grid-template-columns:1fr;} }
+.card {
+  background:var(--surface); border:1px solid var(--bord); border-radius:12px;
+  padding:16px 18px 12px;
+  box-shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.04);
+}
+.card-hdr { display:flex; align-items:center; gap:7px; margin-bottom:2px; }
+.card-icon  { font-size:.85rem; }
+.card-title { font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--mid); }
+.card-desc  { font-size:.64rem; color:var(--dim); margin-bottom:12px; }
+canvas { display:block; width:100%; }
+.pbadges { display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
+.pbadge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:6px; font-size:.63rem; font-weight:500; font-family:var(--mono); }
+.clegend { display:flex; gap:12px; flex-wrap:wrap; margin-top:9px; }
+.cl { display:flex; align-items:center; gap:5px; font-size:.63rem; color:var(--mid); }
+.cl-sq { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.cl-dash { width:16px; height:0; border-top:2px dashed; flex-shrink:0; }
 
-  /* ── TEAM TIMELINE ── */
-  .team-timeline {
-    background:var(--surface); border:1px solid var(--bord);
-    border-radius:9px; padding:12px 16px; margin-bottom:18px;
-  }
-  .tt-title { font-size:.62rem; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:10px; }
-  .tt-track { position:relative; height:32px; margin-bottom:4px; }
-  .tt-bar   { position:absolute; height:100%; border-radius:4px; display:flex; align-items:center; padding:0 10px; font-size:.63rem; font-weight:600; white-space:nowrap; }
-  .tt-label { position:absolute; font-size:.6rem; font-family:var(--mono); top:-16px; }
-  .tt-axis  { display:flex; justify-content:space-between; font-size:.59rem; color:var(--dim); font-family:var(--mono); margin-top:2px; }
+/* ── EPIC LEGEND STRIP ── */
+.epic-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+.el { display:flex; align-items:center; gap:6px; font-size:.68rem; color:var(--mid); }
+.el-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
 
-  /* ── 2×2 GRID ── */
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media(max-width:860px){ .grid{ grid-template-columns:1fr; } }
+/* ── TOOLTIP ── */
+#gtt {
+  position:fixed; z-index:9999; pointer-events:none; display:none;
+  background:#141f2ef3; border:1px solid #2a3a52; border-radius:9px;
+  padding:10px 14px; font-family:var(--mono); font-size:.67rem;
+  color:#d8e8f4; max-width:280px; line-height:1.75;
+  box-shadow:0 8px 28px rgba(0,0,0,.3); backdrop-filter:blur(8px);
+}
+.ttl  { font-weight:600; color:#fff; margin-bottom:5px; }
+.ttr  { display:flex; justify-content:space-between; gap:14px; }
+.ttk  { color:#6a88a8; }
+.ttv  { color:#d8e8f4; }
+.tts  { border:none; border-top:1px solid #2a3a52; margin:5px 0; }
+.tth  { font-size:.59rem; color:#8aaac8; margin-top:3px; }
 
-  /* ── CARD ── */
-  .card {
-    background:var(--surface); border:1px solid var(--bord);
-    border-radius:13px; padding:16px 18px 12px;
-    box-shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.04);
-  }
-  .card-hdr { display:flex; align-items:center; gap:7px; margin-bottom:2px; }
-  .card-icon  { font-size:.85rem; }
-  .card-title { font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--mid); }
-  .card-desc  { font-size:.65rem; color:var(--dim); margin-bottom:12px; }
-  canvas { display:block; width:100%; }
-  .pbadges { display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
-  .pbadge  {
-    display:inline-flex; align-items:center; gap:4px;
-    padding:3px 10px; border-radius:6px; font-size:.64rem;
-    font-weight:500; font-family:var(--mono);
-  }
-  .card-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:9px; }
-  .cl-item { display:flex; align-items:center; gap:5px; font-size:.64rem; color:var(--mid); }
-  .cl-sq   { width:11px; height:11px; border-radius:2px; flex-shrink:0; }
-  .cl-dash { width:16px; height:0; border-top:2px dashed; flex-shrink:0; }
-
-  /* ── TOOLTIP ── */
-  #gtt {
-    position:fixed; z-index:9999; pointer-events:none; display:none;
-    background:#141f2ef3; border:1px solid #2a3a52;
-    border-radius:9px; padding:10px 14px;
-    font-family:var(--mono); font-size:.67rem;
-    color:#d8e8f4; max-width:260px; line-height:1.75;
-    box-shadow:0 8px 28px rgba(0,0,0,.3);
-    backdrop-filter:blur(8px);
-  }
-  .ttl  { font-weight:600; color:#fff; margin-bottom:5px; }
-  .ttr  { display:flex; justify-content:space-between; gap:14px; }
-  .ttk  { color:#6a88a8; }
-  .ttv  { color:#d8e8f4; }
-  .ttsep{ border:none; border-top:1px solid #2a3a52; margin:5px 0; }
-  .tth  { font-size:.6rem; color:#a0b8d0; margin-top:4px; }
-
-  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-  .impact-strip, .scenario-legend, .team-timeline { animation:fadeUp .4s ease both .03s; }
-  .card:nth-child(1){animation:fadeUp .4s ease both .1s;}
-  .card:nth-child(2){animation:fadeUp .4s ease both .15s;}
-  .card:nth-child(3){animation:fadeUp .4s ease both .20s;}
-  .card:nth-child(4){animation:fadeUp .4s ease both .25s;}
+@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.kpi-row,.epic-legend,.card { animation:fadeUp .35s ease both; }
 </style>
 </head>
 <body>
 
-<!-- ── PAGE HEADER ── -->
+<!-- ── TABS ── -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('epics')">📊 Epic Forecast 2026</button>
+  <button class="tab-btn" onclick="switchTab('team')">👥 Team & Flow Metrics</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 1: EPIC FORECAST
+═══════════════════════════════════════════════════════════════════ -->
+<div id="tab-epics" class="tab-panel active">
+
 <div class="ph">
-  <div style="display:flex;align-items:flex-start;gap:10px">
-    <div class="ph-icon">📊</div>
-    <div>
-      <div class="ph-title">Flow Metrics — Updated Forecast</div>
-      <div class="ph-sub">New Team · 100 000 Monte Carlo sims · Scope creep + team changes modelled</div>
+  <div>
+    <div class="ph-title">📦 6 Epic Delivery Forecast — May–Sep 2026</div>
+    <div class="ph-sub">100 000 Monte Carlo sims · 75% focus · scope creep 1.0–1.3 · throughput 2–3 PBI/week</div>
+  </div>
+  <div class="ph-badges">
+    <div class="badge info">🗓 Start: 01 May 2026</div>
+    <div class="badge alert">🏁 Deadline: 30 Sep 2026</div>
+    <div class="badge warn">📈 Jun ×1.4 · Sep ×1.6</div>
+    <div class="badge">🔄 Scope creep: ×1.0–1.3</div>
+    <div class="badge ok">🎯 Focus: 75%</div>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="kpi-lbl">Epiki do deadline</div>
+    <div class="kpi-val" style="color:#d97706">4.1</div>
+    <div class="kpi-sub">średnio z 6</div>
+    <div class="kpi-delta" style="background:rgba(217,119,6,.08);color:#b07808">P50 = 4 epiki</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">P(wszystkie 6)</div>
+    <div class="kpi-val" style="color:#dc2626">0.3%</div>
+    <div class="kpi-sub">do 30 wrz 2026</div>
+    <div class="kpi-delta" style="background:rgba(220,38,38,.08);color:#902020">Deadline: za ciasny</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">E4 P85 (deadline)</div>
+    <div class="kpi-val" style="color:#059669">25 Wrz</div>
+    <div class="kpi-sub">4. epik mieści się P85</div>
+    <div class="kpi-delta" style="background:rgba(5,150,105,.08);color:#059669">✓ W terminie</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Wszystkie 6 — P50</div>
+    <div class="kpi-val" style="color:#7c3aed">13 Lis</div>
+    <div class="kpi-sub">+6 tyg. po deadline</div>
+    <div class="kpi-delta" style="background:rgba(124,58,237,.08);color:#7c3aed">P85 = 04 Gru</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-lbl">Łączny scope (est.)</div>
+    <div class="kpi-val" style="color:#536075">45–57</div>
+    <div class="kpi-sub">PBI z creepem</div>
+    <div class="kpi-delta" style="background:rgba(83,96,117,.08);color:#536075">Bazowo 33–56</div>
+  </div>
+</div>
+
+<!-- EPIC COLOUR LEGEND -->
+<div class="epic-legend">
+  <span style="font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)">Epiki:</span>
+  <div class="el"><div class="el-dot" style="background:var(--e1)"></div>E1 (6–10 PBI)</div>
+  <div class="el"><div class="el-dot" style="background:var(--e2)"></div>E2 (5–9 PBI)</div>
+  <div class="el"><div class="el-dot" style="background:var(--e3)"></div>E3 (5–8 PBI)</div>
+  <div class="el"><div class="el-dot" style="background:var(--e4)"></div>E4 (6–10 PBI)</div>
+  <div class="el"><div class="el-dot" style="background:var(--e5)"></div>E5 (6–9 PBI)</div>
+  <div class="el"><div class="el-dot" style="background:var(--e6)"></div>E6 (5–10 PBI)</div>
+  <span style="font-size:.62rem;color:var(--dim);margin-left:8px">|</span>
+  <div class="el"><div class="cl-dash" style="border-color:var(--p50)"></div>P50</div>
+  <div class="el"><div class="cl-dash" style="border-color:var(--p85)"></div>P85</div>
+  <div class="el"><div class="cl-dash" style="border-color:var(--deadline)"></div>Deadline</div>
+</div>
+
+<!-- ROW 1: Gantt + Completion dist all 6 -->
+<div class="grid-2">
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-hdr"><span class="card-icon">📅</span>
+      <span class="card-title">Epic Timeline — P50 / P85 / P95 Range (Gantt)</span>
     </div>
+    <div class="card-desc">Pasek = zakres P50–P85, wąs = P95. Pionowa linia = deadline 30 wrz.</div>
+    <canvas id="gantt" height="260"></canvas>
+  </div>
+</div>
+
+<!-- ROW 2: Completion distributions -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">📊</span>
+      <span class="card-title">Completion Distribution — Epiki 1–3</span>
+    </div>
+    <div class="card-desc">Kiedy ukończymy pierwsze 3 epiki? (sekwencyjnie)</div>
+    <canvas id="dist123" height="230"></canvas>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">📊</span>
+      <span class="card-title">Completion Distribution — Epiki 4–6</span>
+    </div>
+    <div class="card-desc">Kiedy ukończymy ostatnie 3 epiki? Czerwona linia = deadline.</div>
+    <canvas id="dist456" height="230"></canvas>
+  </div>
+</div>
+
+<!-- ROW 3: Epics by deadline + Throughput -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">🎯</span>
+      <span class="card-title">Ile epików do deadline? (30 wrz)</span>
+    </div>
+    <div class="card-desc">Rozkład liczby ukończonych epików przed terminem.</div>
+    <canvas id="epicsDone" height="230"></canvas>
+    <div class="pbadges" id="epicsDonePB"></div>
+  </div>
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">⚡</span>
+      <span class="card-title">Efektywny Throughput / Tydzień</span>
+    </div>
+    <div class="card-desc">PBI/tydzień · fokus 75% · mnożnik miesięczny · znajomość epiku · P25/P50/P75</div>
+    <canvas id="weeklyTp" height="230"></canvas>
+  </div>
+</div>
+
+</div><!-- /tab-epics -->
+
+<!-- ══════════════════════════════════════════════════════════════════
+     TAB 2: TEAM & FLOW (previous dashboard)
+═══════════════════════════════════════════════════════════════════ -->
+<div id="tab-team" class="tab-panel">
+
+<div class="ph">
+  <div>
+    <div class="ph-title">👥 Flow Metrics — New Team (poprzednie dane)</div>
+    <div class="ph-sub">Monte Carlo · Scope creep 20–30% · +1 osoba 01 kwi · −1 osoba 20 kwi</div>
   </div>
   <div class="ph-badges">
     <div class="badge">📦 Backlog: 15 items</div>
     <div class="badge warn">📈 Scope creep: +20–30%</div>
-    <div class="badge ok">👤 +1 person: 01 Apr (ramping)</div>
-    <div class="badge alert">👤 −1 person: 20 Apr</div>
-    <div class="badge">⚡ Throughput: 2–3/week</div>
+    <div class="badge ok">👤 +1 person: 01 kwi</div>
+    <div class="badge alert">👤 −1 person: 20 kwi</div>
   </div>
 </div>
 
-<!-- ── TEAM CAPACITY TIMELINE ── -->
-<div class="team-timeline">
-  <div class="tt-title">Team Capacity Timeline</div>
-  <canvas id="capacity-chart" height="80"></canvas>
-</div>
-
-<!-- ── IMPACT STRIP ── -->
-<div class="impact-strip">
-  <div class="imp">
-    <div class="imp-lbl">85% Backlog (13 items)</div>
-    <div class="imp-val" style="color:var(--neutral)">02 Jun</div>
-    <div class="imp-sub">P85 — unchanged</div>
-    <div class="imp-delta" style="background:rgba(74,96,144,.08);color:var(--neutral)">= no change</div>
-  </div>
-  <div class="imp">
-    <div class="imp-lbl">All original 15 items</div>
-    <div class="imp-val" style="color:var(--delay)">16 Jun</div>
-    <div class="imp-sub">P50 with creep+team</div>
-    <div class="imp-delta" style="background:rgba(208,64,64,.08);color:var(--delay)">▲ +2 weeks vs baseline</div>
-  </div>
-  <div class="imp">
-    <div class="imp-lbl">Full scope incl. creep</div>
-    <div class="imp-val" style="color:var(--creep)">23 Jun</div>
-    <div class="imp-sub">P85 — 18–20 total items</div>
-    <div class="imp-delta" style="background:rgba(192,112,16,.08);color:var(--creep)">▲ +2 weeks vs baseline</div>
-  </div>
-  <div class="imp">
-    <div class="imp-lbl">Expected extra scope</div>
-    <div class="imp-val" style="color:var(--creep)">+3–5</div>
-    <div class="imp-sub">items (20–30% of 15)</div>
-    <div class="imp-delta" style="background:rgba(192,112,16,.08);color:var(--creep)">Total: 18–20 items</div>
-  </div>
-</div>
-
-<!-- ── SCENARIO LEGEND ── -->
-<div class="scenario-legend">
-  <div style="font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)">Scenarios:</div>
-  <div class="sl-item"><div class="sl-sq" style="background:#b0c8e8"></div>Baseline (no creep, stable team)</div>
-  <div class="sl-item"><div class="sl-sq" style="background:#7a6ab4"></div>Adjusted (scope creep 20–30% + team change)</div>
-  <div class="sl-sep"></div>
-  <div class="sl-item"><div class="sl-sq" style="background:var(--b-teal)"></div>P50 — baseline</div>
-  <div class="sl-item"><div class="sl-sq" style="background:var(--b-amber)"></div>P85 — baseline</div>
-  <div class="sl-item"><div class="sl-sq" style="background:#503878"></div>P50 — adjusted</div>
-  <div class="sl-item"><div class="sl-sq" style="background:#905020"></div>P85 — adjusted</div>
-</div>
-
-<!-- ── 2×2 GRID ── -->
-<div class="grid">
-
-  <!-- C1: 85% Completion -->
+<div class="grid-2">
   <div class="card">
-    <div class="card-hdr"><span class="card-icon">📅</span>
-      <span class="card-title">Completion Distribution — 85% of Items (13)</span>
-    </div>
-    <div class="card-desc">When will 13 of 15 original items be done? Baseline vs. adjusted.</div>
-    <canvas id="c1" height="220"></canvas>
-    <div class="pbadges" id="pb1"></div>
+    <div class="card-hdr"><span class="card-icon">📅</span><span class="card-title">Completion Dist. — 85% (13 items)</span></div>
+    <div class="card-desc">Baseline vs. z creepem i zmianami w zespole</div>
+    <canvas id="t1" height="210"></canvas>
+    <div class="pbadges" id="tpb1"></div>
   </div>
-
-  <!-- C2: ALL completion -->
   <div class="card">
-    <div class="card-hdr"><span class="card-icon">📅</span>
-      <span class="card-title">Completion Distribution — All Items (incl. creep)</span>
-    </div>
-    <div class="card-desc">Baseline = 15 items. Adjusted = 18–20 items with scope creep.</div>
-    <canvas id="c2" height="220"></canvas>
-    <div class="pbadges" id="pb2"></div>
+    <div class="card-hdr"><span class="card-icon">📅</span><span class="card-title">Completion Dist. — All Items (z creepem)</span></div>
+    <div class="card-desc">Baseline=15 items vs. adjusted=18–20 items</div>
+    <canvas id="t2" height="210"></canvas>
+    <div class="pbadges" id="tpb2"></div>
   </div>
-
-  <!-- C3: Items at target -->
   <div class="card">
-    <div class="card-hdr"><span class="card-icon">🎯</span>
-      <span class="card-title">Items Delivered by Target (02 Jun) — Baseline vs Adjusted</span>
-    </div>
-    <div class="card-desc">At P85 target date (wk 6 = 02 Jun), how many original items delivered?</div>
-    <canvas id="c3" height="220"></canvas>
-    <div class="card-legend">
-      <div class="cl-item"><div class="cl-sq" style="background:#b0c8e8"></div>Baseline</div>
-      <div class="cl-item"><div class="cl-sq" style="background:#7a6ab4"></div>With creep + team change</div>
+    <div class="card-hdr"><span class="card-icon">🎯</span><span class="card-title">Items Delivered by Target (02 Jun)</span></div>
+    <div class="card-desc">Baseline vs. adjusted przy target P85</div>
+    <canvas id="t3" height="210"></canvas>
+    <div class="clegend">
+      <div class="cl"><div class="cl-sq" style="background:#b0c8e8"></div>Baseline</div>
+      <div class="cl"><div class="cl-sq" style="background:#7a6ab4"></div>Z creepem + zmiana zespołu</div>
     </div>
   </div>
-
-  <!-- C4: Effective throughput -->
   <div class="card">
-    <div class="card-hdr"><span class="card-icon">⚡</span>
-      <span class="card-title">Effective Throughput / Week (Adjusted)</span>
-    </div>
-    <div class="card-desc">Capacity-adjusted throughput. Wk 1–2: −15% (team flux). Wk 5+: +5% (new member ramped).</div>
-    <canvas id="c4" height="220"></canvas>
-    <div class="card-legend">
-      <div class="cl-item"><div class="cl-dash" style="border-color:var(--avg-ln)"></div>Baseline avg 2.5</div>
-      <div class="cl-item"><div class="cl-dash" style="border-color:#7a6ab4;border-style:solid"></div>Adjusted avg</div>
+    <div class="card-hdr"><span class="card-icon">⚡</span><span class="card-title">Effective Throughput / Week</span></div>
+    <div class="card-desc">Baseline vs. adjusted capacity (team flux)</div>
+    <canvas id="t4" height="210"></canvas>
+    <div class="clegend">
+      <div class="cl"><div class="cl-dash" style="border-color:var(--avg-ln)"></div>avg 2.5 baseline</div>
     </div>
   </div>
-
 </div>
+
+</div><!-- /tab-team -->
+
 <div id="gtt"></div>
 
 <script>
+// ══════════════════════════════════════════════════════════════════
+//  CONSTANTS & HELPERS
+// ══════════════════════════════════════════════════════════════════
 const dpr = window.devicePixelRatio || 1;
 const tt  = document.getElementById('gtt');
+const PAD = { top:28, right:20, bottom:44, left:52 };
+const START_DATE = new Date('2026-05-01');
 
-// ── DATA ────────────────────────────────────────────────────────────
+const EPIC_COLORS = ['#2563eb','#7c3aed','#059669','#d97706','#db2777','#dc2626'];
+const EPIC_LIGHT  = ['#93c5fd','#c4b5fd','#6ee7b7','#fcd34d','#f9a8d4','#fca5a5'];
+const EPIC_NAMES  = ['E1','E2','E3','E4','E5','E6'];
+const EPIC_SIZES  = ['6–10','5–9','5–8','6–10','6–9','5–10'];
 
-// Completion 85% (13 items)
-const dist85_base = [
-  { label:'26 May', wk:5,  base:50.0, adj:26.2 },
-  { label:'02 Jun', wk:6,  base:48.5, adj:62.0 },
-  { label:'09 Jun', wk:7,  base:1.5,  adj:11.6 },
-  { label:'16 Jun', wk:8,  base:0.0,  adj:0.2  },
+// Pre-computed P50/P85/P95 per epic (weeks from 2026-05-01)
+const EPIC_P = [
+  { p50:5,  p70:6,  p85:6,  p95:7  },  // E1
+  { p50:9,  p70:10, p85:11, p95:11 },  // E2
+  { p50:14, p70:15, p85:16, p95:17 },  // E3
+  { p50:19, p70:20, p85:21, p95:22 },  // E4
+  { p50:23, p70:25, p85:26, p95:27 },  // E5 (beyond deadline)
+  { p50:27, p70:28, p85:29, p95:29 },  // E6
 ];
 
-// Completion ALL (baseline=15, adjusted=18-20 items with creep)
-const distAll = [
-  { label:'26 May', wk:5,  base:3.1,  adj:0.2  },
-  { label:'02 Jun', wk:6,  base:62.5, adj:8.0  },
-  { label:'09 Jun', wk:7,  base:33.6, adj:29.0 },
-  { label:'16 Jun', wk:8,  base:0.8,  adj:32.4 },
-  { label:'23 Jun', wk:9,  base:0.0,  adj:19.2 },
-  { label:'30 Jun', wk:10, base:0.0,  adj:7.8  },
-  { label:'07 Jul', wk:11, base:0.0,  adj:2.5  },
-  { label:'14 Jul', wk:12, base:0.0,  adj:0.7  },
-  { label:'21 Jul', wk:13, base:0.0,  adj:0.2  },
-];
+const DEADLINE_WK = 21; // Sep 30 = ~week 21 from May 1
 
-// Items at target (week 6 = 02 Jun)
-const itemsBase  = [ {i:12,p:1.6},{i:13,p:9.3},{i:14,p:23.4},{i:15,p:65.7} ];
-const itemsAdj   = [ {i:10,p:0.4},{i:11,p:2.6},{i:12,p:8.7},{i:13,p:18.9},{i:14,p:25.7},{i:15,p:43.6} ];
-
-// Effective throughput per week (adj capacity)
-const weekTp = [
-  {wk:'Wk1', base:2.5, adj:2.1},
-  {wk:'Wk2', base:2.5, adj:2.1},
-  {wk:'Wk3', base:2.5, adj:2.4},
-  {wk:'Wk4', base:2.5, adj:2.4},
-  {wk:'Wk5', base:2.5, adj:2.6},
-  {wk:'Wk6', base:2.5, adj:2.6},
-  {wk:'Wk7', base:2.5, adj:2.6},
-  {wk:'Wk8', base:2.5, adj:2.6},
-];
-
-// ── COLOUR PALETTE ──────────────────────────────────────────────────
-const C = {
-  baseLt:  '#b0c8e8',  // baseline light bars
-  baseTeal:'#146050',  // baseline P50
-  baseAmb: '#b07808',  // baseline P85
-  adjBar:  '#7a6ab4',  // adjusted bars
-  adjP50:  '#503878',  // adjusted P50
-  adjP85:  '#905020',  // adjusted P85
-  adjRed:  '#a82828',
-  avgLn:   '#c89018',
-  adjLn:   '#7a6ab4',
-  dim:     '#8a9bb5',
-  mid:     '#536075',
-  text:    '#28374c',
+// Completion distributions
+const DIST123 = {
+  E1: [{wk:3,p:2},{wk:4,p:20},{wk:5,p:32},{wk:6,p:36},{wk:7,p:9},{wk:8,p:1}],
+  E2: [{wk:6,p:1},{wk:7,p:10},{wk:8,p:25},{wk:9,p:32},{wk:10,p:17},{wk:11,p:10},{wk:12,p:4},{wk:13,p:1}],
+  E3: [{wk:9,p:1},{wk:10,p:2},{wk:11,p:6},{wk:12,p:12},{wk:13,p:18},{wk:14,p:21},{wk:15,p:18},{wk:16,p:12},{wk:17,p:6},{wk:18,p:2}],
+};
+const DIST456 = {
+  E4: [{wk:15,p:1},{wk:16,p:4},{wk:17,p:8},{wk:18,p:12},{wk:19,p:17},{wk:20,p:19},{wk:21,p:17},{wk:22,p:12},{wk:23,p:6},{wk:24,p:3}],
+  E5: [{wk:19,p:2},{wk:20,p:7},{wk:21,p:15},{wk:22,p:24},{wk:23,p:22},{wk:24,p:16},{wk:25,p:8},{wk:26,p:4},{wk:27,p:2}],
+  E6: [{wk:22,p:1},{wk:23,p:2},{wk:24,p:4},{wk:25,p:6},{wk:26,p:10},{wk:27,p:13},{wk:28,p:15},{wk:29,p:14},{wk:30,p:12},{wk:31,p:9},{wk:32,p:6},{wk:33,p:4}],
 };
 
-// ── LAYOUT ──────────────────────────────────────────────────────────
-const PAD = { top:28, right:18, bottom:44, left:44 };
+// Epics done by deadline
+const EPICS_DONE = [{k:3,p:7.7},{k:4,p:73.6},{k:5,p:18.4},{k:6,p:0.3}];
 
-function setup(id, h) {
-  const c = document.getElementById(id);
-  const W = c.parentElement.clientWidth - 36;
-  const H = h || parseInt(c.getAttribute('height'));
-  c.style.width  = W + 'px';
-  c.style.height = H + 'px';
-  c.width  = W * dpr;
-  c.height = H * dpr;
-  return { c, ctx:c.getContext('2d'), W:W*dpr, H:H*dpr };
+// Weekly effective throughput p25/p50/p75
+const WEEKLY_TP = [
+  {wk:1,m:5,p25:1.50,p50:1.65,p75:2.25},{wk:2,m:5,p25:1.50,p50:1.65,p75:2.26},
+  {wk:3,m:5,p25:1.49,p50:1.64,p75:2.24},{wk:4,m:5,p25:1.49,p50:1.65,p75:2.24},
+  {wk:5,m:5,p25:1.49,p50:1.64,p75:2.24},{wk:6,m:6,p25:2.11,p50:2.86,p75:3.15},
+  {wk:7,m:6,p25:2.10,p50:2.59,p75:3.16},{wk:8,m:6,p25:2.07,p50:2.61,p75:3.13},
+  {wk:9,m:6,p25:1.98,p50:2.36,p75:2.95},{wk:10,m:7,p25:1.33,p50:1.64,p75:1.99},
+  {wk:11,m:7,p25:1.30,p50:1.63,p75:1.94},{wk:12,m:7,p25:1.28,p50:1.61,p75:1.92},
+  {wk:13,m:7,p25:1.29,p50:1.48,p75:1.93},{wk:14,m:7,p25:1.31,p50:1.75,p75:1.97},
+  {wk:15,m:8,p25:1.32,p50:1.75,p75:1.99},{wk:16,m:8,p25:1.34,p50:1.55,p75:2.00},
+  {wk:17,m:8,p25:1.35,p50:1.81,p75:2.02},{wk:18,m:8,p25:1.35,p50:1.53,p75:2.03},
+  {wk:19,m:9,p25:2.18,p50:2.50,p75:3.28},{wk:20,m:9,p25:2.23,p50:2.95,p75:3.35},
+  {wk:21,m:9,p25:2.25,p50:2.77,p75:3.40},{wk:22,m:9,p25:2.29,p50:3.03,p75:3.42},
+];
+
+function wk2date(w) {
+  const d = new Date(START_DATE);
+  d.setDate(d.getDate() + Math.round(w * 7));
+  return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'short'});
 }
 
-function iDim(W,H){ return { iW:W-PAD.left-PAD.right, iH:H-PAD.top-PAD.bottom }; }
+// ══════════════════════════════════════════════════════════════════
+//  TAB SWITCH
+// ══════════════════════════════════════════════════════════════════
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>
+    b.classList.toggle('active',['epics','team'][i]===id));
+  document.querySelectorAll('.tab-panel').forEach(p=>
+    p.classList.toggle('active',p.id==='tab-'+id));
+  renderAll();
+}
 
-function drawGrid(ctx, W, H, maxV, isPercent, steps) {
-  const { iW, iH } = iDim(W, H);
-  const s = steps || (maxV<=5?1:maxV<=10?2:maxV<=40?10:20);
-  ctx.font = `${9.5*dpr}px 'DM Mono',monospace`;
-  ctx.textAlign = 'right'; ctx.fillStyle = C.dim;
-  for (let v=0; v<=maxV; v+=s) {
-    const y = PAD.top + iH - (v/maxV)*iH;
-    ctx.beginPath(); ctx.strokeStyle='#e8ecf4'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+// ══════════════════════════════════════════════════════════════════
+//  CANVAS HELPERS
+// ══════════════════════════════════════════════════════════════════
+function setup(id, h) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  const W = c.parentElement.clientWidth - 36;
+  const H = h || parseInt(c.getAttribute('height'));
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.width=W*dpr; c.height=H*dpr;
+  return { c, ctx:c.getContext('2d'), W:W*dpr, H:H*dpr };
+}
+function iDim(W,H){return{iW:W-PAD.left-PAD.right,iH:H-PAD.top-PAD.bottom};}
+function pctY(val,maxV,iH){return PAD.top+iH-(val/maxV)*iH;}
+
+function yGrid(ctx,W,H,maxV,isP,steps){
+  const {iW,iH}=iDim(W,H);
+  const s=steps||(maxV<=5?1:maxV<=10?2:maxV<=40?10:20);
+  ctx.font=`${9.5*dpr}px 'DM Mono',monospace`;
+  ctx.textAlign='right'; ctx.fillStyle='#8a9bb5';
+  for(let v=0;v<=maxV;v+=s){
+    const y=pctY(v,maxV,iH);
+    ctx.beginPath(); ctx.strokeStyle='#e6eaf4'; ctx.lineWidth=dpr; ctx.setLineDash([]);
     ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+iW,y); ctx.stroke();
-    ctx.fillText(isPercent?v+'%':v, PAD.left-5*dpr, y+3.5*dpr);
+    ctx.fillText(isP?v+'%':v, PAD.left-5*dpr, y+3.5*dpr);
   }
   ctx.beginPath(); ctx.strokeStyle='#c8d0df'; ctx.lineWidth=dpr;
   ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+iH);
@@ -359,343 +406,518 @@ function drawGrid(ctx, W, H, maxV, isPercent, steps) {
 function showTip(e, html) {
   tt.style.display='block'; tt.innerHTML=html;
   let lx=e.clientX+14, ly=e.clientY-10;
-  if(lx+260>window.innerWidth)  lx=e.clientX-274;
-  if(ly+180>window.innerHeight) ly=e.clientY-185;
+  if(lx+290>window.innerWidth)  lx=e.clientX-304;
+  if(ly+200>window.innerHeight) ly=e.clientY-205;
   tt.style.left=lx+'px'; tt.style.top=ly+'px';
 }
 
-function cumulative(data, key) {
-  let c=0; return data.map(d=>{c+=d[key]||0;return c;});
-}
+// ══════════════════════════════════════════════════════════════════
+//  CHART 1: GANTT
+// ══════════════════════════════════════════════════════════════════
+function drawGantt() {
+  const res=setup('gantt',260);
+  if(!res) return;
+  const {c,ctx,W,H}=res;
+  const {iW,iH}=iDim(W,H);
 
-// ── CAPACITY CHART ───────────────────────────────────────────────────
-function drawCapacity() {
-  const c = document.getElementById('capacity-chart');
-  const W = c.parentElement.clientWidth - 32;
-  const H = 80;
-  c.style.width=W+'px'; c.style.height=H+'px';
-  c.width=W*dpr; c.height=H*dpr;
-  const ctx = c.getContext('2d');
-  ctx.clearRect(0,0,W*dpr,H*dpr);
+  const GPAD={top:24,right:120,bottom:36,left:80};
+  const gW=W-GPAD.left-GPAD.right;
+  const gH=H-GPAD.top-GPAD.bottom;
 
-  const CPAD = {l:120*dpr, r:20*dpr, t:18*dpr, b:20*dpr};
-  const iW = W*dpr - CPAD.l - CPAD.r;
-  const iH = H*dpr - CPAD.t - CPAD.b;
+  ctx.clearRect(0,0,W,H);
 
-  // Time range: Apr 1 → Jul 14 (14 weeks from start Apr 1)
-  const t0 = new Date('2025-04-01').getTime();
-  const t1 = new Date('2025-07-14').getTime();
-  function tx(dateStr){ return CPAD.l + ((new Date(dateStr).getTime()-t0)/(t1-t0))*iW; }
+  // Weeks range 0..32
+  const WKS=32;
+  function wx(w){return GPAD.left+(w/WKS)*gW;}
 
-  // Background
-  ctx.fillStyle = '#f8faff';
-  ctx.fillRect(0,0,W*dpr,H*dpr);
-
-  // Grid lines (months)
-  ['2025-04-01','2025-05-01','2025-06-01','2025-07-01'].forEach(d=>{
-    const x=tx(d);
-    ctx.beginPath(); ctx.strokeStyle='#e0e6f0'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(x,CPAD.t); ctx.lineTo(x,CPAD.t+iH); ctx.stroke();
-    const lbl = new Date(d).toLocaleDateString('en-GB',{month:'short'});
-    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#8a9bb5';
-    ctx.fillText(lbl, x, CPAD.t+iH+13*dpr);
+  // Background month bands
+  const monthBands=[
+    {start:0,end:4.4,label:'Maj',col:'#f8faff'},
+    {start:4.4,end:8.7,label:'Cze',col:'#f0fff8'},
+    {start:8.7,end:13.0,label:'Lip',col:'#f8faff'},
+    {start:13.0,end:17.4,label:'Sie',col:'#f8faff'},
+    {start:17.4,end:21.7,label:'Wrz',col:'#fff8f0'},
+    {start:21.7,end:26.1,label:'Paź',col:'#fff0f0'},
+    {start:26.1,end:32,label:'Lis/Gru',col:'#fdf0f0'},
+  ];
+  monthBands.forEach(b=>{
+    const x0=wx(b.start),x1=wx(b.end);
+    ctx.fillStyle=b.col; ctx.fillRect(x0,GPAD.top,x1-x0,gH);
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#9aa8c0';
+    ctx.fillText(b.label, (x0+x1)/2, GPAD.top+gH+14*dpr);
   });
 
-  // Capacity bar (full period)
-  const segments = [
-    { from:'2025-04-01', to:'2025-04-01', label:'Baseline team', col:'#b0c8e8', h:0.6 },
-    { from:'2025-04-01', to:'2025-04-20', label:'+1 ramping',     col:'#90e8a0', h:0.7 },
-    { from:'2025-04-20', to:'2025-04-21', label:'Transition',     col:'#f8c080', h:0.55 },
-    { from:'2025-04-21', to:'2025-05-05', label:'Reduced (wk1-2)',col:'#f09080', h:0.55 },
-    { from:'2025-05-05', to:'2025-05-19', label:'Recovering',     col:'#f0d080', h:0.65 },
-    { from:'2025-05-19', to:'2025-07-14', label:'Full (new=100%)',col:'#80d0b0', h:0.75 },
-  ];
+  // Week tick lines
+  for(let w=0;w<=WKS;w+=2){
+    const x=wx(w);
+    ctx.beginPath(); ctx.strokeStyle='#e4eaf4'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(x,GPAD.top); ctx.lineTo(x,GPAD.top+gH); ctx.stroke();
+  }
 
-  const rowH = iH * 0.55;
-  const rowY = CPAD.t + iH*0.12;
+  // Deadline
+  const xDL=wx(DEADLINE_WK);
+  ctx.beginPath(); ctx.strokeStyle='#dc262680'; ctx.lineWidth=2*dpr; ctx.setLineDash([6*dpr,4*dpr]);
+  ctx.moveTo(xDL,GPAD.top-10); ctx.lineTo(xDL,GPAD.top+gH); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font=`700 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#dc2626';
+  ctx.fillText('30 Wrz', xDL, GPAD.top-4*dpr);
 
-  segments.forEach(seg=>{
-    const x1=tx(seg.from), x2=tx(seg.to);
-    if(x2<=x1+2*dpr) return;
-    const bH = rowH*seg.h;
-    const bY = rowY + rowH - bH;
-    ctx.fillStyle = seg.col + 'cc';
-    ctx.beginPath(); ctx.roundRect(x1+1,bY, x2-x1-2, bH, [3,3,0,0]); ctx.fill();
-    ctx.strokeStyle = seg.col; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.strokeRect(x1+1,bY, x2-x1-2, bH);
-    if(x2-x1 > 60*dpr) {
-      ctx.font=`${8.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center';
-      ctx.fillStyle='#2a3a4e';
-      ctx.fillText(seg.label, (x1+x2)/2, bY+bH/2+3*dpr);
+  // Epic bars
+  const rowH=gH/6;
+  EPIC_NAMES.forEach((name,i)=>{
+    const p=EPIC_P[i];
+    const y0=GPAD.top+i*rowH;
+    const cy=y0+rowH*0.5;
+    const barH=rowH*0.45;
+
+    // Epic name label
+    ctx.font=`600 ${10*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='right'; ctx.fillStyle=EPIC_COLORS[i];
+    ctx.fillText(`${name} (${EPIC_SIZES[i]})`, GPAD.left-8*dpr, cy+4*dpr);
+
+    // P95 whisker
+    ctx.beginPath(); ctx.strokeStyle=EPIC_COLORS[i]+'60'; ctx.lineWidth=2*dpr; ctx.setLineDash([3*dpr,3*dpr]);
+    ctx.moveTo(wx(p.p85),cy); ctx.lineTo(wx(p.p95),cy); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(wx(p.p95),cy,3.5*dpr,0,Math.PI*2);
+    ctx.fillStyle=EPIC_COLORS[i]+'80'; ctx.fill();
+
+    // P50–P85 bar
+    const x0bar=wx(p.p50), barW=Math.max(8*dpr,wx(p.p85)-wx(p.p50));
+    ctx.fillStyle=EPIC_LIGHT[i]+'cc';
+    ctx.beginPath(); ctx.roundRect(x0bar,cy-barH/2,barW,barH,[4*dpr]); ctx.fill();
+    ctx.strokeStyle=EPIC_COLORS[i]; ctx.lineWidth=1.5*dpr; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.roundRect(x0bar,cy-barH/2,barW,barH,[4*dpr]); ctx.stroke();
+
+    // P50 line
+    const xP50=wx(p.p50);
+    ctx.beginPath(); ctx.strokeStyle=EPIC_COLORS[i]; ctx.lineWidth=2.5*dpr;
+    ctx.moveTo(xP50,cy-barH/2); ctx.lineTo(xP50,cy+barH/2); ctx.stroke();
+
+    // Labels
+    ctx.font=`500 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=EPIC_COLORS[i];
+    ctx.fillText(wk2date(p.p50), xP50, cy-barH/2-5*dpr);
+    if(wx(p.p85)-wx(p.p50)>40*dpr){
+      ctx.textAlign='left';
+      ctx.fillText('P85:'+wk2date(p.p85), wx(p.p85)+4*dpr, cy+4*dpr);
     }
   });
 
-  // Event markers
-  const events = [
-    { date:'2025-04-01', label:'Apr 1: +1 person', col:'#18a060', y:8 },
-    { date:'2025-04-20', label:'Apr 20: −1 person', col:'#d04040', y:8 },
-    { date:'2025-04-21', label:'Apr 21: forecast start', col:'#4060c0', y:8 },
-  ];
-  events.forEach(ev=>{
-    const x = tx(ev.date);
-    ctx.beginPath(); ctx.strokeStyle=ev.col; ctx.lineWidth=1.5*dpr; ctx.setLineDash([4*dpr,3*dpr]);
-    ctx.moveTo(x, CPAD.t); ctx.lineTo(x, CPAD.t+iH); ctx.stroke(); ctx.setLineDash([]);
-    ctx.font=`600 ${8.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=ev.col;
-    ctx.fillText(ev.label, x, ev.y*dpr);
+  // Legend
+  ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#8a9bb5';
+  const lx=GPAD.left+gW+8*dpr;
+  [['━━ P50–P85','#999'],['╌╌ P85–P95','#bbb'],['◆ Deadline','#dc2626']].forEach(([t,c],i)=>{
+    ctx.fillStyle=c; ctx.fillText(t, lx, GPAD.top+16*dpr+i*16*dpr);
   });
 
-  // Left labels
-  ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='right'; ctx.fillStyle='#536075';
-  ctx.fillText('Capacity', CPAD.l-8*dpr, CPAD.t+iH/2+3*dpr);
-
-  c.onmousemove = e => { tt.style.display='none'; };
+  c.onmousemove=e=>{
+    const rect=c.getBoundingClientRect(), mx=(e.clientX-rect.left)*dpr;
+    const rowH2=gH/6;
+    const my=(e.clientY-rect.top)*dpr;
+    const epicIdx=Math.floor((my-GPAD.top)/rowH2);
+    if(epicIdx>=0&&epicIdx<6){
+      const p=EPIC_P[epicIdx];
+      showTip(e,`<div class="ttl">Epik ${epicIdx+1} (${EPIC_SIZES[epicIdx]} PBI)</div>
+        <div class="tts"></div>
+        <div class="ttr"><span class="ttk">P50</span><span class="ttv" style="color:${EPIC_COLORS[epicIdx]}">${wk2date(p.p50)} (wk${p.p50})</span></div>
+        <div class="ttr"><span class="ttk">P85</span><span class="ttv">${wk2date(p.p85)} (wk${p.p85})</span></div>
+        <div class="ttr"><span class="ttk">P95</span><span class="ttv">${wk2date(p.p95)} (wk${p.p95})</span></div>
+        <div class="tth">Deadline = wk${DEADLINE_WK} (30 Wrz). ${p.p85<=DEADLINE_WK?'✓ Mieści się (P85)':'✗ Przekracza deadline'}</div>`);
+    } else { tt.style.display='none'; }
+  };
+  c.onmouseleave=()=>tt.style.display='none';
 }
 
-// ── CHART 1 & 2: Dual-bar completion distribution ───────────────────
-function drawDualCompletion(id, data, pbId, baseKey, adjKey, note) {
-  const { c, ctx, W, H } = setup(id);
-  const { iW, iH } = iDim(W, H);
+// ══════════════════════════════════════════════════════════════════
+//  CHART 2 & 3: Completion distributions grouped by epic
+// ══════════════════════════════════════════════════════════════════
+function drawDistGroup(id, groups, colors) {
+  const res=setup(id);
+  if(!res) return;
+  const {c,ctx,W,H}=res;
+  const {iW,iH}=iDim(W,H);
 
-  const allPct = data.flatMap(d => [d[baseKey]||0, d[adjKey]||0]);
-  const maxPct = Math.ceil(Math.max(...allPct)/10)*10 + 6;
+  const allWks = [...new Set(Object.values(groups).flatMap(arr=>arr.map(d=>d.wk)))].sort((a,b)=>a-b);
+  const maxP   = Math.ceil(Math.max(...Object.values(groups).flatMap(a=>a.map(d=>d.p)))/10)*10+6;
   ctx.clearRect(0,0,W,H);
-  drawGrid(ctx, W, H, maxPct, true);
+  yGrid(ctx,W,H,maxP,true);
 
-  const n     = data.filter(d=>(d[baseKey]||0)+(d[adjKey]||0)>0.05).length || data.length;
-  const nAll  = data.length;
-  const slot  = iW / nAll;
-  const pairW = slot * 0.80;
-  const barW  = pairW * 0.46;
-  const pairX = (slot - pairW) / 2;
+  const nGroups=Object.keys(groups).length;
+  const n=allWks.length;
+  const slot=iW/n;
+  const groupW=slot*0.85;
+  const barW=groupW/nGroups-2*dpr;
+  const groupOff=(slot-groupW)/2;
 
-  // Cumulative for P markers
-  const cumBase = cumulative(data, baseKey);
-  const cumAdj  = cumulative(data, adjKey);
-  const p50b = data.findIndex((_,i) => cumBase[i] >= 50);
-  const p85b = data.findIndex((_,i) => cumBase[i] >= 85);
-  const p50a = data.findIndex((_,i) => cumAdj[i]  >= 50);
-  const p85a = data.findIndex((_,i) => cumAdj[i]  >= 85);
+  const lookup=(arr,wk)=>arr.find(d=>d.wk===wk)?.p||0;
 
-  const zones = [];
-  data.forEach((d, i) => {
-    const slotX = PAD.left + i * slot + pairX;
-
-    const drawBar = (x, val, col, isP50, isP85) => {
-      if (val < 0.05) return;
-      const barH = (val/maxPct)*iH;
-      const y    = PAD.top + iH - barH;
-      ctx.fillStyle = col+'28';
-      ctx.beginPath(); ctx.roundRect(x+dpr, y+2*dpr, barW, barH, [3*dpr,3*dpr,0,0]); ctx.fill();
-      ctx.fillStyle = col;
-      ctx.beginPath(); ctx.roundRect(x, y, barW, barH, [3*dpr,3*dpr,0,0]); ctx.fill();
-      if (val >= 1) {
-        ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`;
-        ctx.textAlign='center'; ctx.fillStyle=C.text;
-        ctx.fillText(Math.round(val)+'%', x+barW/2, y-5*dpr);
+  const zones=[];
+  allWks.forEach((wk,wi)=>{
+    const sx=PAD.left+wi*slot+groupOff;
+    Object.keys(groups).forEach((key,gi)=>{
+      const arr=groups[key], col=colors[gi];
+      const pct=lookup(arr,wk);
+      if(pct<0.1) return;
+      const x=sx+gi*(barW+2*dpr);
+      const bH=(pct/maxP)*iH, y=PAD.top+iH-bH;
+      const epi=EPIC_P[parseInt(key.replace('E',''))-1];
+      const isP50=wk===epi.p50, isP85=wk===epi.p85;
+      ctx.fillStyle=col+(isP50||isP85?'':'90');
+      ctx.beginPath(); ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
+      if(pct>=4){
+        ctx.font=`500 ${8.5*dpr}px 'DM Sans',sans-serif`;
+        ctx.textAlign='center'; ctx.fillStyle=col;
+        ctx.fillText(Math.round(pct)+'%',x+barW/2,y-4*dpr);
       }
-      if (isP50||isP85) {
-        const lbl=isP50?'P50':'P85';
-        ctx.font=`700 ${8.5*dpr}px 'DM Mono',monospace`; ctx.fillStyle=col;
-        ctx.fillText(lbl, x+barW/2, PAD.top+iH+29*dpr);
-      }
-    };
-
-    drawBar(slotX,          d[baseKey]||0, i===p50b?C.baseTeal:i===p85b?C.baseAmb:C.baseLt, i===p50b, i===p85b);
-    drawBar(slotX+barW+2*dpr, d[adjKey]||0,  i===p50a?C.adjP50:i===p85a?C.adjP85:C.adjBar, i===p50a, i===p85a);
-
-    // Date label
-    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.mid;
-    ctx.fillText(d.label, slotX+pairW/2-barW*0.05, PAD.top+iH+14*dpr);
-
-    zones.push({ x1:slotX/dpr, x2:(slotX+pairW)/dpr, d, cumBase:cumBase[i], cumAdj:cumAdj[i] });
+    });
+    // Deadline line
+    if(wk===DEADLINE_WK){
+      ctx.beginPath(); ctx.strokeStyle='#dc262650'; ctx.lineWidth=dpr; ctx.setLineDash([4*dpr,3*dpr]);
+      ctx.moveTo(PAD.left+wi*slot+slot/2,PAD.top); ctx.lineTo(PAD.left+wi*slot+slot/2,PAD.top+iH); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // x label
+    ctx.font=`${8.5*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#8a9bb5';
+    ctx.fillText(wk2date(wk), PAD.left+wi*slot+slot/2, PAD.top+iH+14*dpr);
+    zones.push({x1:(PAD.left+wi*slot)/dpr, x2:(PAD.left+(wi+1)*slot)/dpr, wk});
   });
 
-  c.onmousemove = e => {
+  // P lines for each epic
+  Object.keys(groups).forEach((key,gi)=>{
+    const col=colors[gi];
+    const epi=EPIC_P[parseInt(key.replace('E',''))-1];
+    [epi.p50,epi.p85].forEach((wk,pi)=>{
+      const wi=allWks.indexOf(wk);
+      if(wi<0) return;
+      const x=PAD.left+(wi+0.5)*slot;
+      ctx.beginPath();
+      ctx.strokeStyle=pi===0?'#14605080':'#b0780880';
+      ctx.lineWidth=1.5*dpr; ctx.setLineDash([4*dpr,3*dpr]);
+      ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+iH); ctx.stroke(); ctx.setLineDash([]);
+    });
+  });
+
+  c.onmousemove=e=>{
     const rect=c.getBoundingClientRect(), mx=e.clientX-rect.left;
     const z=zones.find(z=>mx>=z.x1&&mx<=z.x2);
-    if(z) {
-      showTip(e,`<div class="ttl">${z.d.label}</div>
-        <div class="ttsep"></div>
-        <div class="ttr"><span class="ttk">Baseline prob.</span><span class="ttv">${(z.d[baseKey]||0).toFixed(1)}%</span></div>
-        <div class="ttr"><span class="ttk">Adjusted prob.</span><span class="ttv">${(z.d[adjKey]||0).toFixed(1)}%</span></div>
-        <div class="ttsep"></div>
-        <div class="ttr"><span class="ttk">Baseline cum.</span><span class="ttv">${z.cumBase.toFixed(1)}%</span></div>
-        <div class="ttr"><span class="ttk">Adjusted cum.</span><span class="ttv">${z.cumAdj.toFixed(1)}%</span></div>`);
+    if(z){
+      const lines=Object.keys(groups).map((key,gi)=>{
+        const pct=lookup(groups[key],z.wk);
+        return pct>0.1?`<div class="ttr"><span class="ttk" style="color:${colors[gi]}">${key}</span><span class="ttv">${pct.toFixed(1)}%</span></div>`:'';
+      }).join('');
+      showTip(e,`<div class="ttl">Tydzień ${z.wk} · ${wk2date(z.wk)}</div><div class="tts"></div>${lines}`);
     } else { tt.style.display='none'; }
   };
-  c.onmouseleave=()=>{tt.style.display='none';};
-
-  // P-badges
-  const pd=document.getElementById(pbId);
-  const bD=data[p85b], aD=data[p85a];
-  pd.innerHTML=`
-    <div class="pbadge" style="background:rgba(20,96,80,.07);color:${C.baseTeal};border:1px solid rgba(20,96,80,.2)">
-      Baseline P85 — ${bD?.label||'—'}
-    </div>
-    <div class="pbadge" style="background:rgba(144,80,32,.07);color:${C.adjP85};border:1px solid rgba(144,80,32,.2)">
-      Adjusted P85 — ${aD?.label||'—'}
-    </div>`;
+  c.onmouseleave=()=>tt.style.display='none';
 }
 
-// ── CHART 3: Items at target — side-by-side grouped ──────────────────
-function drawItemsAtTarget(id, base, adj) {
-  const { c, ctx, W, H } = setup(id);
-  const { iW, iH } = iDim(W, H);
+// ══════════════════════════════════════════════════════════════════
+//  CHART 4: Epics done by deadline
+// ══════════════════════════════════════════════════════════════════
+function drawEpicsDone() {
+  const res=setup('epicsDone');
+  if(!res) return;
+  const {c,ctx,W,H}=res;
+  const {iW,iH}=iDim(W,H);
 
-  // Merge all item values
-  const allItems = [...new Set([...base.map(d=>d.i), ...adj.map(d=>d.i)])].sort((a,b)=>a-b);
-  const lookup = (arr, i) => arr.find(d=>d.i===i)?.p || 0;
-
-  const maxPct = Math.ceil(Math.max(...base.map(d=>d.p), ...adj.map(d=>d.p)) / 10)*10 + 6;
+  const maxP=Math.ceil(Math.max(...EPICS_DONE.map(d=>d.p))/10)*10+8;
   ctx.clearRect(0,0,W,H);
-  drawGrid(ctx,W,H,maxPct,true);
+  yGrid(ctx,W,H,maxP,true);
 
-  const n     = allItems.length;
-  const slot  = iW / n;
-  const pairW = slot * 0.75;
-  const barW  = pairW * 0.46;
-  const pairX = (slot - pairW) / 2;
+  const n=EPICS_DONE.length;
+  const slot=iW/n;
+  const barW=slot*0.55;
+  const off=(slot-barW)/2;
 
   // Cumulative
-  const cumBase = [], cumAdj = [];
-  let cb=0,ca=0;
-  allItems.forEach(it=>{ cb+=lookup(base,it); ca+=lookup(adj,it); cumBase.push(cb); cumAdj.push(ca); });
-  const p50b=allItems[cumBase.findIndex(c=>c>=50)];
-  const p85b=allItems[cumBase.findIndex(c=>c>=85)];
-  const p50a=allItems[cumAdj.findIndex(c=>c>=50)];
-  const p85a=allItems[cumAdj.findIndex(c=>c>=85)];
+  let cum=0;
+  const cumArr=EPICS_DONE.map(d=>{cum+=d.p;return cum;});
+  const p50idx=cumArr.findIndex(c=>c>=50);
 
-  const zones=[];
-  allItems.forEach((it,i)=>{
-    const bV=lookup(base,it), aV=lookup(adj,it);
-    const sx=PAD.left+i*slot+pairX;
-
-    const drawB=(x,val,col)=>{
-      if(val<0.05)return;
-      const bH=(val/maxPct)*iH, y=PAD.top+iH-bH;
-      ctx.fillStyle=col+'28'; ctx.beginPath(); ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
-      ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
-      if(val>=2){ ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=C.text; ctx.fillText(Math.round(val)+'%',x+barW/2,y-5*dpr); }
-    };
-
-    drawB(sx,           bV, it===p85b?C.baseAmb:it===p50b?C.baseTeal:C.baseLt);
-    drawB(sx+barW+2*dpr, aV, it===p85a?C.adjP85:it===p50a?C.adjP50:C.adjBar);
-
-    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.mid;
-    ctx.fillText(it, sx+pairW/2-barW*0.05, PAD.top+iH+14*dpr);
-
-    if(it===p50b||it===p85b){
-      ctx.font=`700 ${8*dpr}px 'DM Mono',monospace`; ctx.fillStyle=C.baseTeal;
-      ctx.fillText(it===p50b?'P50b':'P85b', sx+barW/2, PAD.top+iH+28*dpr);
+  EPICS_DONE.forEach((d,i)=>{
+    const x=PAD.left+i*slot+off;
+    const bH=(d.p/maxP)*iH, y=PAD.top+iH-bH;
+    const col=EPIC_COLORS[d.k-1]||'#536075';
+    ctx.fillStyle=col+'30';
+    ctx.beginPath(); ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[4*dpr,4*dpr,0,0]); ctx.fill();
+    ctx.fillStyle=col;
+    ctx.beginPath(); ctx.roundRect(x,y,barW,bH,[4*dpr,4*dpr,0,0]); ctx.fill();
+    ctx.font=`600 ${10*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle='#28374c';
+    ctx.fillText(Math.round(d.p)+'%', x+barW/2, y-6*dpr);
+    ctx.font=`${9.5*dpr}px 'DM Mono',monospace`; ctx.fillStyle='#536075';
+    ctx.fillText(d.k+' epiki', x+barW/2, PAD.top+iH+14*dpr);
+    if(i===p50idx){
+      ctx.font=`700 ${9*dpr}px 'DM Mono',monospace`; ctx.fillStyle='#146050';
+      ctx.fillText('P50', x+barW/2, PAD.top+iH+28*dpr);
     }
-    if(it===p50a||it===p85a){
-      ctx.font=`700 ${8*dpr}px 'DM Mono',monospace`; ctx.fillStyle=C.adjP85;
-      ctx.fillText(it===p50a?'P50a':'P85a', sx+barW+barW/2+2*dpr, PAD.top+iH+28*dpr);
-    }
-
-    zones.push({x1:sx/dpr, x2:(sx+pairW)/dpr, it, bV, aV, cb:cumBase[i], ca:cumAdj[i]});
   });
 
-  ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.dim;
-  ctx.fillText('Items delivered', PAD.left+iW/2, H-4*dpr);
+  document.getElementById('epicsDonePB').innerHTML=`
+    <div class="pbadge" style="background:rgba(20,96,80,.07);color:#146050;border:1px solid rgba(20,96,80,.2)">P50 = 4 epiki</div>
+    <div class="pbadge" style="background:rgba(176,120,8,.07);color:#b07808;border:1px solid rgba(176,120,8,.2)">Śr. = 4.1 epiku</div>
+    <div class="pbadge" style="background:rgba(220,38,38,.07);color:#902020;border:1px solid rgba(220,38,38,.2)">P(wszystkie 6) = 0.3%</div>`;
 
   c.onmousemove=e=>{
-    const rect=c.getBoundingClientRect(),mx=e.clientX-rect.left;
-    const z=zones.find(z=>mx>=z.x1&&mx<=z.x2);
-    if(z){
-      showTip(e,`<div class="ttl">${z.it} items delivered</div>
-        <div class="ttsep"></div>
-        <div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${z.bV.toFixed(1)}%</span></div>
-        <div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${z.aV.toFixed(1)}%</span></div>
-        <div class="ttr"><span class="ttk">Cum. base</span><span class="ttv">${z.cb.toFixed(1)}%</span></div>
-        <div class="ttr"><span class="ttk">Cum. adj</span><span class="ttv">${z.ca.toFixed(1)}%</span></div>`);
+    const rect=c.getBoundingClientRect(), mx=e.clientX-rect.left;
+    const idx=Math.floor((mx-PAD.left/dpr)/(iW/dpr/n));
+    if(idx>=0&&idx<n){
+      const d=EPICS_DONE[idx];
+      showTip(e,`<div class="ttl">${d.k} epiki do deadline</div>
+        <div class="ttr"><span class="ttk">Prawdopodobieństwo</span><span class="ttv">${d.p.toFixed(1)}%</span></div>
+        <div class="ttr"><span class="ttk">Kumulatywnie</span><span class="ttv">${cumArr[idx].toFixed(1)}%</span></div>`);
     } else { tt.style.display='none'; }
   };
-  c.onmouseleave=()=>{tt.style.display='none';};
+  c.onmouseleave=()=>tt.style.display='none';
 }
 
-// ── CHART 4: Effective throughput per week ───────────────────────────
-function drawThroughput(id, data) {
-  const { c, ctx, W, H } = setup(id);
-  const { iW, iH } = iDim(W, H);
+// ══════════════════════════════════════════════════════════════════
+//  CHART 5: Weekly effective throughput with IQR band
+// ══════════════════════════════════════════════════════════════════
+function drawWeeklyTp() {
+  const res=setup('weeklyTp');
+  if(!res) return;
+  const {c,ctx,W,H}=res;
+  const {iW,iH}=iDim(W,H);
 
-  const maxV = Math.ceil(Math.max(...data.flatMap(d=>[d.base,d.adj]))+0.5);
+  const maxV=4.0;
   ctx.clearRect(0,0,W,H);
-  drawGrid(ctx,W,H,maxV,false,0.5);
+  yGrid(ctx,W,H,maxV,false,0.5);
 
-  const n    = data.length;
-  const slot = iW/n;
-  const barW = slot*0.38;
-  const off  = (slot-barW*2-2*dpr)/2;
+  const n=WEEKLY_TP.length;
+  const slot=iW/n;
 
+  function wx(i){return PAD.left+(i+0.5)*slot;}
+  function wy(v){return PAD.top+iH-(v/maxV)*iH;}
+
+  // Month band colours
+  const MCOL={5:'#f8faff',6:'#f0fff8',7:'#f8faff',8:'#f8faff',9:'#fff8f0'};
+  let prevM=null, bandX=PAD.left;
+  WEEKLY_TP.forEach((d,i)=>{
+    if(d.m!==prevM){
+      if(prevM!==null){
+        ctx.fillStyle=MCOL[prevM]||'#f8faff';
+        ctx.fillRect(bandX,PAD.top,wx(i)-slot/2-bandX,iH);
+      }
+      bandX=wx(i)-slot/2; prevM=d.m;
+    }
+    if(i===n-1){
+      ctx.fillStyle=MCOL[d.m]||'#f8faff';
+      ctx.fillRect(bandX,PAD.top,wx(i)+slot/2-bandX,iH);
+    }
+  });
+
+  // IQR band (p25–p75)
+  ctx.beginPath();
+  WEEKLY_TP.forEach((d,i)=>{ const x=wx(i), y=wy(d.p75); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  WEEKLY_TP.slice().reverse().forEach((d,i)=>ctx.lineTo(wx(n-1-i),wy(d.p25)));
+  ctx.closePath(); ctx.fillStyle='rgba(37,99,235,.08)'; ctx.fill();
+
+  // P50 line
+  ctx.beginPath(); ctx.strokeStyle='#2563eb'; ctx.lineWidth=2.5*dpr; ctx.setLineDash([]);
+  WEEKLY_TP.forEach((d,i)=>{ const x=wx(i),y=wy(d.p50); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+
+  // Baseline avg 2.5 * 0.75 = 1.875 (no multiplier)
+  const yBase=wy(1.875);
+  ctx.beginPath(); ctx.strokeStyle='#c89018'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]);
+  ctx.moveTo(PAD.left,yBase); ctx.lineTo(PAD.left+iW,yBase); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font=`${8.5*dpr}px 'DM Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#c89018';
+  ctx.fillText('base 1.9',PAD.left+iW+4*dpr,yBase+4*dpr);
+
+  // Month labels
+  ['Maj','Cze','Lip','Sie','Wrz'].forEach((lbl,i)=>{
+    const wkStart=[0,4.4,8.7,13,17.4][i];
+    const wkEnd=[4.4,8.7,13,17.4,21.7][i];
+    const cx=(wkStart+wkEnd)/2;
+    const x=PAD.left+cx*slot;
+    ctx.font=`600 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#8a9bb5';
+    ctx.fillText(lbl, x, PAD.top+iH+14*dpr);
+  });
+
+  // Multiplier labels
+  const mLabels=[{wk:5.5,lbl:'×1.4'},{wk:18.5,lbl:'×1.6'}];
+  mLabels.forEach(({wk,lbl})=>{
+    const x=PAD.left+wk*slot;
+    ctx.font=`700 ${9.5*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#059669';
+    ctx.fillText(lbl, x, PAD.top+12*dpr);
+  });
+
+  // Dots
+  WEEKLY_TP.forEach((d,i)=>{
+    const x=wx(i), y=wy(d.p50);
+    const col=d.m===6?'#059669':d.m===9?'#d97706':'#2563eb';
+    ctx.beginPath(); ctx.arc(x,y,3.5*dpr,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+  });
+
+  c.onmousemove=e=>{
+    const rect=c.getBoundingClientRect(), mx=e.clientX-rect.left;
+    const idx=Math.round((mx-PAD.left/dpr)/(iW/dpr/n)-0.5);
+    if(idx>=0&&idx<n){
+      const d=WEEKLY_TP[idx];
+      const MNAME={5:'Maj',6:'Czerwiec ×1.4',7:'Lipiec',8:'Sierpień',9:'Wrzesień ×1.6'};
+      showTip(e,`<div class="ttl">Tydzień ${d.wk} · ${MNAME[d.m]||d.m}</div>
+        <div class="tts"></div>
+        <div class="ttr"><span class="ttk">P25</span><span class="ttv">${d.p25.toFixed(2)} PBI/tydzień</span></div>
+        <div class="ttr"><span class="ttk">P50 (mediana)</span><span class="ttv" style="color:#2563eb">${d.p50.toFixed(2)} PBI/tydzień</span></div>
+        <div class="ttr"><span class="ttk">P75</span><span class="ttv">${d.p75.toFixed(2)} PBI/tydzień</span></div>
+        <div class="tth">Fokus 75% · mnożnik ${d.m===6?'×1.4':d.m===9?'×1.6':'×1.0'}</div>`);
+    } else { tt.style.display='none'; }
+  };
+  c.onmouseleave=()=>tt.style.display='none';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TAB 2 CHARTS (reuse from previous dashboard)
+// ══════════════════════════════════════════════════════════════════
+const T1_DATA = [
+  {label:'26 Maj',wk:5,base:50.0,adj:26.2},
+  {label:'02 Cze',wk:6,base:48.5,adj:62.0},
+  {label:'09 Cze',wk:7,base:1.5, adj:11.6},
+  {label:'16 Cze',wk:8,base:0.0, adj:0.2},
+];
+const T2_DATA = [
+  {label:'26 Maj',wk:5,base:3.1, adj:0.2},
+  {label:'02 Cze',wk:6,base:62.5,adj:8.0},
+  {label:'09 Cze',wk:7,base:33.6,adj:29.0},
+  {label:'16 Cze',wk:8,base:0.8, adj:32.4},
+  {label:'23 Cze',wk:9,base:0.0, adj:19.2},
+  {label:'30 Cze',wk:10,base:0.0,adj:7.8},
+  {label:'07 Lip',wk:11,base:0.0,adj:2.5},
+  {label:'14 Lip',wk:12,base:0.0,adj:0.7},
+];
+const T3_BASE = [{i:12,p:1.6},{i:13,p:9.3},{i:14,p:23.4},{i:15,p:65.7}];
+const T3_ADJ  = [{i:10,p:0.4},{i:11,p:2.6},{i:12,p:8.7},{i:13,p:18.9},{i:14,p:25.7},{i:15,p:43.6}];
+const T4_DATA = [
+  {wk:'Wk1',base:2.5,adj:2.1},{wk:'Wk2',base:2.5,adj:2.1},
+  {wk:'Wk3',base:2.5,adj:2.4},{wk:'Wk4',base:2.5,adj:2.4},
+  {wk:'Wk5',base:2.5,adj:2.6},{wk:'Wk6',base:2.5,adj:2.6},
+  {wk:'Wk7',base:2.5,adj:2.6},{wk:'Wk8',base:2.5,adj:2.6},
+];
+
+function drawDualBars(id,data,bKey,aKey,pbId){
+  const res=setup(id);if(!res)return;
+  const{c,ctx,W,H}=res;const{iW,iH}=iDim(W,H);
+  const maxP=Math.ceil(Math.max(...data.flatMap(d=>[d[bKey]||0,d[aKey]||0]))/10)*10+6;
+  ctx.clearRect(0,0,W,H);yGrid(ctx,W,H,maxP,true);
+  const n=data.length,slot=iW/n,pairW=slot*0.78,barW=pairW*0.46,pairX=(slot-pairW)/2;
+  let cb=0,ca=0;
+  const cumB=data.map(d=>{cb+=d[bKey]||0;return cb;});
+  const cumA=data.map(d=>{ca+=d[aKey]||0;return ca;});
+  const p85B=data.findIndex((_,i)=>cumB[i]>=85);
+  const p85A=data.findIndex((_,i)=>cumA[i]>=85);
   const zones=[];
   data.forEach((d,i)=>{
-    const sx=PAD.left+i*slot+off;
-
+    const sx=PAD.left+i*slot+pairX;
     const drawB=(x,val,col)=>{
-      const bH=(val/maxV)*iH, y=PAD.top+iH-bH;
-      ctx.fillStyle=col+'22'; ctx.beginPath(); ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
-      ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
-      ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=C.text;
-      ctx.fillText(val.toFixed(1), x+barW/2, y-5*dpr);
+      if(val<0.05)return;
+      const bH=(val/maxP)*iH,y=PAD.top+iH-bH;
+      ctx.fillStyle=col+'25';ctx.beginPath();ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]);ctx.fill();
+      ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]);ctx.fill();
+      if(val>=1){ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`;ctx.textAlign='center';ctx.fillStyle='#28374c';ctx.fillText(Math.round(val)+'%',x+barW/2,y-5*dpr);}
     };
-
-    drawB(sx,              d.base, '#a0b8d8');
-    drawB(sx+barW+2*dpr, d.adj,  i<=1?'#e09080':i<=3?'#d4b840':'#80c8a0');
-
-    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.mid;
-    ctx.fillText(d.wk, PAD.left+i*slot+slot/2, PAD.top+iH+14*dpr);
-
-    zones.push({x1:(PAD.left+i*slot)/dpr, x2:(PAD.left+(i+1)*slot)/dpr, d, i});
+    drawB(sx,d[bKey]||0,i===p85B?'#146050':'#b0c8e8');
+    drawB(sx+barW+2*dpr,d[aKey]||0,i===p85A?'#905020':'#7a6ab4');
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillStyle='#8a9bb5';
+    ctx.fillText(d.label,PAD.left+i*slot+slot/2,PAD.top+iH+14*dpr);
+    zones.push({x1:(PAD.left+i*slot)/dpr,x2:(PAD.left+(i+1)*slot)/dpr,d,cumB:cumB[i],cumA:cumA[i]});
   });
-
-  // Avg baseline dashed
-  const yAvg=PAD.top+iH-(2.5/maxV)*iH;
-  ctx.beginPath(); ctx.strokeStyle=C.avgLn; ctx.lineWidth=2*dpr; ctx.setLineDash([6*dpr,4*dpr]);
-  ctx.moveTo(PAD.left,yAvg); ctx.lineTo(PAD.left+iW,yAvg); ctx.stroke(); ctx.setLineDash([]);
-  ctx.font=`500 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=C.avgLn;
-  ctx.fillText('avg 2.5',PAD.left+iW+4*dpr,yAvg+4*dpr);
-
-  // Avg adjusted
-  const adjAvg = data.reduce((s,d)=>s+d.adj,0)/data.length;
-  const yAdj=PAD.top+iH-(adjAvg/maxV)*iH;
-  ctx.beginPath(); ctx.strokeStyle=C.adjLn; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
-  ctx.moveTo(PAD.left,yAdj); ctx.lineTo(PAD.left+iW,yAdj); ctx.stroke();
-  ctx.font=`500 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=C.adjLn;
-  ctx.fillText(`adj ${adjAvg.toFixed(1)}`,PAD.left+iW+4*dpr,yAdj-6*dpr);
-
-  // Phase labels
-  const phases=[{from:0,to:2,lbl:'Reduced\n−15%',col:'#e09080'},{from:2,to:4,lbl:'Recovery\n−5%',col:'#d4b840'},{from:4,to:7,lbl:'Full\n+5%',col:'#80c8a0'}];
-  phases.forEach(p=>{
-    const x0=PAD.left+p.from*slot, x1=PAD.left+(p.to+1)*slot;
-    ctx.fillStyle=p.col+'28';
-    ctx.fillRect(x0,PAD.top,x1-x0-2*dpr,iH);
-    ctx.font=`500 ${8*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=p.col;
-    p.lbl.split('\n').forEach((ln,li)=>ctx.fillText(ln,(x0+x1)/2,PAD.top+9*dpr+li*10*dpr));
-  });
-
+  if(pbId){
+    const bD=data[p85B]?.label,aD=data[p85A]?.label;
+    document.getElementById(pbId).innerHTML=`
+      <div class="pbadge" style="background:rgba(20,96,80,.07);color:#146050;border:1px solid rgba(20,96,80,.2)">Baseline P85 — ${bD}</div>
+      <div class="pbadge" style="background:rgba(144,80,32,.07);color:#905020;border:1px solid rgba(144,80,32,.2)">Adjusted P85 — ${aD}</div>`;
+  }
   c.onmousemove=e=>{
     const rect=c.getBoundingClientRect(),mx=e.clientX-rect.left;
     const z=zones.find(z=>mx>=z.x1&&mx<=z.x2);
-    if(z){
-      const delta=((z.d.adj-z.d.base)/z.d.base*100).toFixed(1);
-      showTip(e,`<div class="ttl">${z.d.wk}</div>
-        <div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${z.d.base} items</span></div>
-        <div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${z.d.adj} items</span></div>
-        <div class="ttr"><span class="ttk">Delta</span><span class="ttv">${delta>0?'+':''}${delta}%</span></div>
-        <div class="tth">Capacity factor: ${z.i<=1?'0.85 (team flux)':z.i<=3?'0.95 (recovery)':'1.05 (new member ramped)'}</div>`);
-    } else { tt.style.display='none'; }
+    if(z)showTip(e,`<div class="ttl">${z.d.label}</div><div class="tts"></div>
+      <div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${(z.d[bKey]||0).toFixed(1)}%</span></div>
+      <div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${(z.d[aKey]||0).toFixed(1)}%</span></div>`);
+    else tt.style.display='none';
   };
-  c.onmouseleave=()=>{tt.style.display='none';};
+  c.onmouseleave=()=>tt.style.display='none';
 }
 
-// ── RENDER ──────────────────────────────────────────────────────────
-function renderAll() {
-  drawCapacity();
-  drawDualCompletion('c1', dist85_base, 'pb1', 'base', 'adj');
-  drawDualCompletion('c2', distAll,     'pb2', 'base', 'adj');
-  drawItemsAtTarget('c3', itemsBase, itemsAdj);
-  drawThroughput('c4', weekTp);
+function drawItemsT3(){
+  const res=setup('t3');if(!res)return;
+  const{c,ctx,W,H}=res;const{iW,iH}=iDim(W,H);
+  const allI=[...new Set([...T3_BASE,...T3_ADJ].map(d=>d.i))].sort((a,b)=>a-b);
+  const lk=(arr,i)=>arr.find(d=>d.i===i)?.p||0;
+  const maxP=Math.ceil(Math.max(...[...T3_BASE,...T3_ADJ].map(d=>d.p))/10)*10+6;
+  ctx.clearRect(0,0,W,H);yGrid(ctx,W,H,maxP,true);
+  const n=allI.length,slot=iW/n,pairW=slot*0.72,barW=pairW*0.46,off=(slot-pairW)/2;
+  allI.forEach((it,i)=>{
+    const sx=PAD.left+i*slot+off,bV=lk(T3_BASE,it),aV=lk(T3_ADJ,it);
+    const drawB=(x,val,col)=>{
+      if(val<0.05)return;
+      const bH=(val/maxP)*iH,y=PAD.top+iH-bH;
+      ctx.fillStyle=col+'25';ctx.beginPath();ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]);ctx.fill();
+      ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]);ctx.fill();
+      if(val>=2){ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`;ctx.textAlign='center';ctx.fillStyle='#28374c';ctx.fillText(Math.round(val)+'%',x+barW/2,y-5*dpr);}
+    };
+    drawB(sx,bV,'#b0c8e8');
+    drawB(sx+barW+2*dpr,aV,'#7a6ab4');
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillStyle='#8a9bb5';
+    ctx.fillText(it,PAD.left+i*slot+slot/2,PAD.top+iH+14*dpr);
+  });
+  ctx.font=`${9*dpr}px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillStyle='#8a9bb5';
+  ctx.fillText('Dostarczone elementy',PAD.left+iW/2,H-4*dpr);
+  c.onmousemove=e=>{
+    const rect=c.getBoundingClientRect(),mx=e.clientX-rect.left;
+    const idx=Math.floor((mx-PAD.left/dpr)/(iW/dpr/n));
+    if(idx>=0&&idx<n){const it=allI[idx];showTip(e,`<div class="ttl">${it} elementów</div><div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${lk(T3_BASE,it).toFixed(1)}%</span></div><div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${lk(T3_ADJ,it).toFixed(1)}%</span></div>`);}
+    else tt.style.display='none';
+  };
+  c.onmouseleave=()=>tt.style.display='none';
+}
+
+function drawTpT4(){
+  const res=setup('t4');if(!res)return;
+  const{c,ctx,W,H}=res;const{iW,iH}=iDim(W,H);
+  const maxV=Math.ceil(Math.max(...T4_DATA.flatMap(d=>[d.base,d.adj]))+0.5);
+  ctx.clearRect(0,0,W,H);yGrid(ctx,W,H,maxV,false,0.5);
+  const n=T4_DATA.length,slot=iW/n,barW=slot*0.36,off=(slot-barW*2-2*dpr)/2;
+  T4_DATA.forEach((d,i)=>{
+    const sx=PAD.left+i*slot+off;
+    const drawB=(x,val,col)=>{
+      const bH=(val/maxV)*iH,y=PAD.top+iH-bH;
+      ctx.fillStyle=col+'20';ctx.beginPath();ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]);ctx.fill();
+      ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]);ctx.fill();
+      ctx.font=`500 ${9*dpr}px 'DM Sans',sans-serif`;ctx.textAlign='center';ctx.fillStyle='#28374c';
+      ctx.fillText(val.toFixed(1),x+barW/2,y-5*dpr);
+    };
+    drawB(sx,d.base,'#a0b8d8');
+    drawB(sx+barW+2*dpr,d.adj,i<=1?'#e09080':i<=3?'#d4b840':'#80c8a0');
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillStyle='#8a9bb5';
+    ctx.fillText(d.wk,PAD.left+i*slot+slot/2,PAD.top+iH+14*dpr);
+  });
+  const yAvg=PAD.top+iH-(2.5/maxV)*iH;
+  ctx.beginPath();ctx.strokeStyle='#c89018';ctx.lineWidth=2*dpr;ctx.setLineDash([6*dpr,4*dpr]);
+  ctx.moveTo(PAD.left,yAvg);ctx.lineTo(PAD.left+iW,yAvg);ctx.stroke();ctx.setLineDash([]);
+  ctx.font=`${9*dpr}px 'DM Mono',monospace`;ctx.textAlign='left';ctx.fillStyle='#c89018';
+  ctx.fillText('avg 2.5',PAD.left+iW+4*dpr,yAvg+4*dpr);
+  c.onmousemove=e=>{
+    const rect=c.getBoundingClientRect(),mx=e.clientX-rect.left;
+    const idx=Math.floor((mx-PAD.left/dpr)/(iW/dpr/n));
+    if(idx>=0&&idx<T4_DATA.length){const d=T4_DATA[idx];showTip(e,`<div class="ttl">${d.wk}</div><div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${d.base}</span></div><div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${d.adj}</span></div>`);}
+    else tt.style.display='none';
+  };
+  c.onmouseleave=()=>tt.style.display='none';
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════════════════════════
+function renderAll(){
+  const activeTab=document.querySelector('.tab-panel.active')?.id;
+  if(activeTab==='tab-epics'){
+    drawGantt();
+    drawDistGroup('dist123',DIST123,[EPIC_COLORS[0],EPIC_COLORS[1],EPIC_COLORS[2]]);
+    drawDistGroup('dist456',DIST456,[EPIC_COLORS[3],EPIC_COLORS[4],EPIC_COLORS[5]]);
+    drawEpicsDone();
+    drawWeeklyTp();
+  } else {
+    drawDualBars('t1',T1_DATA,'base','adj','tpb1');
+    drawDualBars('t2',T2_DATA,'base','adj','tpb2');
+    drawItemsT3();
+    drawTpT4();
+  }
 }
 
 window.addEventListener('resize', renderAll);
