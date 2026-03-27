@@ -1,483 +1,705 @@
-
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prognoza Backlogu — Nowy Zespół</title>
+<title>Flow Metrics — Scope Creep + Team Changes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:     #05080f;
-    --surf:   #0b1120;
-    --bord:   #121d30;
-    --bord2:  #1a2840;
-    --dim:    #2a3f5c;
-    --mid:    #4a6a8a;
-    --text:   #8ab0d0;
-    --hi:     #d0e8f8;
-    --green:  #00e87a;
-    --blue:   #00c8ff;
-    --purple: #818cf8;
-    --amber:  #ffaa20;
-    --red:    #ff4060;
-    --mono:   'IBM Plex Mono', monospace;
-    --disp:   'Bebas Neue', sans-serif;
+    --bg:       #eef1f7;
+    --surface:  #ffffff;
+    --bord:     #dde3ef;
+    --dim:      #8a9bb5;
+    --mid:      #536075;
+    --text:     #28374c;
+    --hi:       #141f2e;
+
+    /* Base scenario */
+    --b-bar:    #a8c4e4;
+    --b-teal:   #146050;
+    --b-amber:  #b07808;
+
+    /* Adjusted scenario (darker/warmer) */
+    --a-bar:    #7a9dbf;
+    --a-teal:   #0e5040;
+    --a-amber:  #956006;
+    --a-red:    #9a2020;
+
+    /* Impact colours */
+    --delay:    #d04040;
+    --gain:     #1a8050;
+    --neutral:  #4a6090;
+    --creep:    #c07010;
+
+    --avg-ln:   #c89018;
+    --sans:     'DM Sans', sans-serif;
+    --mono:     'DM Mono', monospace;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:var(--bg); color:var(--text); font-family:var(--mono); min-height:100vh; }
-  body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px); }
-  .page { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:36px 44px 64px; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; padding:24px 30px 52px; }
 
-  /* TOPBAR */
-  .topbar { border-bottom:1px solid var(--bord2); padding-bottom:22px; margin-bottom:28px; }
-  .eye { font-size:.55rem; letter-spacing:.22em; text-transform:uppercase; color:var(--dim); margin-bottom:5px; }
-  h1 { font-family:var(--disp); font-size:2.8rem; line-height:1; color:var(--hi); letter-spacing:.04em; margin-bottom:5px; }
-  h1 .c1 { color:var(--blue); } h1 .c2 { color:var(--green); }
-  .sub { font-size:.63rem; color:var(--mid); letter-spacing:.06em; }
+  /* ── PAGE HEADER ── */
+  .ph { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px; }
+  .ph-icon { font-size:1.4rem; margin-right:2px; }
+  .ph-title { font-size:1.08rem; font-weight:700; color:var(--hi); }
+  .ph-sub   { font-size:.69rem; color:var(--dim); margin-top:2px; font-family:var(--mono); }
+  .ph-badges { display:flex; gap:7px; flex-wrap:wrap; align-items:flex-start; padding-top:2px; }
+  .badge {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:4px 11px; border-radius:20px; border:1px solid var(--bord);
+    font-size:.65rem; background:var(--surface); color:var(--mid); font-family:var(--mono);
+    white-space:nowrap;
+  }
+  .badge.warn  { background:#fff5e6; border-color:#e8b060; color:#a06010; }
+  .badge.alert { background:#fff0f0; border-color:#e09090; color:#a02020; }
+  .badge.ok    { background:#f0fff6; border-color:#80d0a0; color:#207040; }
 
-  /* ASSUMPTION BAR */
-  .assumptions { display:grid; grid-template-columns:repeat(5,1fr); gap:1px;
-    background:var(--bord); border:1px solid var(--bord); border-radius:10px;
-    overflow:hidden; margin-bottom:24px; }
-  .asmp { background:var(--surf); padding:14px 16px; }
-  .asmp-lbl { font-size:.52rem; text-transform:uppercase; letter-spacing:.13em; color:var(--dim); margin-bottom:6px; }
-  .asmp-val { font-family:var(--disp); font-size:1.8rem; line-height:1; }
-  .asmp-sub { font-size:.57rem; color:var(--mid); margin-top:3px; }
+  /* ── IMPACT STRIP ── */
+  .impact-strip {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--bord); border:1px solid var(--bord);
+    border-radius:12px; overflow:hidden; margin-bottom:18px;
+  }
+  .imp {
+    background:var(--surface); padding:14px 16px;
+  }
+  .imp-lbl { font-size:.52rem; text-transform:uppercase; letter-spacing:.12em; color:var(--dim); margin-bottom:6px; }
+  .imp-val { font-family:var(--mono); font-size:1.5rem; font-weight:700; line-height:1; margin-bottom:3px; }
+  .imp-sub { font-size:.6rem; color:var(--mid); }
+  .imp-delta {
+    display:inline-flex; align-items:center; gap:4px;
+    margin-top:6px; padding:2px 8px; border-radius:4px;
+    font-size:.62rem; font-weight:600; font-family:var(--mono);
+  }
 
-  /* BIG ANSWER CARDS */
-  .answers { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
-  .ans-card { background:var(--surf); border:1px solid var(--bord2); border-radius:14px;
-    padding:22px 24px; position:relative; overflow:hidden; }
-  .ans-num { font-family:var(--disp); font-size:.72rem; letter-spacing:.14em; margin-bottom:8px; }
-  .ans-q { font-size:.62rem; color:var(--mid); margin-bottom:14px; line-height:1.5; }
-  .ans-main { font-family:var(--disp); font-size:2.2rem; line-height:1; margin-bottom:8px; }
-  .ans-range { font-size:.62rem; line-height:1.85; }
-  .ans-range .row { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--bord); padding:4px 0; }
-  .ans-range .row:last-child { border-bottom:none; }
-  .ans-range .plbl { color:var(--dim); }
-  .ans-range .pval { font-weight:600; }
-  .ans-badge { display:inline-block; padding:3px 10px; border-radius:5px; font-size:.62rem;
-    font-weight:600; letter-spacing:.06em; margin-top:12px; }
+  /* ── SCENARIO LEGEND ── */
+  .scenario-legend {
+    display:flex; gap:20px; align-items:center; flex-wrap:wrap;
+    margin-bottom:16px; padding:10px 16px;
+    background:var(--surface); border:1px solid var(--bord);
+    border-radius:9px;
+  }
+  .sl-item { display:flex; align-items:center; gap:8px; font-size:.7rem; color:var(--mid); }
+  .sl-sq   { width:14px; height:14px; border-radius:3px; flex-shrink:0; }
+  .sl-sep  { width:1px; height:20px; background:var(--bord); }
 
-  /* BURNDOWN CHART */
-  .chart-card { background:var(--surf); border:1px solid var(--bord2); border-radius:12px;
-    padding:24px 28px 18px; margin-bottom:20px; position:relative; overflow:hidden; }
-  .chart-card::before { content:''; position:absolute; top:0; left:0;
-    width:56px; height:3px; border-radius:12px 0 0 0; }
-  .card-blue::before  { background:linear-gradient(90deg,var(--blue),transparent); }
-  .ch-hdr { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:3px; }
-  .ch-title { font-family:var(--disp); font-size:1rem; letter-spacing:.06em; color:var(--hi); }
-  .ch-meta  { font-size:.58rem; color:var(--dim); }
-  .ch-desc  { font-size:.58rem; color:var(--dim); margin-bottom:16px; }
+  /* ── TEAM TIMELINE ── */
+  .team-timeline {
+    background:var(--surface); border:1px solid var(--bord);
+    border-radius:9px; padding:12px 16px; margin-bottom:18px;
+  }
+  .tt-title { font-size:.62rem; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:10px; }
+  .tt-track { position:relative; height:32px; margin-bottom:4px; }
+  .tt-bar   { position:absolute; height:100%; border-radius:4px; display:flex; align-items:center; padding:0 10px; font-size:.63rem; font-weight:600; white-space:nowrap; }
+  .tt-label { position:absolute; font-size:.6rem; font-family:var(--mono); top:-16px; }
+  .tt-axis  { display:flex; justify-content:space-between; font-size:.59rem; color:var(--dim); font-family:var(--mono); margin-top:2px; }
+
+  /* ── 2×2 GRID ── */
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:860px){ .grid{ grid-template-columns:1fr; } }
+
+  /* ── CARD ── */
+  .card {
+    background:var(--surface); border:1px solid var(--bord);
+    border-radius:13px; padding:16px 18px 12px;
+    box-shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.04);
+  }
+  .card-hdr { display:flex; align-items:center; gap:7px; margin-bottom:2px; }
+  .card-icon  { font-size:.85rem; }
+  .card-title { font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--mid); }
+  .card-desc  { font-size:.65rem; color:var(--dim); margin-bottom:12px; }
   canvas { display:block; width:100%; }
+  .pbadges { display:flex; gap:7px; margin-top:9px; flex-wrap:wrap; }
+  .pbadge  {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:3px 10px; border-radius:6px; font-size:.64rem;
+    font-weight:500; font-family:var(--mono);
+  }
+  .card-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:9px; }
+  .cl-item { display:flex; align-items:center; gap:5px; font-size:.64rem; color:var(--mid); }
+  .cl-sq   { width:11px; height:11px; border-radius:2px; flex-shrink:0; }
+  .cl-dash { width:16px; height:0; border-top:2px dashed; flex-shrink:0; }
 
-  /* MONTE CARLO TABLE */
-  .mc-section { margin-bottom:20px; }
-  .mc-hdr { font-size:.55rem; text-transform:uppercase; letter-spacing:.16em;
-    color:var(--dim); margin-bottom:12px; }
-  table { width:100%; border-collapse:collapse; font-size:.65rem; }
-  th { text-align:left; padding:8px 12px; font-size:.52rem; text-transform:uppercase;
-    letter-spacing:.12em; color:var(--dim); border-bottom:1px solid var(--bord2); }
-  td { padding:9px 12px; border-bottom:1px solid var(--bord); }
-  tr:last-child td { border-bottom:none; }
-  tr:hover td { background:rgba(255,255,255,.02); }
-  .badge { display:inline-block; padding:2px 9px; border-radius:4px;
-    font-weight:600; font-size:.62rem; letter-spacing:.05em; }
+  /* ── TOOLTIP ── */
+  #gtt {
+    position:fixed; z-index:9999; pointer-events:none; display:none;
+    background:#141f2ef3; border:1px solid #2a3a52;
+    border-radius:9px; padding:10px 14px;
+    font-family:var(--mono); font-size:.67rem;
+    color:#d8e8f4; max-width:260px; line-height:1.75;
+    box-shadow:0 8px 28px rgba(0,0,0,.3);
+    backdrop-filter:blur(8px);
+  }
+  .ttl  { font-weight:600; color:#fff; margin-bottom:5px; }
+  .ttr  { display:flex; justify-content:space-between; gap:14px; }
+  .ttk  { color:#6a88a8; }
+  .ttv  { color:#d8e8f4; }
+  .ttsep{ border:none; border-top:1px solid #2a3a52; margin:5px 0; }
+  .tth  { font-size:.6rem; color:#a0b8d0; margin-top:4px; }
 
-  /* PROBABILITY BAR */
-  .prob-bar-wrap { position:relative; height:8px; background:var(--bord2); border-radius:4px; width:100%; margin-top:4px; }
-  .prob-bar      { height:100%; border-radius:4px; transition:width .4s ease; }
-
-  /* WEEK GRID */
-  .week-grid-section { margin-bottom:20px; }
-  .week-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin-top:12px; }
-  .wk { border-radius:7px; border:1px solid var(--bord2); padding:10px 8px; text-align:center;
-    background:var(--surf); font-size:.6rem; position:relative; overflow:hidden; }
-  .wk-num   { color:var(--dim); font-size:.52rem; margin-bottom:4px; }
-  .wk-date  { color:var(--mid); font-size:.56rem; margin-bottom:6px; }
-  .wk-rate  { font-family:var(--disp); font-size:1.2rem; line-height:1; margin-bottom:4px; }
-  .wk-rem   { font-size:.58rem; }
-  .wk-fill  { position:absolute; bottom:0; left:0; height:3px; }
-  .wk-done  { opacity:.4; }
-  .wk-done::after { content:'✓'; position:absolute; top:4px; right:5px; font-size:.65rem; color:var(--green); }
-
-  /* INSIGHT */
-  .insight { background:var(--surf); border:1px solid rgba(0,200,255,.15); border-radius:10px;
-    padding:18px 22px; font-size:.67rem; line-height:1.8; }
-  .insight-title { font-size:.56rem; text-transform:uppercase; letter-spacing:.14em;
-    color:var(--dim); margin-bottom:10px; }
-  .insight b { color:var(--hi); }
-  .hi-g { color:var(--green); } .hi-a { color:var(--amber); } .hi-b { color:var(--blue); } .hi-r { color:var(--red); }
-
-  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none} }
-  .assumptions { animation:fadeUp .4s ease both .05s; }
-  .answers     { animation:fadeUp .4s ease both .10s; }
-  .chart-card  { animation:fadeUp .4s ease both .15s; }
-  .mc-section  { animation:fadeUp .4s ease both .20s; }
-  .week-grid-section { animation:fadeUp .4s ease both .24s; }
-  .insight     { animation:fadeUp .4s ease both .28s; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .impact-strip, .scenario-legend, .team-timeline { animation:fadeUp .4s ease both .03s; }
+  .card:nth-child(1){animation:fadeUp .4s ease both .1s;}
+  .card:nth-child(2){animation:fadeUp .4s ease both .15s;}
+  .card:nth-child(3){animation:fadeUp .4s ease both .20s;}
+  .card:nth-child(4){animation:fadeUp .4s ease both .25s;}
 </style>
 </head>
 <body>
-<div class="page">
 
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="eye">Prognoza przepływu · Monte Carlo · 100 000 symulacji · Brak danych historycznych</div>
-  <h1><span class="c1">PROGNOZA</span> <span class="c2">BACKLOGU</span></h1>
-  <div class="sub">Nowy zespół · Backlog: 15 elementów · Throughput: 2–3 elem./tydzień · Start prognozy: 21 kwi 2025</div>
-</div>
-
-<!-- ASSUMPTIONS -->
-<div class="assumptions">
-  <div class="asmp">
-    <div class="asmp-lbl">Backlog</div>
-    <div class="asmp-val" style="color:var(--blue)">15</div>
-    <div class="asmp-sub">elementów do dostarczenia</div>
-  </div>
-  <div class="asmp">
-    <div class="asmp-lbl">85% backlogu</div>
-    <div class="asmp-val" style="color:var(--purple)">13</div>
-    <div class="asmp-sub">elementów (próg 85%)</div>
-  </div>
-  <div class="asmp">
-    <div class="asmp-lbl">Min. throughput</div>
-    <div class="asmp-val" style="color:var(--amber)">2</div>
-    <div class="asmp-sub">elem./tydzień</div>
-  </div>
-  <div class="asmp">
-    <div class="asmp-lbl">Max. throughput</div>
-    <div class="asmp-val" style="color:var(--green)">3</div>
-    <div class="asmp-sub">elem./tydzień</div>
-  </div>
-  <div class="asmp">
-    <div class="asmp-lbl">Pozostało do końca kwi.</div>
-    <div class="asmp-val" style="color:var(--amber)">1.3</div>
-    <div class="asmp-sub">tygodnia (do 30 kwi)</div>
-  </div>
-</div>
-
-<!-- BIG ANSWER CARDS -->
-<div class="answers">
-
-  <div class="ans-card" style="border-color:rgba(0,232,122,.25)">
-    <div class="ans-num" style="color:var(--green)">PYTANIE 1</div>
-    <div class="ans-q">Kiedy ukończymy <b style="color:var(--hi)">85% backlogu<br>(13 z 15 elementów)?</b></div>
-    <div class="ans-main" style="color:var(--green)">02 CZE 2025</div>
-    <div class="ans-range">
-      <div class="row"><span class="plbl">P50 — „normalnie"</span><span class="pval" style="color:var(--green)">02 cze 2025</span></div>
-      <div class="row"><span class="plbl">P70</span><span class="pval" style="color:var(--green)">02 cze 2025</span></div>
-      <div class="row"><span class="plbl">P85 — „bezpiecznie"</span><span class="pval" style="color:var(--amber)">02 cze 2025</span></div>
-      <div class="row"><span class="plbl">P95 — „konserwatywnie"</span><span class="pval" style="color:var(--amber)">02 cze 2025</span></div>
+<!-- ── PAGE HEADER ── -->
+<div class="ph">
+  <div style="display:flex;align-items:flex-start;gap:10px">
+    <div class="ph-icon">📊</div>
+    <div>
+      <div class="ph-title">Flow Metrics — Updated Forecast</div>
+      <div class="ph-sub">New Team · 100 000 Monte Carlo sims · Scope creep + team changes modelled</div>
     </div>
-    <div class="ans-badge" style="background:rgba(0,232,122,.1);color:var(--green)">≈ 6 tygodni</div>
   </div>
+  <div class="ph-badges">
+    <div class="badge">📦 Backlog: 15 items</div>
+    <div class="badge warn">📈 Scope creep: +20–30%</div>
+    <div class="badge ok">👤 +1 person: 01 Apr (ramping)</div>
+    <div class="badge alert">👤 −1 person: 20 Apr</div>
+    <div class="badge">⚡ Throughput: 2–3/week</div>
+  </div>
+</div>
 
-  <div class="ans-card" style="border-color:rgba(0,200,255,.25)">
-    <div class="ans-num" style="color:var(--blue)">PYTANIE 2</div>
-    <div class="ans-q">Kiedy ukończymy <b style="color:var(--hi)">całość backlogu<br>(15 elementów)?</b></div>
-    <div class="ans-main" style="color:var(--blue)">09 CZE 2025</div>
-    <div class="ans-range">
-      <div class="row"><span class="plbl">P50 — „normalnie"</span><span class="pval" style="color:var(--green)">02 cze 2025</span></div>
-      <div class="row"><span class="plbl">P70</span><span class="pval" style="color:var(--amber)">09 cze 2025</span></div>
-      <div class="row"><span class="plbl">P85 — „bezpiecznie"</span><span class="pval" style="color:var(--amber)">09 cze 2025</span></div>
-      <div class="row"><span class="plbl">P95 — „konserwatywnie"</span><span class="pval" style="color:var(--red)">09 cze 2025</span></div>
+<!-- ── TEAM CAPACITY TIMELINE ── -->
+<div class="team-timeline">
+  <div class="tt-title">Team Capacity Timeline</div>
+  <canvas id="capacity-chart" height="80"></canvas>
+</div>
+
+<!-- ── IMPACT STRIP ── -->
+<div class="impact-strip">
+  <div class="imp">
+    <div class="imp-lbl">85% Backlog (13 items)</div>
+    <div class="imp-val" style="color:var(--neutral)">02 Jun</div>
+    <div class="imp-sub">P85 — unchanged</div>
+    <div class="imp-delta" style="background:rgba(74,96,144,.08);color:var(--neutral)">= no change</div>
+  </div>
+  <div class="imp">
+    <div class="imp-lbl">All original 15 items</div>
+    <div class="imp-val" style="color:var(--delay)">16 Jun</div>
+    <div class="imp-sub">P50 with creep+team</div>
+    <div class="imp-delta" style="background:rgba(208,64,64,.08);color:var(--delay)">▲ +2 weeks vs baseline</div>
+  </div>
+  <div class="imp">
+    <div class="imp-lbl">Full scope incl. creep</div>
+    <div class="imp-val" style="color:var(--creep)">23 Jun</div>
+    <div class="imp-sub">P85 — 18–20 total items</div>
+    <div class="imp-delta" style="background:rgba(192,112,16,.08);color:var(--creep)">▲ +2 weeks vs baseline</div>
+  </div>
+  <div class="imp">
+    <div class="imp-lbl">Expected extra scope</div>
+    <div class="imp-val" style="color:var(--creep)">+3–5</div>
+    <div class="imp-sub">items (20–30% of 15)</div>
+    <div class="imp-delta" style="background:rgba(192,112,16,.08);color:var(--creep)">Total: 18–20 items</div>
+  </div>
+</div>
+
+<!-- ── SCENARIO LEGEND ── -->
+<div class="scenario-legend">
+  <div style="font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)">Scenarios:</div>
+  <div class="sl-item"><div class="sl-sq" style="background:#b0c8e8"></div>Baseline (no creep, stable team)</div>
+  <div class="sl-item"><div class="sl-sq" style="background:#7a6ab4"></div>Adjusted (scope creep 20–30% + team change)</div>
+  <div class="sl-sep"></div>
+  <div class="sl-item"><div class="sl-sq" style="background:var(--b-teal)"></div>P50 — baseline</div>
+  <div class="sl-item"><div class="sl-sq" style="background:var(--b-amber)"></div>P85 — baseline</div>
+  <div class="sl-item"><div class="sl-sq" style="background:#503878"></div>P50 — adjusted</div>
+  <div class="sl-item"><div class="sl-sq" style="background:#905020"></div>P85 — adjusted</div>
+</div>
+
+<!-- ── 2×2 GRID ── -->
+<div class="grid">
+
+  <!-- C1: 85% Completion -->
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">📅</span>
+      <span class="card-title">Completion Distribution — 85% of Items (13)</span>
     </div>
-    <div class="ans-badge" style="background:rgba(0,200,255,.1);color:var(--blue)">≈ 6–7 tygodni</div>
+    <div class="card-desc">When will 13 of 15 original items be done? Baseline vs. adjusted.</div>
+    <canvas id="c1" height="220"></canvas>
+    <div class="pbadges" id="pb1"></div>
   </div>
 
-  <div class="ans-card" style="border-color:rgba(255,170,32,.25)">
-    <div class="ans-num" style="color:var(--amber)">PYTANIE 3</div>
-    <div class="ans-q">Ile elementów dostarczymy <b style="color:var(--hi)">do końca kwietnia<br>(30 kwi 2025)?</b></div>
-    <div class="ans-main" style="color:var(--amber)">3–4 elem.</div>
-    <div class="ans-range">
-      <div class="row"><span class="plbl">Przy 2/tydzień</span><span class="pval" style="color:var(--mid)">~2–3 elementy</span></div>
-      <div class="row"><span class="plbl">Przy 2.5/tydzień (śr.)</span><span class="pval" style="color:var(--amber)">~3 elementy</span></div>
-      <div class="row"><span class="plbl">Przy 3/tydzień</span><span class="pval" style="color:var(--green)">~4 elementy</span></div>
-      <div class="row"><span class="plbl">Z backlogu 15 zostanie</span><span class="pval" style="color:var(--hi)">11–13 elem.</span></div>
+  <!-- C2: ALL completion -->
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">📅</span>
+      <span class="card-title">Completion Distribution — All Items (incl. creep)</span>
     </div>
-    <div class="ans-badge" style="background:rgba(255,170,32,.1);color:var(--amber)">Pozostało tylko 1.3 tyg.</div>
+    <div class="card-desc">Baseline = 15 items. Adjusted = 18–20 items with scope creep.</div>
+    <canvas id="c2" height="220"></canvas>
+    <div class="pbadges" id="pb2"></div>
+  </div>
+
+  <!-- C3: Items at target -->
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">🎯</span>
+      <span class="card-title">Items Delivered by Target (02 Jun) — Baseline vs Adjusted</span>
+    </div>
+    <div class="card-desc">At P85 target date (wk 6 = 02 Jun), how many original items delivered?</div>
+    <canvas id="c3" height="220"></canvas>
+    <div class="card-legend">
+      <div class="cl-item"><div class="cl-sq" style="background:#b0c8e8"></div>Baseline</div>
+      <div class="cl-item"><div class="cl-sq" style="background:#7a6ab4"></div>With creep + team change</div>
+    </div>
+  </div>
+
+  <!-- C4: Effective throughput -->
+  <div class="card">
+    <div class="card-hdr"><span class="card-icon">⚡</span>
+      <span class="card-title">Effective Throughput / Week (Adjusted)</span>
+    </div>
+    <div class="card-desc">Capacity-adjusted throughput. Wk 1–2: −15% (team flux). Wk 5+: +5% (new member ramped).</div>
+    <canvas id="c4" height="220"></canvas>
+    <div class="card-legend">
+      <div class="cl-item"><div class="cl-dash" style="border-color:var(--avg-ln)"></div>Baseline avg 2.5</div>
+      <div class="cl-item"><div class="cl-dash" style="border-color:#7a6ab4;border-style:solid"></div>Adjusted avg</div>
+    </div>
   </div>
 
 </div>
-
-<!-- BURNDOWN CHART -->
-<div class="chart-card card-blue">
-  <div class="ch-hdr">
-    <div class="ch-title">BURNDOWN — Prognoza dostarczenia backlogu</div>
-    <div class="ch-meta">Trzy scenariusze · Start: 21 kwi 2025</div>
-  </div>
-  <div class="ch-desc">Linia ciągła = tempo 3/tydz. (optymistyczny) · przerywana = 2.5/tydz. (średni) · kropkowana = 2/tydz. (pesymistyczny)</div>
-  <canvas id="burndown"></canvas>
-</div>
-
-<!-- MONTE CARLO TABLE -->
-<div class="mc-section">
-  <div class="mc-hdr">Wyniki symulacji Monte Carlo (100 000 iteracji · throughput losowany z {2, 3}/tydzień)</div>
-  <table>
-    <thead>
-      <tr>
-        <th>Pewność</th>
-        <th>Tygodnie do 13 elem. (85%)</th>
-        <th>📅 Data — 85% backlogu</th>
-        <th>Tygodnie do 15 elem. (100%)</th>
-        <th>📅 Data — 100% backlogu</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="badge" style="background:rgba(0,232,122,.12);color:var(--green)">P50</span></td>
-        <td>6 tyg.</td>
-        <td><b style="color:var(--green)">02 czerwca 2025</b></td>
-        <td>6 tyg.</td>
-        <td><b style="color:var(--green)">02 czerwca 2025</b></td>
-      </tr>
-      <tr>
-        <td><span class="badge" style="background:rgba(129,140,248,.12);color:var(--purple)">P70</span></td>
-        <td>6 tyg.</td>
-        <td><b style="color:var(--green)">02 czerwca 2025</b></td>
-        <td>7 tyg.</td>
-        <td><b style="color:var(--amber)">09 czerwca 2025</b></td>
-      </tr>
-      <tr style="background:rgba(255,170,32,.03)">
-        <td><span class="badge" style="background:rgba(255,170,32,.15);color:var(--amber)">P85 ★ zalecane</span></td>
-        <td>6 tyg.</td>
-        <td><b style="color:var(--amber)">02 czerwca 2025</b></td>
-        <td>7 tyg.</td>
-        <td><b style="color:var(--amber)">09 czerwca 2025</b></td>
-      </tr>
-      <tr>
-        <td><span class="badge" style="background:rgba(255,64,96,.12);color:var(--red)">P95</span></td>
-        <td>6 tyg.</td>
-        <td><b style="color:var(--amber)">02 czerwca 2025</b></td>
-        <td>7 tyg.</td>
-        <td><b style="color:var(--red)">09 czerwca 2025</b></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- WEEK-BY-WEEK FORECAST -->
-<div class="week-grid-section">
-  <div class="mc-hdr">Prognoza tydzień po tygodniu</div>
-  <div class="week-grid" id="weekgrid"></div>
-</div>
-
-<!-- INSIGHT -->
-<div class="insight">
-  <div class="insight-title">💡 Kluczowe wnioski i rekomendacje</div>
-  Backlog <b>15 elementów</b> przy tempie <b>2–3 elem./tydzień</b> to <b class="hi-b">6–7 tygodni pracy</b>.<br><br>
-  <b>Rekomendowane zobowiązanie (P85):</b><br>
-  → 85% backlogu (13 elem.): <b class="hi-a">02 czerwca 2025</b> — z 85% prawdopodobieństwem.<br>
-  → 100% backlogu (15 elem.): <b class="hi-a">09 czerwca 2025</b> — z 85% prawdopodobieństwem.<br>
-  → Do 30 kwietnia: <b class="hi-a">3–4 elementy</b> (ok. 20–27% backlogu).<br><br>
-  <b>Dlaczego zakres dat jest wąski?</b> Przy throughpucie {2, 3}/tydzień różnica między min a max to tylko 1 elem./tydzień,
-  więc rozkład symulacji jest bardzo skupiony — <b class="hi-g">niska zmienność procesu</b> daje wąski przedział prognozy.<br><br>
-  <b class="hi-r">Uwaga:</b> Prognoza opiera się wyłącznie na deklarowanym tempie. Jeśli throughput jest niestabilny
-  (np. tygodniami 0, potem skoki 5+), rzeczywiste ryzyko jest wyższe niż wynikałoby z tej symulacji.
-  Zaleca się zebranie co najmniej <b>10–12 tygodni danych historycznych</b> dla rzetelniejszej prognozy.
-</div>
-
-</div><!-- /page -->
+<div id="gtt"></div>
 
 <script>
 const dpr = window.devicePixelRatio || 1;
+const tt  = document.getElementById('gtt');
 
-// ── WEEK GRID ───────────────────────────────────────────────────────
-(function buildWeekGrid() {
-  const grid = document.getElementById('weekgrid');
-  const start = new Date('2025-04-21');
-  const rates  = [3, 2, 3, 2, 3, 2, 3, 2];  // alternating for display
-  const avgRate = 2.5;
-  let remAvg = 15, remOpt = 15, remPess = 15;
+// ── DATA ────────────────────────────────────────────────────────────
 
-  for (let w = 0; w < 8; w++) {
-    const wStart = new Date(start); wStart.setDate(wStart.getDate() + w*7);
-    const wEnd   = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
-    const fmt = d => d.toLocaleDateString('pl-PL',{day:'2-digit',month:'short'});
+// Completion 85% (13 items)
+const dist85_base = [
+  { label:'26 May', wk:5,  base:50.0, adj:26.2 },
+  { label:'02 Jun', wk:6,  base:48.5, adj:62.0 },
+  { label:'09 Jun', wk:7,  base:1.5,  adj:11.6 },
+  { label:'16 Jun', wk:8,  base:0.0,  adj:0.2  },
+];
 
-    const delAvg  = Math.min(avgRate, remAvg);
-    const delOpt  = Math.min(3, remOpt);
-    const delPess = Math.min(2, remPess);
-    remAvg  = Math.max(0, remAvg  - delAvg);
-    remOpt  = Math.max(0, remOpt  - delOpt);
-    remPess = Math.max(0, remPess - delPess);
+// Completion ALL (baseline=15, adjusted=18-20 items with creep)
+const distAll = [
+  { label:'26 May', wk:5,  base:3.1,  adj:0.2  },
+  { label:'02 Jun', wk:6,  base:62.5, adj:8.0  },
+  { label:'09 Jun', wk:7,  base:33.6, adj:29.0 },
+  { label:'16 Jun', wk:8,  base:0.8,  adj:32.4 },
+  { label:'23 Jun', wk:9,  base:0.0,  adj:19.2 },
+  { label:'30 Jun', wk:10, base:0.0,  adj:7.8  },
+  { label:'07 Jul', wk:11, base:0.0,  adj:2.5  },
+  { label:'14 Jul', wk:12, base:0.0,  adj:0.7  },
+  { label:'21 Jul', wk:13, base:0.0,  adj:0.2  },
+];
 
-    const done = remAvg === 0;
-    const pct  = Math.round((1 - remAvg/15)*100);
-    const col  = pct >= 85 ? '#00e87a' : pct >= 50 ? '#00c8ff' : '#ffaa20';
+// Items at target (week 6 = 02 Jun)
+const itemsBase  = [ {i:12,p:1.6},{i:13,p:9.3},{i:14,p:23.4},{i:15,p:65.7} ];
+const itemsAdj   = [ {i:10,p:0.4},{i:11,p:2.6},{i:12,p:8.7},{i:13,p:18.9},{i:14,p:25.7},{i:15,p:43.6} ];
 
-    // April end marker
-    const isAprilEnd = w === 1;  // ~end of week 2 = Apr 30
+// Effective throughput per week (adj capacity)
+const weekTp = [
+  {wk:'Wk1', base:2.5, adj:2.1},
+  {wk:'Wk2', base:2.5, adj:2.1},
+  {wk:'Wk3', base:2.5, adj:2.4},
+  {wk:'Wk4', base:2.5, adj:2.4},
+  {wk:'Wk5', base:2.5, adj:2.6},
+  {wk:'Wk6', base:2.5, adj:2.6},
+  {wk:'Wk7', base:2.5, adj:2.6},
+  {wk:'Wk8', base:2.5, adj:2.6},
+];
 
-    const div = document.createElement('div');
-    div.className = 'wk' + (done ? ' wk-done' : '');
-    div.style.borderColor = done ? 'rgba(0,232,122,.3)' : (isAprilEnd ? 'rgba(255,170,32,.3)' : '');
-    div.innerHTML = `
-      <div class="wk-num" style="color:${isAprilEnd?'var(--amber)':'var(--dim)'}">Tydzień ${w+1}${isAprilEnd?' ←30kwi':''}</div>
-      <div class="wk-date" style="color:${isAprilEnd?'var(--amber)':'var(--mid)'}">${fmt(wStart)}–${fmt(wEnd)}</div>
-      <div class="wk-rate" style="color:${col}">+${delOpt}–${delPess}</div>
-      <div class="wk-rem">Pozostaje: <b style="color:${col}">${remPess}–${remAvg}</b></div>
-      <div class="wk-fill" style="width:${pct}%;background:${col}60"></div>`;
-    grid.appendChild(div);
-  }
-})();
+// ── COLOUR PALETTE ──────────────────────────────────────────────────
+const C = {
+  baseLt:  '#b0c8e8',  // baseline light bars
+  baseTeal:'#146050',  // baseline P50
+  baseAmb: '#b07808',  // baseline P85
+  adjBar:  '#7a6ab4',  // adjusted bars
+  adjP50:  '#503878',  // adjusted P50
+  adjP85:  '#905020',  // adjusted P85
+  adjRed:  '#a82828',
+  avgLn:   '#c89018',
+  adjLn:   '#7a6ab4',
+  dim:     '#8a9bb5',
+  mid:     '#536075',
+  text:    '#28374c',
+};
 
-// ── BURNDOWN CANVAS ─────────────────────────────────────────────────
-const canvas = document.getElementById('burndown');
+// ── LAYOUT ──────────────────────────────────────────────────────────
+const PAD = { top:28, right:18, bottom:44, left:44 };
 
-function resize() {
-  const W = canvas.parentElement.clientWidth - 56;
-  const H = 340;
-  canvas.style.width = W + 'px';
-  canvas.style.height = H + 'px';
-  canvas.width  = W * dpr;
-  canvas.height = H * dpr;
-  draw();
+function setup(id, h) {
+  const c = document.getElementById(id);
+  const W = c.parentElement.clientWidth - 36;
+  const H = h || parseInt(c.getAttribute('height'));
+  c.style.width  = W + 'px';
+  c.style.height = H + 'px';
+  c.width  = W * dpr;
+  c.height = H * dpr;
+  return { c, ctx:c.getContext('2d'), W:W*dpr, H:H*dpr };
 }
 
-function draw() {
-  const ctx = canvas.getContext('2d');
-  const CW = canvas.width, CH = canvas.height;
-  const PAD = { top:28, right:210, bottom:52, left:58 };
-  const W = CW - PAD.left - PAD.right;
-  const H = CH - PAD.top  - PAD.bottom;
+function iDim(W,H){ return { iW:W-PAD.left-PAD.right, iH:H-PAD.top-PAD.bottom }; }
 
-  ctx.clearRect(0, 0, CW, CH);
+function drawGrid(ctx, W, H, maxV, isPercent, steps) {
+  const { iW, iH } = iDim(W, H);
+  const s = steps || (maxV<=5?1:maxV<=10?2:maxV<=40?10:20);
+  ctx.font = `${9.5*dpr}px 'DM Mono',monospace`;
+  ctx.textAlign = 'right'; ctx.fillStyle = C.dim;
+  for (let v=0; v<=maxV; v+=s) {
+    const y = PAD.top + iH - (v/maxV)*iH;
+    ctx.beginPath(); ctx.strokeStyle='#e8ecf4'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+iW,y); ctx.stroke();
+    ctx.fillText(isPercent?v+'%':v, PAD.left-5*dpr, y+3.5*dpr);
+  }
+  ctx.beginPath(); ctx.strokeStyle='#c8d0df'; ctx.lineWidth=dpr;
+  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+iH);
+  ctx.lineTo(PAD.left+iW,PAD.top+iH); ctx.stroke();
+}
 
-  // Date range Apr 19 – Jul 14
-  const t0 = new Date('2025-04-19').getTime();
+function showTip(e, html) {
+  tt.style.display='block'; tt.innerHTML=html;
+  let lx=e.clientX+14, ly=e.clientY-10;
+  if(lx+260>window.innerWidth)  lx=e.clientX-274;
+  if(ly+180>window.innerHeight) ly=e.clientY-185;
+  tt.style.left=lx+'px'; tt.style.top=ly+'px';
+}
+
+function cumulative(data, key) {
+  let c=0; return data.map(d=>{c+=d[key]||0;return c;});
+}
+
+// ── CAPACITY CHART ───────────────────────────────────────────────────
+function drawCapacity() {
+  const c = document.getElementById('capacity-chart');
+  const W = c.parentElement.clientWidth - 32;
+  const H = 80;
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.width=W*dpr; c.height=H*dpr;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,W*dpr,H*dpr);
+
+  const CPAD = {l:120*dpr, r:20*dpr, t:18*dpr, b:20*dpr};
+  const iW = W*dpr - CPAD.l - CPAD.r;
+  const iH = H*dpr - CPAD.t - CPAD.b;
+
+  // Time range: Apr 1 → Jul 14 (14 weeks from start Apr 1)
+  const t0 = new Date('2025-04-01').getTime();
   const t1 = new Date('2025-07-14').getTime();
-  function tx(dstr) { return PAD.left + ((new Date(dstr).getTime()-t0)/(t1-t0))*W; }
-  function ry(v)    { return PAD.top  + (1 - v/17)*H; }
+  function tx(dateStr){ return CPAD.l + ((new Date(dateStr).getTime()-t0)/(t1-t0))*iW; }
 
-  const base = `${10*dpr}px 'IBM Plex Mono',monospace`;
+  // Background
+  ctx.fillStyle = '#f8faff';
+  ctx.fillRect(0,0,W*dpr,H*dpr);
 
-  // Y grid
-  ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#2a3f5c';
-  [0,2,4,6,8,10,12,13,15].forEach(v=>{
-    const y=ry(v);
-    ctx.beginPath();
-    ctx.strokeStyle = v===13?'rgba(0,232,122,.2)':v===0?'#1a2840':'#0d1824';
-    ctx.lineWidth = v===13?1.5*dpr:dpr;
-    ctx.setLineDash(v===13?[4*dpr,3*dpr]:[]);
-    ctx.moveTo(PAD.left,y); ctx.lineTo(PAD.left+W,y); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = v===13?'#00e87a':v===15?'var(--hi)':'#2a3f5c';
-    ctx.fillText(v, PAD.left-7*dpr, y+4*dpr);
-  });
-
-  // X grid + labels (weekly)
-  const weekStarts=['2025-04-21','2025-04-28','2025-05-05','2025-05-12','2025-05-19','2025-05-26','2025-06-02','2025-06-09','2025-06-16'];
-  ctx.textAlign='center';
-  weekStarts.forEach(d=>{
+  // Grid lines (months)
+  ['2025-04-01','2025-05-01','2025-06-01','2025-07-01'].forEach(d=>{
     const x=tx(d);
-    ctx.beginPath(); ctx.strokeStyle='#0a1420'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-    ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+H); ctx.stroke();
-    const dt=new Date(d);
-    ctx.fillStyle='#2a3f5c'; ctx.font=`${9*dpr}px 'IBM Plex Mono',monospace`;
-    ctx.fillText(dt.toLocaleDateString('pl-PL',{day:'2-digit',month:'short'}),x,PAD.top+H+15*dpr);
+    ctx.beginPath(); ctx.strokeStyle='#e0e6f0'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(x,CPAD.t); ctx.lineTo(x,CPAD.t+iH); ctx.stroke();
+    const lbl = new Date(d).toLocaleDateString('en-GB',{month:'short'});
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle='#8a9bb5';
+    ctx.fillText(lbl, x, CPAD.t+iH+13*dpr);
   });
 
-  // Axes
-  ctx.beginPath(); ctx.strokeStyle='#1a2840'; ctx.lineWidth=dpr; ctx.setLineDash([]);
-  ctx.moveTo(PAD.left,PAD.top); ctx.lineTo(PAD.left,PAD.top+H); ctx.lineTo(PAD.left+W,PAD.top+H); ctx.stroke();
-
-  // Axis labels
-  ctx.fillStyle='#2a3f5c'; ctx.font=`${10*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
-  ctx.fillText('Data (co tydzień)', PAD.left+W/2, CH-8*dpr);
-  ctx.save(); ctx.translate(14*dpr,PAD.top+H/2); ctx.rotate(-Math.PI/2);
-  ctx.fillText('Pozostały backlog (elementów)',0,0); ctx.restore();
-
-  // Today / end April markers
-  const xToday=tx('2025-04-21'), xApr=tx('2025-04-30');
-  [['Dziś','#818cf8',xToday],[' 30 kwi','#ffaa20',xApr]].forEach(([lbl,col,x])=>{
-    ctx.beginPath(); ctx.strokeStyle=col+'80'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([4*dpr,3*dpr]);
-    ctx.moveTo(x,PAD.top); ctx.lineTo(x,PAD.top+H); ctx.stroke(); ctx.setLineDash([]);
-    ctx.font=`500 ${8.5*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=col;
-    ctx.fillText(lbl, x, PAD.top-7*dpr);
-  });
-
-  // 85% line label
-  ctx.font=`${8.5*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#00e87a80';
-  ctx.fillText('← 85% (13 elem.)', PAD.left+W+5*dpr, ry(13)+4*dpr);
-
-  // ── THREE BURNDOWN SCENARIOS ──
-  const scenarios = [
-    { rate:3,   col:'#00e87a', dash:[],             label:'Optymistyczny  · 3/tydz. → 02 cze 2025' },
-    { rate:2.5, col:'#00c8ff', dash:[6*dpr,4*dpr],  label:'Średni        · 2.5/tydz. → 02 cze 2025' },
-    { rate:2,   col:'#ffaa20', dash:[3*dpr,4*dpr],  label:'Pesymistyczny  · 2/tydz.   → 12 cze 2025' },
+  // Capacity bar (full period)
+  const segments = [
+    { from:'2025-04-01', to:'2025-04-01', label:'Baseline team', col:'#b0c8e8', h:0.6 },
+    { from:'2025-04-01', to:'2025-04-20', label:'+1 ramping',     col:'#90e8a0', h:0.7 },
+    { from:'2025-04-20', to:'2025-04-21', label:'Transition',     col:'#f8c080', h:0.55 },
+    { from:'2025-04-21', to:'2025-05-05', label:'Reduced (wk1-2)',col:'#f09080', h:0.55 },
+    { from:'2025-05-05', to:'2025-05-19', label:'Recovering',     col:'#f0d080', h:0.65 },
+    { from:'2025-05-19', to:'2025-07-14', label:'Full (new=100%)',col:'#80d0b0', h:0.75 },
   ];
 
-  const startD = new Date('2025-04-21');
+  const rowH = iH * 0.55;
+  const rowY = CPAD.t + iH*0.12;
 
-  scenarios.forEach((sc,si) => {
-    // Build points
-    const pts = [];
-    let rem = 15;
-    pts.push({ d:'2025-04-21', rem });
-    for (let w=1; w<=10 && rem>0; w++) {
-      rem = Math.max(0, rem - sc.rate);
-      const d = new Date(startD); d.setDate(d.getDate() + w*7);
-      pts.push({ d: d.toISOString().slice(0,10), rem });
+  segments.forEach(seg=>{
+    const x1=tx(seg.from), x2=tx(seg.to);
+    if(x2<=x1+2*dpr) return;
+    const bH = rowH*seg.h;
+    const bY = rowY + rowH - bH;
+    ctx.fillStyle = seg.col + 'cc';
+    ctx.beginPath(); ctx.roundRect(x1+1,bY, x2-x1-2, bH, [3,3,0,0]); ctx.fill();
+    ctx.strokeStyle = seg.col; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.strokeRect(x1+1,bY, x2-x1-2, bH);
+    if(x2-x1 > 60*dpr) {
+      ctx.font=`${8.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center';
+      ctx.fillStyle='#2a3a4e';
+      ctx.fillText(seg.label, (x1+x2)/2, bY+bH/2+3*dpr);
     }
-
-    // Area fill for first scenario
-    if (si===0) {
-      ctx.beginPath();
-      pts.forEach((p,i)=>{ const x=tx(p.d),y=ry(p.rem); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-      ctx.lineTo(tx(pts[pts.length-1].d), ry(0));
-      ctx.lineTo(tx(pts[0].d), ry(0)); ctx.closePath();
-      ctx.fillStyle='rgba(0,232,122,.04)'; ctx.fill();
-    }
-
-    ctx.beginPath(); ctx.strokeStyle=sc.col; ctx.lineWidth=2.2*dpr;
-    ctx.setLineDash(sc.dash); ctx.globalAlpha=0.9;
-    pts.forEach((p,i)=>{ const x=tx(p.d),y=ry(p.rem); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
-
-    // Completion dot
-    const last=pts[pts.length-1];
-    const fx=tx(last.d), fy=ry(0);
-    ctx.beginPath(); ctx.arc(fx,fy,5.5*dpr,0,Math.PI*2); ctx.fillStyle=sc.col; ctx.fill();
-
-    // Start dot
-    ctx.beginPath(); ctx.arc(tx('2025-04-21'),ry(15),3.5*dpr,0,Math.PI*2); ctx.fillStyle=sc.col; ctx.fill();
   });
 
-  // ── LEGEND ──
-  scenarios.forEach((sc,i)=>{
-    const lx=PAD.left+W+10*dpr, ly=PAD.top+20*dpr+i*26*dpr;
-    ctx.beginPath(); ctx.strokeStyle=sc.col; ctx.lineWidth=2.2*dpr; ctx.setLineDash(sc.dash);
-    ctx.moveTo(lx,ly); ctx.lineTo(lx+22*dpr,ly); ctx.stroke(); ctx.setLineDash([]);
-    ctx.font=`${8.5*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left';
-    ctx.fillStyle=sc.col; ctx.globalAlpha=0.9;
-    ctx.fillText(sc.label, lx+26*dpr, ly+4*dpr); ctx.globalAlpha=1;
+  // Event markers
+  const events = [
+    { date:'2025-04-01', label:'Apr 1: +1 person', col:'#18a060', y:8 },
+    { date:'2025-04-20', label:'Apr 20: −1 person', col:'#d04040', y:8 },
+    { date:'2025-04-21', label:'Apr 21: forecast start', col:'#4060c0', y:8 },
+  ];
+  events.forEach(ev=>{
+    const x = tx(ev.date);
+    ctx.beginPath(); ctx.strokeStyle=ev.col; ctx.lineWidth=1.5*dpr; ctx.setLineDash([4*dpr,3*dpr]);
+    ctx.moveTo(x, CPAD.t); ctx.lineTo(x, CPAD.t+iH); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font=`600 ${8.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=ev.col;
+    ctx.fillText(ev.label, x, ev.y*dpr);
   });
 
-  // UCL cone (uncertainty band between opt and pess)
-  ctx.beginPath();
-  const optPts=[], pessPts=[];
-  let ro=15,rp=15;
-  optPts.push({d:'2025-04-21',v:15}); pessPts.push({d:'2025-04-21',v:15});
-  for(let w=1;w<=10;w++){
-    ro=Math.max(0,ro-3); rp=Math.max(0,rp-2);
-    const d=new Date(startD); d.setDate(d.getDate()+w*7);
-    optPts.push({d:d.toISOString().slice(0,10),v:ro});
-    pessPts.push({d:d.toISOString().slice(0,10),v:rp});
-    if(ro===0&&rp===0)break;
-  }
-  ctx.beginPath();
-  optPts.forEach((p,i)=>{const x=tx(p.d),y=ry(p.v);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-  [...pessPts].reverse().forEach(p=>{ctx.lineTo(tx(p.d),ry(p.v));});
-  ctx.closePath(); ctx.fillStyle='rgba(0,200,255,.04)'; ctx.fill();
+  // Left labels
+  ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='right'; ctx.fillStyle='#536075';
+  ctx.fillText('Capacity', CPAD.l-8*dpr, CPAD.t+iH/2+3*dpr);
+
+  c.onmousemove = e => { tt.style.display='none'; };
 }
 
-window.addEventListener('resize', resize);
-resize();
+// ── CHART 1 & 2: Dual-bar completion distribution ───────────────────
+function drawDualCompletion(id, data, pbId, baseKey, adjKey, note) {
+  const { c, ctx, W, H } = setup(id);
+  const { iW, iH } = iDim(W, H);
+
+  const allPct = data.flatMap(d => [d[baseKey]||0, d[adjKey]||0]);
+  const maxPct = Math.ceil(Math.max(...allPct)/10)*10 + 6;
+  ctx.clearRect(0,0,W,H);
+  drawGrid(ctx, W, H, maxPct, true);
+
+  const n     = data.filter(d=>(d[baseKey]||0)+(d[adjKey]||0)>0.05).length || data.length;
+  const nAll  = data.length;
+  const slot  = iW / nAll;
+  const pairW = slot * 0.80;
+  const barW  = pairW * 0.46;
+  const pairX = (slot - pairW) / 2;
+
+  // Cumulative for P markers
+  const cumBase = cumulative(data, baseKey);
+  const cumAdj  = cumulative(data, adjKey);
+  const p50b = data.findIndex((_,i) => cumBase[i] >= 50);
+  const p85b = data.findIndex((_,i) => cumBase[i] >= 85);
+  const p50a = data.findIndex((_,i) => cumAdj[i]  >= 50);
+  const p85a = data.findIndex((_,i) => cumAdj[i]  >= 85);
+
+  const zones = [];
+  data.forEach((d, i) => {
+    const slotX = PAD.left + i * slot + pairX;
+
+    const drawBar = (x, val, col, isP50, isP85) => {
+      if (val < 0.05) return;
+      const barH = (val/maxPct)*iH;
+      const y    = PAD.top + iH - barH;
+      ctx.fillStyle = col+'28';
+      ctx.beginPath(); ctx.roundRect(x+dpr, y+2*dpr, barW, barH, [3*dpr,3*dpr,0,0]); ctx.fill();
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.roundRect(x, y, barW, barH, [3*dpr,3*dpr,0,0]); ctx.fill();
+      if (val >= 1) {
+        ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`;
+        ctx.textAlign='center'; ctx.fillStyle=C.text;
+        ctx.fillText(Math.round(val)+'%', x+barW/2, y-5*dpr);
+      }
+      if (isP50||isP85) {
+        const lbl=isP50?'P50':'P85';
+        ctx.font=`700 ${8.5*dpr}px 'DM Mono',monospace`; ctx.fillStyle=col;
+        ctx.fillText(lbl, x+barW/2, PAD.top+iH+29*dpr);
+      }
+    };
+
+    drawBar(slotX,          d[baseKey]||0, i===p50b?C.baseTeal:i===p85b?C.baseAmb:C.baseLt, i===p50b, i===p85b);
+    drawBar(slotX+barW+2*dpr, d[adjKey]||0,  i===p50a?C.adjP50:i===p85a?C.adjP85:C.adjBar, i===p50a, i===p85a);
+
+    // Date label
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.mid;
+    ctx.fillText(d.label, slotX+pairW/2-barW*0.05, PAD.top+iH+14*dpr);
+
+    zones.push({ x1:slotX/dpr, x2:(slotX+pairW)/dpr, d, cumBase:cumBase[i], cumAdj:cumAdj[i] });
+  });
+
+  c.onmousemove = e => {
+    const rect=c.getBoundingClientRect(), mx=e.clientX-rect.left;
+    const z=zones.find(z=>mx>=z.x1&&mx<=z.x2);
+    if(z) {
+      showTip(e,`<div class="ttl">${z.d.label}</div>
+        <div class="ttsep"></div>
+        <div class="ttr"><span class="ttk">Baseline prob.</span><span class="ttv">${(z.d[baseKey]||0).toFixed(1)}%</span></div>
+        <div class="ttr"><span class="ttk">Adjusted prob.</span><span class="ttv">${(z.d[adjKey]||0).toFixed(1)}%</span></div>
+        <div class="ttsep"></div>
+        <div class="ttr"><span class="ttk">Baseline cum.</span><span class="ttv">${z.cumBase.toFixed(1)}%</span></div>
+        <div class="ttr"><span class="ttk">Adjusted cum.</span><span class="ttv">${z.cumAdj.toFixed(1)}%</span></div>`);
+    } else { tt.style.display='none'; }
+  };
+  c.onmouseleave=()=>{tt.style.display='none';};
+
+  // P-badges
+  const pd=document.getElementById(pbId);
+  const bD=data[p85b], aD=data[p85a];
+  pd.innerHTML=`
+    <div class="pbadge" style="background:rgba(20,96,80,.07);color:${C.baseTeal};border:1px solid rgba(20,96,80,.2)">
+      Baseline P85 — ${bD?.label||'—'}
+    </div>
+    <div class="pbadge" style="background:rgba(144,80,32,.07);color:${C.adjP85};border:1px solid rgba(144,80,32,.2)">
+      Adjusted P85 — ${aD?.label||'—'}
+    </div>`;
+}
+
+// ── CHART 3: Items at target — side-by-side grouped ──────────────────
+function drawItemsAtTarget(id, base, adj) {
+  const { c, ctx, W, H } = setup(id);
+  const { iW, iH } = iDim(W, H);
+
+  // Merge all item values
+  const allItems = [...new Set([...base.map(d=>d.i), ...adj.map(d=>d.i)])].sort((a,b)=>a-b);
+  const lookup = (arr, i) => arr.find(d=>d.i===i)?.p || 0;
+
+  const maxPct = Math.ceil(Math.max(...base.map(d=>d.p), ...adj.map(d=>d.p)) / 10)*10 + 6;
+  ctx.clearRect(0,0,W,H);
+  drawGrid(ctx,W,H,maxPct,true);
+
+  const n     = allItems.length;
+  const slot  = iW / n;
+  const pairW = slot * 0.75;
+  const barW  = pairW * 0.46;
+  const pairX = (slot - pairW) / 2;
+
+  // Cumulative
+  const cumBase = [], cumAdj = [];
+  let cb=0,ca=0;
+  allItems.forEach(it=>{ cb+=lookup(base,it); ca+=lookup(adj,it); cumBase.push(cb); cumAdj.push(ca); });
+  const p50b=allItems[cumBase.findIndex(c=>c>=50)];
+  const p85b=allItems[cumBase.findIndex(c=>c>=85)];
+  const p50a=allItems[cumAdj.findIndex(c=>c>=50)];
+  const p85a=allItems[cumAdj.findIndex(c=>c>=85)];
+
+  const zones=[];
+  allItems.forEach((it,i)=>{
+    const bV=lookup(base,it), aV=lookup(adj,it);
+    const sx=PAD.left+i*slot+pairX;
+
+    const drawB=(x,val,col)=>{
+      if(val<0.05)return;
+      const bH=(val/maxPct)*iH, y=PAD.top+iH-bH;
+      ctx.fillStyle=col+'28'; ctx.beginPath(); ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
+      ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
+      if(val>=2){ ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=C.text; ctx.fillText(Math.round(val)+'%',x+barW/2,y-5*dpr); }
+    };
+
+    drawB(sx,           bV, it===p85b?C.baseAmb:it===p50b?C.baseTeal:C.baseLt);
+    drawB(sx+barW+2*dpr, aV, it===p85a?C.adjP85:it===p50a?C.adjP50:C.adjBar);
+
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.mid;
+    ctx.fillText(it, sx+pairW/2-barW*0.05, PAD.top+iH+14*dpr);
+
+    if(it===p50b||it===p85b){
+      ctx.font=`700 ${8*dpr}px 'DM Mono',monospace`; ctx.fillStyle=C.baseTeal;
+      ctx.fillText(it===p50b?'P50b':'P85b', sx+barW/2, PAD.top+iH+28*dpr);
+    }
+    if(it===p50a||it===p85a){
+      ctx.font=`700 ${8*dpr}px 'DM Mono',monospace`; ctx.fillStyle=C.adjP85;
+      ctx.fillText(it===p50a?'P50a':'P85a', sx+barW+barW/2+2*dpr, PAD.top+iH+28*dpr);
+    }
+
+    zones.push({x1:sx/dpr, x2:(sx+pairW)/dpr, it, bV, aV, cb:cumBase[i], ca:cumAdj[i]});
+  });
+
+  ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.dim;
+  ctx.fillText('Items delivered', PAD.left+iW/2, H-4*dpr);
+
+  c.onmousemove=e=>{
+    const rect=c.getBoundingClientRect(),mx=e.clientX-rect.left;
+    const z=zones.find(z=>mx>=z.x1&&mx<=z.x2);
+    if(z){
+      showTip(e,`<div class="ttl">${z.it} items delivered</div>
+        <div class="ttsep"></div>
+        <div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${z.bV.toFixed(1)}%</span></div>
+        <div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${z.aV.toFixed(1)}%</span></div>
+        <div class="ttr"><span class="ttk">Cum. base</span><span class="ttv">${z.cb.toFixed(1)}%</span></div>
+        <div class="ttr"><span class="ttk">Cum. adj</span><span class="ttv">${z.ca.toFixed(1)}%</span></div>`);
+    } else { tt.style.display='none'; }
+  };
+  c.onmouseleave=()=>{tt.style.display='none';};
+}
+
+// ── CHART 4: Effective throughput per week ───────────────────────────
+function drawThroughput(id, data) {
+  const { c, ctx, W, H } = setup(id);
+  const { iW, iH } = iDim(W, H);
+
+  const maxV = Math.ceil(Math.max(...data.flatMap(d=>[d.base,d.adj]))+0.5);
+  ctx.clearRect(0,0,W,H);
+  drawGrid(ctx,W,H,maxV,false,0.5);
+
+  const n    = data.length;
+  const slot = iW/n;
+  const barW = slot*0.38;
+  const off  = (slot-barW*2-2*dpr)/2;
+
+  const zones=[];
+  data.forEach((d,i)=>{
+    const sx=PAD.left+i*slot+off;
+
+    const drawB=(x,val,col)=>{
+      const bH=(val/maxV)*iH, y=PAD.top+iH-bH;
+      ctx.fillStyle=col+'22'; ctx.beginPath(); ctx.roundRect(x+dpr,y+2*dpr,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
+      ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,barW,bH,[3*dpr,3*dpr,0,0]); ctx.fill();
+      ctx.font=`600 ${9.5*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=C.text;
+      ctx.fillText(val.toFixed(1), x+barW/2, y-5*dpr);
+    };
+
+    drawB(sx,              d.base, '#a0b8d8');
+    drawB(sx+barW+2*dpr, d.adj,  i<=1?'#e09080':i<=3?'#d4b840':'#80c8a0');
+
+    ctx.font=`${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='center'; ctx.fillStyle=C.mid;
+    ctx.fillText(d.wk, PAD.left+i*slot+slot/2, PAD.top+iH+14*dpr);
+
+    zones.push({x1:(PAD.left+i*slot)/dpr, x2:(PAD.left+(i+1)*slot)/dpr, d, i});
+  });
+
+  // Avg baseline dashed
+  const yAvg=PAD.top+iH-(2.5/maxV)*iH;
+  ctx.beginPath(); ctx.strokeStyle=C.avgLn; ctx.lineWidth=2*dpr; ctx.setLineDash([6*dpr,4*dpr]);
+  ctx.moveTo(PAD.left,yAvg); ctx.lineTo(PAD.left+iW,yAvg); ctx.stroke(); ctx.setLineDash([]);
+  ctx.font=`500 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=C.avgLn;
+  ctx.fillText('avg 2.5',PAD.left+iW+4*dpr,yAvg+4*dpr);
+
+  // Avg adjusted
+  const adjAvg = data.reduce((s,d)=>s+d.adj,0)/data.length;
+  const yAdj=PAD.top+iH-(adjAvg/maxV)*iH;
+  ctx.beginPath(); ctx.strokeStyle=C.adjLn; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
+  ctx.moveTo(PAD.left,yAdj); ctx.lineTo(PAD.left+iW,yAdj); ctx.stroke();
+  ctx.font=`500 ${9*dpr}px 'DM Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=C.adjLn;
+  ctx.fillText(`adj ${adjAvg.toFixed(1)}`,PAD.left+iW+4*dpr,yAdj-6*dpr);
+
+  // Phase labels
+  const phases=[{from:0,to:2,lbl:'Reduced\n−15%',col:'#e09080'},{from:2,to:4,lbl:'Recovery\n−5%',col:'#d4b840'},{from:4,to:7,lbl:'Full\n+5%',col:'#80c8a0'}];
+  phases.forEach(p=>{
+    const x0=PAD.left+p.from*slot, x1=PAD.left+(p.to+1)*slot;
+    ctx.fillStyle=p.col+'28';
+    ctx.fillRect(x0,PAD.top,x1-x0-2*dpr,iH);
+    ctx.font=`500 ${8*dpr}px 'DM Sans',sans-serif`; ctx.textAlign='center'; ctx.fillStyle=p.col;
+    p.lbl.split('\n').forEach((ln,li)=>ctx.fillText(ln,(x0+x1)/2,PAD.top+9*dpr+li*10*dpr));
+  });
+
+  c.onmousemove=e=>{
+    const rect=c.getBoundingClientRect(),mx=e.clientX-rect.left;
+    const z=zones.find(z=>mx>=z.x1&&mx<=z.x2);
+    if(z){
+      const delta=((z.d.adj-z.d.base)/z.d.base*100).toFixed(1);
+      showTip(e,`<div class="ttl">${z.d.wk}</div>
+        <div class="ttr"><span class="ttk">Baseline</span><span class="ttv">${z.d.base} items</span></div>
+        <div class="ttr"><span class="ttk">Adjusted</span><span class="ttv">${z.d.adj} items</span></div>
+        <div class="ttr"><span class="ttk">Delta</span><span class="ttv">${delta>0?'+':''}${delta}%</span></div>
+        <div class="tth">Capacity factor: ${z.i<=1?'0.85 (team flux)':z.i<=3?'0.95 (recovery)':'1.05 (new member ramped)'}</div>`);
+    } else { tt.style.display='none'; }
+  };
+  c.onmouseleave=()=>{tt.style.display='none';};
+}
+
+// ── RENDER ──────────────────────────────────────────────────────────
+function renderAll() {
+  drawCapacity();
+  drawDualCompletion('c1', dist85_base, 'pb1', 'base', 'adj');
+  drawDualCompletion('c2', distAll,     'pb2', 'base', 'adj');
+  drawItemsAtTarget('c3', itemsBase, itemsAdj);
+  drawThroughput('c4', weekTp);
+}
+
+window.addEventListener('resize', renderAll);
+renderAll();
 </script>
 </body>
 </html>
