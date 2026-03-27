@@ -3,377 +3,244 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Throughput — Process Behaviour Chart</title>
+<title>Throughput — Process Behaviour Chart · Sygnały</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #05080f;
-    --bg2:      #080d18;
-    --surface:  #0b1120;
-    --border:   #121d30;
-    --border2:  #1a2840;
-    --dim:      #2a3f5c;
-    --mid:      #4a6a8a;
-    --text:     #8ab0d0;
-    --hi:       #d0e8f8;
-    --accent:   #00c8ff;
-    --green:    #00e87a;
-    --red:      #ff4060;
-    --amber:    #ffaa20;
-    --yellow:   #ffe040;
-    --mono:     'IBM Plex Mono', monospace;
-    --disp:     'Bebas Neue', sans-serif;
+    --bg:      #05080f;
+    --bg2:     #080d18;
+    --surf:    #0b1120;
+    --bord:    #121d30;
+    --bord2:   #1a2840;
+    --dim:     #2a3f5c;
+    --mid:     #4a6a8a;
+    --text:    #8ab0d0;
+    --hi:      #d0e8f8;
+    --accent:  #00c8ff;
+    --green:   #00e87a;
+    /* signal colours */
+    --r1:      #ff4060;   /* rule1: beyond NPL */
+    --r2:      #e040fb;   /* rule2: 2of3 beyond 2σ */
+    --r3:      #ff9800;   /* rule3: 3of5 beyond 1σ */
+    --r4:      #ffe040;   /* rule4: run 8 same side */
+    --mono:    'IBM Plex Mono', monospace;
+    --disp:    'Bebas Neue', sans-serif;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden;}
+  body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    min-height: 100vh;
-    padding: 0;
-    overflow-x: hidden;
-  }
+  .page{position:relative;z-index:1;max-width:1440px;margin:0 auto;padding:36px 44px 64px;}
 
-  /* scanline texture */
-  body::after {
-    content: '';
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px);
-  }
-
-  .page {
-    position: relative; z-index: 1;
-    max-width: 1400px; margin: 0 auto;
-    padding: 40px 48px 64px;
-  }
-
-  /* ── TOP BAR ── */
-  .topbar {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    margin-bottom: 36px;
-    border-bottom: 1px solid var(--border2);
-    padding-bottom: 24px;
-    gap: 24px;
-  }
-  .brand { display: flex; flex-direction: column; gap: 2px; }
-  .brand-label {
-    font-size: .58rem; letter-spacing: .25em; text-transform: uppercase;
-    color: var(--dim);
-  }
-  h1 {
-    font-family: var(--disp);
-    font-size: 3.2rem; line-height: 1;
-    color: var(--hi);
-    letter-spacing: .04em;
-  }
-  h1 span { color: var(--accent); }
-  .brand-sub {
-    font-size: .62rem; letter-spacing: .1em; color: var(--mid);
-    margin-top: 4px;
-  }
-  .period-badge {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: .65rem; letter-spacing: .08em;
-    color: var(--mid); white-space: nowrap;
-  }
-  .period-badge b { color: var(--accent); }
+  /* ── TOPBAR ── */
+  .topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+    border-bottom:1px solid var(--bord2);padding-bottom:22px;margin-bottom:28px;}
+  .brand-eye{font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+  h1{font-family:var(--disp);font-size:2.8rem;line-height:1;color:var(--hi);letter-spacing:.04em;}
+  h1 span{color:var(--accent);}
+  .brand-sub{font-size:.6rem;letter-spacing:.08em;color:var(--mid);margin-top:4px;}
+  .period{background:var(--surf);border:1px solid var(--bord2);border-radius:8px;padding:10px 18px;
+    font-size:.63rem;letter-spacing:.07em;color:var(--mid);white-space:nowrap;}
+  .period b{color:var(--accent);}
 
   /* ── KPI STRIP ── */
-  .kpi-strip {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 28px;
-  }
-  .kpi {
-    background: var(--surface);
-    padding: 18px 20px;
-  }
-  .kpi-lbl {
-    font-size: .55rem; text-transform: uppercase; letter-spacing: .15em;
-    color: var(--dim); margin-bottom: 8px;
-  }
-  .kpi-val {
-    font-family: var(--disp);
-    font-size: 2rem; line-height: 1;
-    margin-bottom: 4px;
-  }
-  .kpi-sub { font-size: .6rem; color: var(--mid); }
+  .kpi-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--bord);
+    border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:22px;}
+  .kpi{background:var(--surf);padding:15px 18px;}
+  .kpi-lbl{font-size:.52rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);margin-bottom:7px;}
+  .kpi-val{font-family:var(--disp);font-size:1.85rem;line-height:1;margin-bottom:3px;}
+  .kpi-sub{font-size:.57rem;color:var(--mid);}
 
-  /* ── LEGEND ── */
-  .legend {
-    display: flex; gap: 24px; align-items: center;
-    flex-wrap: wrap; margin-bottom: 20px;
-  }
-  .leg-grp { display: flex; gap: 16px; align-items: center; }
-  .leg-lbl { font-size: .55rem; text-transform: uppercase; letter-spacing: .14em; color: var(--dim); }
-  .leg-item { display: flex; align-items: center; gap: 7px; font-size: .65rem; color: var(--mid); }
-  .leg-swatch { width: 22px; height: 2px; }
-  .leg-swatch.dashed { border-top: 2px dashed; background: none !important; }
-  .leg-dot { width: 9px; height: 9px; border-radius: 50%; }
-  .leg-sep { width: 1px; height: 20px; background: var(--border2); }
+  /* ── RULES LEGEND ── */
+  .rules-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+  .rule-card{background:var(--surf);border:1px solid var(--bord2);border-radius:9px;
+    padding:14px 16px;display:flex;align-items:flex-start;gap:12px;}
+  .rule-badge{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0;margin-top:1px;}
+  .rule-title{font-size:.67rem;color:var(--hi);margin-bottom:4px;letter-spacing:.04em;}
+  .rule-desc{font-size:.58rem;color:var(--mid);line-height:1.5;}
+  .rule-count{font-size:.62rem;font-weight:600;margin-top:6px;}
 
   /* ── FILTER BAR ── */
-  .filter-bar {
-    display: flex; gap: 10px; align-items: center;
-    margin-bottom: 20px; flex-wrap: wrap;
-  }
-  .filter-lbl { font-size: .58rem; text-transform: uppercase; letter-spacing: .12em; color: var(--dim); }
-  .filter-pills { display: flex; gap: 1px; background: var(--border); border-radius: 7px; overflow: hidden; }
-  .pill {
-    background: var(--surface); border: none; color: var(--mid);
-    font-family: var(--mono); font-size: .63rem; padding: 8px 14px;
-    cursor: pointer; letter-spacing: .04em;
-    transition: background .15s, color .15s;
-  }
-  .pill:hover { background: var(--border2); color: var(--text); }
-  .pill.active { background: rgba(0,200,255,.12); color: var(--accent); }
-  .pill-sep { width: 1px; background: var(--border2); }
+  .filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+  .filter-lbl{font-size:.56rem;text-transform:uppercase;letter-spacing:.13em;color:var(--dim);}
+  .pills{display:flex;gap:1px;background:var(--bord);border-radius:7px;overflow:hidden;}
+  .pill{background:var(--surf);border:none;color:var(--mid);font-family:var(--mono);
+    font-size:.63rem;padding:8px 14px;cursor:pointer;transition:background .15s,color .15s;letter-spacing:.04em;}
+  .pill:hover{background:var(--bord2);color:var(--text);}
+  .pill.active{background:rgba(0,200,255,.1);color:var(--accent);}
 
   /* ── CHART CARDS ── */
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 12px;
-    padding: 28px 32px 22px;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  /* subtle corner accent */
-  .chart-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0;
-    width: 60px; height: 3px;
-    background: linear-gradient(90deg, var(--accent), transparent);
-    border-radius: 12px 0 0 0;
-  }
-  .chart-header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 4px;
-  }
-  .chart-title {
-    font-family: var(--disp);
-    font-size: 1.1rem; letter-spacing: .06em; color: var(--hi);
-  }
-  .chart-meta { font-size: .6rem; color: var(--dim); letter-spacing: .05em; }
-  .chart-desc { font-size: .6rem; color: var(--dim); margin-bottom: 18px; letter-spacing: .04em; }
-  canvas { display: block; width: 100%; cursor: crosshair; }
+  .chart-card{background:var(--surf);border:1px solid var(--bord2);border-radius:12px;
+    padding:24px 28px 18px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .chart-card::before{content:'';position:absolute;top:0;left:0;width:56px;height:3px;
+    background:linear-gradient(90deg,var(--accent),transparent);border-radius:12px 0 0 0;}
+  .ch-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
+  .ch-title{font-family:var(--disp);font-size:1.05rem;letter-spacing:.06em;color:var(--hi);}
+  .ch-meta{font-size:.58rem;color:var(--dim);}
+  .ch-desc{font-size:.58rem;color:var(--dim);margin-bottom:14px;letter-spacing:.04em;}
+  canvas{display:block;width:100%;cursor:crosshair;}
 
   /* ── SIGNAL TABLE ── */
-  .signals-section { margin-top: 24px; }
-  .signals-header {
-    font-size: .58rem; text-transform: uppercase; letter-spacing: .16em;
-    color: var(--dim); margin-bottom: 12px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .sig-count {
-    background: rgba(255,64,96,.15); color: var(--red);
-    border: 1px solid rgba(255,64,96,.3);
-    border-radius: 4px; padding: 2px 9px;
-    font-size: .62rem;
-  }
-  .signal-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 8px;
-  }
-  .signal-item {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--bg2);
-    border: 1px solid rgba(255,64,96,.2);
-    border-radius: 7px;
-    padding: 10px 14px;
-    font-size: .65rem;
-    transition: border-color .2s;
-  }
-  .signal-item:hover { border-color: rgba(255,64,96,.5); }
-  .signal-item.run { border-color: rgba(255,170,32,.2); }
-  .signal-item.run:hover { border-color: rgba(255,170,32,.5); }
-  .sig-icon { font-size: .85rem; flex-shrink: 0; }
-  .sig-date { color: var(--mid); flex-shrink: 0; min-width: 70px; }
-  .sig-val { font-weight: 600; flex-shrink: 0; min-width: 28px; }
-  .sig-desc { color: var(--mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sig-section{margin-top:20px;}
+  .sig-header{font-size:.56rem;text-transform:uppercase;letter-spacing:.16em;color:var(--dim);
+    margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .sig-tab-pills{display:flex;gap:1px;background:var(--bord);border-radius:6px;overflow:hidden;}
+  .sig-tab{background:var(--surf);border:none;font-family:var(--mono);font-size:.6rem;
+    padding:5px 12px;cursor:pointer;color:var(--mid);transition:background .15s,color .15s;letter-spacing:.04em;}
+  .sig-tab:hover{background:var(--bord2);}
+  .sig-tab.active{color:var(--hi);}
+  .sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:7px;margin-top:10px;}
+  .sig-item{display:flex;align-items:center;gap:9px;background:var(--bg2);
+    border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:9px 13px;font-size:.63rem;
+    transition:border-color .2s;}
+  .sig-item:hover{border-color:rgba(255,255,255,.15);}
+  .sig-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .sig-rule{font-size:.52rem;text-transform:uppercase;letter-spacing:.1em;flex-shrink:0;padding:1px 7px;border-radius:3px;}
+  .sig-date{color:var(--mid);flex-shrink:0;min-width:66px;}
+  .sig-val{font-weight:600;flex-shrink:0;min-width:22px;}
+  .sig-desc{color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
   /* ── TOOLTIP ── */
-  #tt {
-    position: fixed; z-index: 9999; pointer-events: none; display: none;
-    background: #060f1ef4;
-    border: 1px solid var(--border2);
-    border-radius: 9px; padding: 13px 16px;
-    font-family: var(--mono); font-size: .67rem; color: var(--text);
-    max-width: 280px; line-height: 1.8;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 16px 48px rgba(0,0,0,.7);
-  }
-  #tt .tt-date { font-size: .7rem; color: var(--accent); margin-bottom: 6px; font-weight: 600; }
-  #tt hr { border: none; border-top: 1px solid var(--border2); margin: 7px 0; }
-  #tt .tt-row { display: flex; justify-content: space-between; gap: 20px; }
-  #tt .tt-k { color: var(--dim); }
-  #tt .tt-v { color: var(--hi); font-weight: 500; }
-  #tt .tt-sig { margin-top: 7px; font-size: .6rem; color: var(--red); }
-  #tt .tt-sig.run { color: var(--amber); }
+  #tt{position:fixed;z-index:9999;pointer-events:none;display:none;
+    background:#060f1ef5;border:1px solid var(--bord2);border-radius:9px;padding:13px 16px;
+    font-family:var(--mono);font-size:.66rem;color:var(--text);max-width:290px;line-height:1.8;
+    backdrop-filter:blur(14px);box-shadow:0 18px 52px rgba(0,0,0,.75);}
+  .tt-date{font-size:.7rem;color:var(--accent);margin-bottom:6px;font-weight:600;}
+  .tt-hr{border:none;border-top:1px solid var(--bord2);margin:7px 0;}
+  .tt-row{display:flex;justify-content:space-between;gap:18px;}
+  .tt-k{color:var(--dim);}
+  .tt-v{color:var(--hi);}
+  .tt-sigs{margin-top:8px;display:flex;flex-direction:column;gap:3px;}
+  .tt-sig{font-size:.59rem;display:flex;align-items:center;gap:6px;}
+  .tt-sig .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 
-  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
-  .kpi-strip  { animation: fadeUp .5s ease both .05s; }
-  .legend     { animation: fadeUp .5s ease both .12s; }
-  .filter-bar { animation: fadeUp .5s ease both .16s; }
-  .chart-card { animation: fadeUp .5s ease both .2s; }
-  .chart-card:nth-child(2) { animation-delay: .28s; }
-  .signals-section { animation: fadeUp .5s ease both .36s; }
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .kpi-strip{animation:fadeUp .45s ease both .05s;}
+  .rules-legend{animation:fadeUp .45s ease both .1s;}
+  .filter-bar{animation:fadeUp .45s ease both .14s;}
+  .chart-card{animation:fadeUp .45s ease both .18s;}
+  .chart-card:nth-of-type(2){animation-delay:.24s;}
+  .sig-section{animation:fadeUp .45s ease both .3s;}
 </style>
 </head>
 <body>
 <div class="page">
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-label">Flow Metrics · XmR Control Chart</div>
-      <h1>THROUGHPUT<br><span>DAILY</span></h1>
-      <div class="brand-sub">Dzienna przepustowość · Przepływ zakończonych elementów</div>
-    </div>
-    <div class="period-badge">
-      Okres: <b>07 sty 2025</b> – <b>19 kwi 2025</b><br>
-      <span style="color:var(--dim)">103 dni obserwacji</span>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <div class="brand-eye">Flow Metrics · XmR Process Behaviour Chart</div>
+    <h1>THROUGHPUT <span>DAILY</span></h1>
+    <div class="brand-sub">Sygnały wg 4 reguł Wheelera · 07 sty – 19 kwi 2025</div>
+  </div>
+  <div class="period">Okres: <b>07 sty 2025</b> – <b>19 kwi 2025</b><br><span style="color:var(--dim)">103 dni obserwacji</span></div>
+</div>
+
+<!-- KPI -->
+<div class="kpi-strip">
+  <div class="kpi"><div class="kpi-lbl">Obserwacje</div><div class="kpi-val" style="color:var(--accent)" id="kn">103</div><div class="kpi-sub">dni</div></div>
+  <div class="kpi"><div class="kpi-lbl">Średnia X̄</div><div class="kpi-val" style="color:#818cf8" id="km">—</div><div class="kpi-sub">elem./dzień</div></div>
+  <div class="kpi"><div class="kpi-lbl">UCL (3σ)</div><div class="kpi-val" style="color:var(--r1)" id="ku">—</div><div class="kpi-sub">górny limit</div></div>
+  <div class="kpi"><div class="kpi-lbl">2σ linia</div><div class="kpi-val" style="color:var(--r2)" id="k2s">—</div><div class="kpi-sub">= X̄+2σ̂</div></div>
+  <div class="kpi"><div class="kpi-lbl">1σ linia</div><div class="kpi-val" style="color:var(--r3)" id="k1s">—</div><div class="kpi-sub">= X̄+σ̂</div></div>
+  <div class="kpi"><div class="kpi-lbl">mR̄</div><div class="kpi-val" style="color:var(--mid)" id="kmr">—</div><div class="kpi-sub">avg moving range</div></div>
+  <div class="kpi"><div class="kpi-lbl">Sygnały łącznie</div><div class="kpi-val" style="color:var(--r1)" id="ktot">—</div><div class="kpi-sub">unikalne punkty</div></div>
+</div>
+
+<!-- RULES LEGEND -->
+<div class="rules-legend">
+  <div class="rule-card">
+    <div class="rule-badge" style="background:rgba(255,64,96,.15);color:var(--r1)">R1</div>
+    <div>
+      <div class="rule-title">Poza korytarzem NPL (3σ)</div>
+      <div class="rule-desc">Pojedynczy punkt powyżej UCL lub poniżej LCL.<br>Zjawisko o przypisywalnej przyczynie.</div>
+      <div class="rule-count" style="color:var(--r1)" id="rc1">— punktów</div>
     </div>
   </div>
-
-  <!-- KPI -->
-  <div class="kpi-strip">
-    <div class="kpi">
-      <div class="kpi-lbl">Obserwacje</div>
-      <div class="kpi-val" style="color:var(--accent)" id="kpi-n">103</div>
-      <div class="kpi-sub">dni w sekwencji</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">Średnia (X̄)</div>
-      <div class="kpi-val" style="color:#818cf8" id="kpi-mean">1.97</div>
-      <div class="kpi-sub">elem./dzień</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">UCL</div>
-      <div class="kpi-val" style="color:var(--red)" id="kpi-ucl">9.69</div>
-      <div class="kpi-sub">górny limit</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">LCL</div>
-      <div class="kpi-val" style="color:var(--green)" id="kpi-lcl">0.00</div>
-      <div class="kpi-sub">dolny limit</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">mR̄</div>
-      <div class="kpi-val" style="color:var(--mid)" id="kpi-mr">2.90</div>
-      <div class="kpi-sub">avg moving range</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-lbl">Sygnały</div>
-      <div class="kpi-val" style="color:var(--red)" id="kpi-sigs">6</div>
-      <div class="kpi-sub">poza UCL/LCL</div>
+  <div class="rule-card">
+    <div class="rule-badge" style="background:rgba(224,64,251,.15);color:var(--r2)">R2</div>
+    <div>
+      <div class="rule-title">2 z 3 poza 2σ</div>
+      <div class="rule-desc">2 z 3 kolejnych punktów po tej samej stronie, powyżej linii 2σ.<br>Umiarkowany sygnał zmiany.</div>
+      <div class="rule-count" style="color:var(--r2)" id="rc2">— punktów</div>
     </div>
   </div>
-
-  <!-- LEGEND -->
-  <div class="legend">
-    <div class="leg-grp">
-      <span class="leg-lbl">X-Chart:</span>
-      <div class="leg-item">
-        <div class="leg-swatch" style="background:var(--accent)"></div>
-        Przepustowość
-      </div>
-      <div class="leg-item">
-        <div class="leg-swatch" style="background:#818cf8"></div>
-        X̄ (Średnia)
-      </div>
-      <div class="leg-item">
-        <div class="leg-swatch dashed" style="border-color:var(--red)"></div>
-        UCL
-      </div>
-      <div class="leg-item">
-        <div class="leg-swatch dashed" style="border-color:var(--green)"></div>
-        LCL
-      </div>
-    </div>
-    <div class="leg-sep"></div>
-    <div class="leg-grp">
-      <span class="leg-lbl">Sygnały:</span>
-      <div class="leg-item">
-        <div class="leg-dot" style="background:var(--red)"></div>
-        Poza UCL/LCL
-      </div>
-      <div class="leg-item">
-        <div class="leg-dot" style="background:var(--amber)"></div>
-        Run ≥8 po jednej stronie
-      </div>
-    </div>
-    <div class="leg-sep"></div>
-    <div class="leg-grp">
-      <span class="leg-lbl">mR Chart:</span>
-      <div class="leg-item">
-        <div class="leg-swatch" style="background:var(--amber)"></div>
-        Moving Range
-      </div>
-      <div class="leg-item">
-        <div class="leg-swatch" style="background:var(--mid)"></div>
-        mR̄
-      </div>
-      <div class="leg-item">
-        <div class="leg-swatch dashed" style="border-color:var(--red)"></div>
-        UCL(mR)
-      </div>
+  <div class="rule-card">
+    <div class="rule-badge" style="background:rgba(255,152,0,.15);color:var(--r3)">R3</div>
+    <div>
+      <div class="rule-title">3 z 5 poza 1σ</div>
+      <div class="rule-desc">3 z 5 kolejnych punktów po tej samej stronie, powyżej linii 1σ.<br>Umiarkowany sygnał zmiany.</div>
+      <div class="rule-count" style="color:var(--r3)" id="rc3">— punktów</div>
     </div>
   </div>
-
-  <!-- FILTER -->
-  <div class="filter-bar">
-    <span class="filter-lbl">Widok:</span>
-    <div class="filter-pills">
-      <button class="pill active" data-range="all"  onclick="setRange('all')">Wszystkie</button>
-      <button class="pill" data-range="jan"  onclick="setRange('jan')">Styczeń</button>
-      <button class="pill" data-range="feb"  onclick="setRange('feb')">Luty</button>
-      <button class="pill" data-range="mar"  onclick="setRange('mar')">Marzec</button>
-      <button class="pill" data-range="apr"  onclick="setRange('apr')">Kwiecień</button>
-      <button class="pill" data-range="last30" onclick="setRange('last30')">Ostatnie 30</button>
+  <div class="rule-card">
+    <div class="rule-badge" style="background:rgba(255,224,64,.12);color:var(--r4)">R4</div>
+    <div>
+      <div class="rule-title">8 kolejnych po jednej stronie X̄</div>
+      <div class="rule-desc">8 lub więcej kolejnych punktów po tej samej stronie średniej.<br>Sygnał niewielkiej trwałej zmiany.</div>
+      <div class="rule-count" style="color:var(--r4)" id="rc4">— punktów</div>
     </div>
   </div>
+</div>
 
-  <!-- X CHART -->
-  <div class="chart-card" id="x-card">
-    <div class="chart-header">
-      <div class="chart-title">X CHART — Throughput per Day</div>
-      <div class="chart-meta" id="x-meta">103 obserwacje · 07 sty – 19 kwi 2025</div>
-    </div>
-    <div class="chart-desc">Dzienna liczba zakończonych elementów w kolejności chronologicznej</div>
-    <canvas id="x-canvas"></canvas>
+<!-- FILTER -->
+<div class="filter-bar">
+  <span class="filter-lbl">Widok:</span>
+  <div class="pills">
+    <button class="pill active" data-r="all"    onclick="setRange('all')">Wszystkie</button>
+    <button class="pill" data-r="jan"    onclick="setRange('jan')">Styczeń</button>
+    <button class="pill" data-r="feb"    onclick="setRange('feb')">Luty</button>
+    <button class="pill" data-r="mar"    onclick="setRange('mar')">Marzec</button>
+    <button class="pill" data-r="apr"    onclick="setRange('apr')">Kwiecień</button>
+    <button class="pill" data-r="last30" onclick="setRange('last30')">Ostatnie 30d</button>
   </div>
+</div>
 
-  <!-- MR CHART -->
-  <div class="chart-card" id="mr-card">
-    <div class="chart-header">
-      <div class="chart-title">mR CHART — Moving Range</div>
-      <div class="chart-meta" id="mr-meta">|X<sub>i</sub> − X<sub>i−1</sub>| · zmienność między kolejnymi dniami</div>
-    </div>
-    <div class="chart-desc">Ruchomy zakres — bezwzględna różnica między kolejnymi obserwacjami · UCL(mR) = 3.267 × mR̄</div>
-    <canvas id="mr-canvas"></canvas>
+<!-- X CHART -->
+<div class="chart-card">
+  <div class="ch-header">
+    <div class="ch-title">X CHART — Throughput dzienny z sygnałami</div>
+    <div class="ch-meta" id="xmeta">103 obs. · 07 sty – 19 kwi 2025</div>
   </div>
+  <div class="ch-desc">Kolory punktów: 🔴 R1 poza NPL &nbsp;|&nbsp; 🟣 R2 (2/3 powyżej 2σ) &nbsp;|&nbsp; 🟠 R3 (3/5 powyżej 1σ) &nbsp;|&nbsp; 🟡 R4 (run ≥8) &nbsp;|&nbsp; Szare linie sigma = ±1σ̂, ±2σ̂</div>
+  <canvas id="xc"></canvas>
+</div>
 
-  <!-- SIGNALS -->
-  <div class="signals-section" id="signals-section"></div>
+<!-- MR CHART -->
+<div class="chart-card">
+  <div class="ch-header">
+    <div class="ch-title">mR CHART — Moving Range</div>
+    <div class="ch-meta">|X<sub>i</sub> − X<sub>i−1</sub>| · UCL(mR) = 3.267 × mR̄</div>
+  </div>
+  <div class="ch-desc">Zmienność między kolejnymi obserwacjami · Czerwone słupki = poza UCL(mR)</div>
+  <canvas id="mrc"></canvas>
+</div>
+
+<!-- SIGNAL TABLE -->
+<div class="sig-section">
+  <div class="sig-header">
+    Wykryte sygnały
+    <div class="sig-tab-pills">
+      <button class="sig-tab active" data-st="all"  onclick="setSigTab('all')">Wszystkie</button>
+      <button class="sig-tab" data-st="r1" onclick="setSigTab('r1')" style="color:var(--r1)">R1</button>
+      <button class="sig-tab" data-st="r2" onclick="setSigTab('r2')" style="color:var(--r2)">R2</button>
+      <button class="sig-tab" data-st="r3" onclick="setSigTab('r3')" style="color:var(--r3)">R3</button>
+      <button class="sig-tab" data-st="r4" onclick="setSigTab('r4')" style="color:var(--r4)">R4</button>
+    </div>
+  </div>
+  <div class="sig-grid" id="siggrid"></div>
+</div>
 
 </div><!-- /page -->
 <div id="tt"></div>
 
 <script>
-// ── RAW DATA ─────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
 const ALL = [
   {d:"2025-01-07",v:0},{d:"2025-01-08",v:2},{d:"2025-01-09",v:10},{d:"2025-01-10",v:3},
   {d:"2025-01-11",v:0},{d:"2025-01-12",v:0},{d:"2025-01-13",v:2},{d:"2025-01-14",v:3},
@@ -403,443 +270,526 @@ const ALL = [
   {d:"2025-04-17",v:4},{d:"2025-04-18",v:7},{d:"2025-04-19",v:0},
 ];
 
-const dpr = window.devicePixelRatio || 1;
-const tt  = document.getElementById('tt');
-const RANGE_FILTERS = {
-  all:    () => true,
-  jan:    d => d.d.startsWith('2025-01'),
-  feb:    d => d.d.startsWith('2025-02'),
-  mar:    d => d.d.startsWith('2025-03'),
-  apr:    d => d.d.startsWith('2025-04'),
-  last30: (d, i, arr) => i >= arr.length - 30,
-};
+const RCOL = { r1:'#ff4060', r2:'#e040fb', r3:'#ff9800', r4:'#ffe040' };
+const dpr  = window.devicePixelRatio || 1;
+const tt   = document.getElementById('tt');
 
 let currentRange = 'all';
+let sigTab = 'all';
 let xHov = null, mrHov = null;
 
-// ── COMPUTE XmR ──────────────────────────────────────────────────────
-function computeXmR(pts) {
-  const n   = pts.length;
+// ═══════════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════════
+function computeStats(pts) {
+  const n    = pts.length;
   const vals = pts.map(p => p.v);
-  const mean = vals.reduce((s,v) => s+v, 0) / n;
+  const mean = vals.reduce((s,v)=>s+v,0) / n;
   const mr   = [];
-  for (let i = 1; i < n; i++) mr.push(Math.abs(vals[i] - vals[i-1]));
-  const mrMean = mr.reduce((s,v) => s+v, 0) / (mr.length || 1);
-  const ucl    = mean + 2.66 * mrMean;
-  const lcl    = Math.max(0, mean - 2.66 * mrMean);
-  const uclMr  = 3.267 * mrMean;
-  return { mean, ucl, lcl, mrMean, uclMr, mr, vals, n };
+  for (let i=1;i<n;i++) mr.push(Math.abs(vals[i]-vals[i-1]));
+  const mrMean = mr.reduce((s,v)=>s+v,0) / (mr.length||1);
+  // σ̂ = mR̄ / d2 ; d2=1.128 for n=2
+  const sigma = mrMean / 1.128;
+  const ucl   = mean + 3*sigma;
+  const lcl   = Math.max(0, mean - 3*sigma);
+  const s2hi  = mean + 2*sigma;
+  const s2lo  = mean - 2*sigma;  // may be negative, clamp when used
+  const s1hi  = mean + 1*sigma;
+  const s1lo  = mean - 1*sigma;
+  const uclMr = 3.267 * mrMean;
+  return { n, mean, ucl, lcl, sigma, s2hi, s2lo, s1hi, s1lo, mr, mrMean, uclMr, vals };
 }
 
-function detectSignals(pts, mean, ucl, lcl) {
-  const sigs = [];
-  const vals = pts.map(p => p.v);
-  // Rule 1: beyond limits
-  vals.forEach((v,i) => { if (v > ucl || v < lcl) sigs.push({ i, type:'ucl', v }); });
-  // Rule 2: run of 8+
-  let dir = null, run = 0;
+// ═══════════════════════════════════════════════════════
+//  SIGNAL DETECTION — 4 RULES
+// ═══════════════════════════════════════════════════════
+function detectAll(pts, st) {
+  const { mean, ucl, lcl, sigma, s2hi, s2lo, s1hi, s1lo, vals } = st;
+  const n = vals.length;
+
+  // Result: per-point set of triggered rules
+  const ptSigs = Array.from({length:n}, ()=>new Set());
+
+  // ── RULE 1: single point beyond UCL or LCL ──────────
   vals.forEach((v,i) => {
-    const above = v >= mean;
-    if (dir === above) { run++; } else { dir = above; run = 1; }
-    if (run >= 8) sigs.push({ i, type:'run', v, above });
+    if (v > ucl || v < lcl) ptSigs[i].add('r1');
   });
-  return sigs;
+
+  // ── RULE 2: 2 of 3 consecutive beyond SAME ±2σ ──────
+  // Check both upper (>s2hi) and lower (<s2lo) sides
+  for (let i=0; i<=n-3; i++) {
+    const win = [vals[i], vals[i+1], vals[i+2]];
+    const abv = win.filter(v=>v>s2hi).length;
+    const blw = win.filter(v=>v<s2lo).length;
+    if (abv >= 2) { win.forEach((_,k)=>{ if(vals[i+k]>s2hi) ptSigs[i+k].add('r2'); }); }
+    if (blw >= 2) { win.forEach((_,k)=>{ if(vals[i+k]<s2lo) ptSigs[i+k].add('r2'); }); }
+  }
+
+  // ── RULE 3: 3 of 5 consecutive beyond SAME ±1σ ──────
+  for (let i=0; i<=n-5; i++) {
+    const win = [vals[i], vals[i+1], vals[i+2], vals[i+3], vals[i+4]];
+    const abv = win.filter(v=>v>s1hi).length;
+    const blw = win.filter(v=>v<s1lo).length;
+    if (abv >= 3) { win.forEach((_,k)=>{ if(vals[i+k]>s1hi) ptSigs[i+k].add('r3'); }); }
+    if (blw >= 3) { win.forEach((_,k)=>{ if(vals[i+k]<s1lo) ptSigs[i+k].add('r3'); }); }
+  }
+
+  // ── RULE 4: 8+ consecutive on same side of mean ─────
+  let runDir = null, runStart = 0, runLen = 0;
+  vals.forEach((v, i) => {
+    const above = v > mean;
+    // points exactly ON mean don't count
+    if (v === mean) { runLen = 0; runDir = null; return; }
+    if (runDir === above) {
+      runLen++;
+    } else {
+      runDir = above; runLen = 1; runStart = i;
+    }
+    if (runLen >= 8) {
+      // mark all points in this run
+      for (let k = i - runLen + 1; k <= i; k++) ptSigs[k].add('r4');
+    }
+  });
+
+  return ptSigs;
 }
 
-// ── FILTER + KPI UPDATE ───────────────────────────────────────────────
-function getFilteredPts() {
-  const fn = RANGE_FILTERS[currentRange];
-  return ALL.filter((d, i, arr) => fn(d, i, arr));
+// Priority colour: R1 > R2 > R3 > R4 > normal
+function topRule(ruleSet) {
+  if (ruleSet.has('r1')) return 'r1';
+  if (ruleSet.has('r2')) return 'r2';
+  if (ruleSet.has('r3')) return 'r3';
+  if (ruleSet.has('r4')) return 'r4';
+  return null;
 }
+
+// ═══════════════════════════════════════════════════════
+//  FILTER / RANGE
+// ═══════════════════════════════════════════════════════
+const RFNS = {
+  all:    (d,i,a) => true,
+  jan:    (d,i,a) => d.d.startsWith('2025-01'),
+  feb:    (d,i,a) => d.d.startsWith('2025-02'),
+  mar:    (d,i,a) => d.d.startsWith('2025-03'),
+  apr:    (d,i,a) => d.d.startsWith('2025-04'),
+  last30: (d,i,a) => i >= a.length-30,
+};
+
+function getPts() { return ALL.filter((d,i,a)=>RFNS[currentRange](d,i,a)); }
 
 function setRange(r) {
   currentRange = r;
-  document.querySelectorAll('.pill').forEach(b =>
-    b.classList.toggle('active', b.dataset.range === r));
-  xHov = null; mrHov = null;
-  rebuildAll();
+  document.querySelectorAll('.pill').forEach(b=>b.classList.toggle('active',b.dataset.r===r));
+  xHov=null; mrHov=null; rebuildAll();
 }
 
-function updateKPI(pts, stats, sigs) {
-  document.getElementById('kpi-n').textContent    = pts.length;
-  document.getElementById('kpi-mean').textContent = stats.mean.toFixed(2);
-  document.getElementById('kpi-ucl').textContent  = stats.ucl.toFixed(2);
-  document.getElementById('kpi-lcl').textContent  = stats.lcl.toFixed(2);
-  document.getElementById('kpi-mr').textContent   = stats.mrMean.toFixed(2);
-  const uclSigs = sigs.filter(s => s.type === 'ucl');
-  document.getElementById('kpi-sigs').textContent = uclSigs.length;
-
-  const first = pts[0].d, last = pts[pts.length-1].d;
-  const fmt = s => {
-    const [y,m,d] = s.split('-');
-    const mo = ['','sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
-    return `${+d} ${mo[+m]} ${y}`;
-  };
-  document.getElementById('x-meta').textContent =
-    `${pts.length} obserwacje · ${fmt(first)} – ${fmt(last)}`;
+function setSigTab(t) {
+  sigTab = t;
+  document.querySelectorAll('.sig-tab').forEach(b=>b.classList.toggle('active',b.dataset.st===t));
+  buildSigGrid(getPts(), computeStats(getPts()), detectAll(getPts(), computeStats(getPts())));
 }
 
-function buildSignalList(pts, stats, sigs) {
-  const sec = document.getElementById('signals-section');
-  const uclSigs = sigs.filter(s => s.type === 'ucl');
-  const runSigs = [...new Map(sigs.filter(s=>s.type==='run').map(s=>[s.i,s])).values()];
+// ═══════════════════════════════════════════════════════
+//  KPI + LEGEND UPDATE
+// ═══════════════════════════════════════════════════════
+function updateKPI(pts, st, ptSigs) {
+  const r1 = ptSigs.filter(s=>s.has('r1')).length;
+  const r2 = ptSigs.filter(s=>s.has('r2')).length;
+  const r3 = ptSigs.filter(s=>s.has('r3')).length;
+  const r4 = ptSigs.filter(s=>s.has('r4')).length;
+  const tot = ptSigs.filter(s=>s.size>0).length;
 
-  if (!uclSigs.length && !runSigs.length) { sec.innerHTML = ''; return; }
+  document.getElementById('kn').textContent   = pts.length;
+  document.getElementById('km').textContent   = st.mean.toFixed(2);
+  document.getElementById('ku').textContent   = st.ucl.toFixed(2);
+  document.getElementById('k2s').textContent  = st.s2hi.toFixed(2);
+  document.getElementById('k1s').textContent  = st.s1hi.toFixed(2);
+  document.getElementById('kmr').textContent  = st.mrMean.toFixed(2);
+  document.getElementById('ktot').textContent = tot;
 
-  let html = `<div class="signals-header">Wykryte sygnały <span class="sig-count">${uclSigs.length} poza limitami</span></div>
-    <div class="signal-grid">`;
-  uclSigs.forEach(s => {
-    const p = pts[s.i];
-    const dir = p.v > stats.ucl ? `↑ ${p.v} > UCL(${stats.ucl.toFixed(1)})` : `↓ ${p.v} < LCL(${stats.lcl.toFixed(1)})`;
-    html += `<div class="signal-item">
-      <span class="sig-icon">🔴</span>
+  const fmt = n => `${n} punkt${n===1?'':'ów'}`;
+  document.getElementById('rc1').textContent = fmt(r1);
+  document.getElementById('rc2').textContent = fmt(r2);
+  document.getElementById('rc3').textContent = fmt(r3);
+  document.getElementById('rc4').textContent = fmt(r4);
+
+  const f = d => { const [y,m,dd]=d.split('-'); const mo=['','sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru']; return `${+dd} ${mo[+m]}`; };
+  document.getElementById('xmeta').textContent = `${pts.length} obs. · ${f(pts[0].d)} – ${f(pts[pts.length-1].d)} 2025`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIGNAL GRID
+// ═══════════════════════════════════════════════════════
+function buildSigGrid(pts, st, ptSigs) {
+  const grid = document.getElementById('siggrid');
+  const RLABEL = { r1:'R1 · NPL', r2:'R2 · 2/3 za 2σ', r3:'R3 · 3/5 za 1σ', r4:'R4 · Run 8+' };
+  const RDESC  = { r1:'Poza korytarzem NPL', r2:'2 z 3 konsekutywnych > 2σ', r3:'3 z 5 konsekutywnych > 1σ', r4:'8+ punkt. po jednej stronie X̄' };
+
+  const items = [];
+  ptSigs.forEach((rSet, i) => {
+    if (!rSet.size) return;
+    const p = pts[i];
+    rSet.forEach(rule => {
+      if (sigTab !== 'all' && sigTab !== rule) return;
+      items.push({ i, p, rule, top: topRule(rSet) });
+    });
+  });
+
+  if (!items.length) { grid.innerHTML = `<div style="color:var(--dim);font-size:.65rem;grid-column:1/-1">Brak sygnałów dla wybranego filtra</div>`; return; }
+
+  grid.innerHTML = items.map(({i,p,rule}) => `
+    <div class="sig-item">
+      <div class="sig-dot" style="background:${RCOL[rule]}"></div>
+      <span class="sig-rule" style="background:${RCOL[rule]}18;color:${RCOL[rule]}">${RLABEL[rule]}</span>
       <span class="sig-date">${p.d.slice(5)}</span>
-      <span class="sig-val" style="color:#ff4060">${p.v}</span>
-      <span class="sig-desc">${dir}</span>
-    </div>`;
-  });
-  runSigs.forEach(s => {
-    const p = pts[s.i];
-    html += `<div class="signal-item run">
-      <span class="sig-icon">🟠</span>
-      <span class="sig-date">${p.d.slice(5)}</span>
-      <span class="sig-val" style="color:#ffaa20">${p.v}</span>
-      <span class="sig-desc">Run 8+ ${s.above?'powyżej':'poniżej'} X̄</span>
-    </div>`;
-  });
-  html += '</div>';
-  sec.innerHTML = html;
+      <span class="sig-val" style="color:${RCOL[rule]}">${p.v}</span>
+      <span class="sig-desc">${RDESC[rule]}</span>
+    </div>`).join('');
 }
 
-// ── SHARED CANVAS HELPERS ────────────────────────────────────────────
-const XPAD  = { top: 28, right: 100, bottom: 44, left: 58 };
-const MRPAD = { top: 22, right: 100, bottom: 44, left: 58 };
+// ═══════════════════════════════════════════════════════
+//  CANVAS HELPERS
+// ═══════════════════════════════════════════════════════
+const XPAD  = {top:30,right:106,bottom:44,left:54};
+const MRPAD = {top:22,right:106,bottom:44,left:54};
 
-function setupCanvas(canvas, h) {
-  const W = canvas.parentElement.clientWidth - 64;
-  const H = h;
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
-  canvas.width  = W * dpr;
-  canvas.height = H * dpr;
+function setupCanvas(c, h) {
+  const W = c.parentElement.clientWidth - 56;
+  c.style.width=W+'px'; c.style.height=h+'px';
+  c.width=W*dpr; c.height=h*dpr;
 }
 
-function drawYGrid(ctx, pad, W, H, ticks, maxV) {
-  const base = `${10*dpr}px 'IBM Plex Mono',monospace`;
-  ticks.forEach(v => {
-    const y = pad.top + (1 - v/maxV)*H;
-    ctx.beginPath();
-    ctx.strokeStyle = v === 0 ? '#1a2840' : '#0d1824';
-    ctx.lineWidth = dpr; ctx.setLineDash([]);
-    ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + W, y); ctx.stroke();
-    ctx.font = base; ctx.textAlign = 'right'; ctx.fillStyle = '#2a3f5c';
-    ctx.fillText(v, pad.left - 8*dpr, y + 4*dpr);
-  });
-}
-
-function drawAxes(ctx, pad, W, H) {
-  ctx.beginPath(); ctx.strokeStyle = '#1a2840'; ctx.lineWidth = dpr; ctx.setLineDash([]);
-  ctx.moveTo(pad.left, pad.top);
-  ctx.lineTo(pad.left, pad.top + H);
-  ctx.lineTo(pad.left + W, pad.top + H);
-  ctx.stroke();
-}
-
-function drawXLabels(ctx, pts, px, pad, H, step) {
-  ctx.textAlign = 'center';
-  const base = `${9.5*dpr}px 'IBM Plex Mono',monospace`;
-  pts.forEach((p, i) => {
-    if (i % step !== 0 && i !== pts.length - 1) return;
-    const x = px(i);
-    ctx.beginPath(); ctx.strokeStyle = '#0d1824'; ctx.lineWidth = dpr; ctx.setLineDash([]);
-    ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + H); ctx.stroke();
-    ctx.font = base; ctx.fillStyle = '#2a3f5c';
-    ctx.fillText(p.d.slice(5), x, pad.top + H + 15*dpr);
-  });
-}
-
-// ── X CHART ─────────────────────────────────────────────────────────
-const xCanvas = document.getElementById('x-canvas');
+// ═══════════════════════════════════════════════════════
+//  X CHART
+// ═══════════════════════════════════════════════════════
+const xc = document.getElementById('xc');
 
 function drawX() {
-  const pts = getFilteredPts();
+  const pts    = getPts();
   if (!pts.length) return;
-  const { mean, ucl, lcl } = computeXmR(pts);
-  const sigs = detectSignals(pts, mean, ucl, lcl);
-  const sigSet = new Set(sigs.filter(s => s.type==='ucl').map(s => s.i));
-  const runSet = new Set(sigs.filter(s => s.type==='run').map(s => s.i));
+  const st     = computeStats(pts);
+  const ptSigs = detectAll(pts, st);
+  const {mean,ucl,lcl,sigma,s2hi,s2lo,s1hi,s1lo} = st;
 
-  const ctx = xCanvas.getContext('2d');
-  const CW  = xCanvas.width, CH = xCanvas.height;
-  const W   = CW - XPAD.left - XPAD.right;
-  const H   = CH - XPAD.top  - XPAD.bottom;
-  const n   = pts.length;
+  const ctx = xc.getContext('2d');
+  const CW=xc.width, CH=xc.height;
+  const W=CW-XPAD.left-XPAD.right, H=CH-XPAD.top-XPAD.bottom;
+  const n=pts.length;
+  ctx.clearRect(0,0,CW,CH);
 
-  ctx.clearRect(0, 0, CW, CH);
+  const maxV = Math.max(...pts.map(p=>p.v), ucl) * 1.08 + 0.5;
+  const minV = 0;
+  function px(i) { return XPAD.left + (i/Math.max(n-1,1))*W; }
+  function py(v) { return XPAD.top + (1-(v-minV)/(maxV-minV))*H; }
 
-  const maxV  = Math.max(...pts.map(p => p.v), ucl) * 1.1 + 1;
-  function px(i) { return XPAD.left + (i / Math.max(n-1, 1)) * W; }
-  function py(v) { return XPAD.top  + (1 - v / maxV) * H; }
+  const base = `${10*dpr}px 'IBM Plex Mono',monospace`;
 
-  const step = Math.max(1, Math.round(n / 12));
-  const yStep = maxV > 12 ? 2 : 1;
-  const yTicks = [];
-  for (let v = 0; v <= Math.ceil(maxV); v += yStep) yTicks.push(v);
+  // ── Y GRID ──
+  const yStep = maxV>12?2:1;
+  for(let v=0; v<=Math.ceil(maxV); v+=yStep) {
+    const y=py(v);
+    ctx.beginPath(); ctx.strokeStyle='#0d1824'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(XPAD.left,y); ctx.lineTo(XPAD.left+W,y); ctx.stroke();
+    ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#2a3f5c';
+    ctx.fillText(v, XPAD.left-7*dpr, y+4*dpr);
+  }
 
-  drawYGrid(ctx, XPAD, W, H, yTicks, maxV);
-  drawXLabels(ctx, pts, px, XPAD, H, step);
-  drawAxes(ctx, XPAD, W, H);
+  // ── X GRID + LABELS ──
+  const step = Math.max(1,Math.round(n/12));
+  ctx.textAlign='center';
+  pts.forEach((p,i)=>{
+    if(i%step!==0 && i!==n-1) return;
+    const x=px(i);
+    ctx.beginPath(); ctx.strokeStyle='#0a1420'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(x,XPAD.top); ctx.lineTo(x,XPAD.top+H); ctx.stroke();
+    ctx.fillStyle='#2a3f5c'; ctx.font=`${9.5*dpr}px 'IBM Plex Mono',monospace`;
+    ctx.fillText(p.d.slice(5),x,XPAD.top+H+15*dpr);
+  });
 
-  // zone fills
-  const yu = py(ucl), ym = py(mean), yl = py(lcl);
-  ctx.fillStyle = 'rgba(255,64,96,.04)';
-  ctx.fillRect(XPAD.left, XPAD.top, W, yu - XPAD.top);   // above UCL
-  ctx.fillStyle = 'rgba(0,232,122,.03)';
-  ctx.fillRect(XPAD.left, yl, W, XPAD.top + H - yl);     // below LCL
-  ctx.fillStyle = 'rgba(0,200,255,.025)';
-  ctx.fillRect(XPAD.left, yu, W, yl - yu);                // middle band
+  // ── AXES ──
+  ctx.beginPath(); ctx.strokeStyle='#1a2840'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+  ctx.moveTo(XPAD.left,XPAD.top); ctx.lineTo(XPAD.left,XPAD.top+H); ctx.lineTo(XPAD.left+W,XPAD.top+H); ctx.stroke();
 
-  // weekend shading
-  pts.forEach((p, i) => {
-    const dow = new Date(p.d + 'T00:00:00').getDay();
-    if (dow === 0 || dow === 6) {
-      const x0 = i > 0 ? (px(i-1) + px(i)) / 2 : px(i);
-      const x1 = i < n-1 ? (px(i) + px(i+1)) / 2 : px(i);
-      ctx.fillStyle = 'rgba(255,255,255,.018)';
-      ctx.fillRect(x0, XPAD.top, x1 - x0, H);
+  // ── ZONE FILLS ──
+  // above UCL (R1 zone)
+  ctx.fillStyle='rgba(255,64,96,.04)';
+  ctx.fillRect(XPAD.left,XPAD.top,W,py(ucl)-XPAD.top);
+  // UCL–2σ zone
+  ctx.fillStyle='rgba(224,64,251,.03)';
+  ctx.fillRect(XPAD.left,py(ucl),W,py(s2hi)-py(ucl));
+  // 2σ–1σ zone
+  ctx.fillStyle='rgba(255,152,0,.025)';
+  ctx.fillRect(XPAD.left,py(s2hi),W,py(s1hi)-py(s2hi));
+  // 1σ–mean zone (both sides)
+  ctx.fillStyle='rgba(0,200,255,.015)';
+  ctx.fillRect(XPAD.left,py(s1hi),W,py(mean)-py(s1hi));
+  ctx.fillRect(XPAD.left,py(mean),W,py(Math.max(s1lo,0))-py(mean));
+
+  // ── WEEKEND SHADING ──
+  pts.forEach((p,i)=>{
+    const dow=new Date(p.d+'T00:00:00').getDay();
+    if(dow===0||dow===6){
+      const x0=i>0?(px(i-1)+px(i))/2:px(i);
+      const x1=i<n-1?(px(i)+px(i+1))/2:px(i);
+      ctx.fillStyle='rgba(255,255,255,.016)';
+      ctx.fillRect(x0,XPAD.top,x1-x0,H);
     }
   });
 
-  // area fill under line
+  // ── SIGMA LINES ──
+  const sigmaLines = [
+    [s1hi, '#ff9800', '1σ', 0.45],
+    [s2hi, '#e040fb', '2σ', 0.55],
+    [ucl,  '#ff4060', 'UCL(3σ)', 0.9],
+  ];
+  if (s1lo > 0) sigmaLines.push([s1lo, '#ff9800', '-1σ', 0.35]);
+  if (s2lo > 0) sigmaLines.push([s2lo, '#e040fb', '-2σ', 0.45]);
+  if (lcl  > 0) sigmaLines.push([lcl,  '#ff4060', 'LCL', 0.9]);
+
+  sigmaLines.forEach(([val,col,lbl,alpha])=>{
+    if(val<0) return;
+    const y=py(val);
+    ctx.beginPath(); ctx.strokeStyle=col; ctx.lineWidth=1.4*dpr;
+    ctx.setLineDash([5*dpr,4*dpr]); ctx.globalAlpha=alpha;
+    ctx.moveTo(XPAD.left,y); ctx.lineTo(XPAD.left+W,y); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+    ctx.font=`${8.5*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle=col;
+    ctx.globalAlpha=alpha+0.1;
+    ctx.fillText(`${lbl}=${val.toFixed(1)}`, XPAD.left+W+4*dpr, y+4*dpr);
+    ctx.globalAlpha=1;
+  });
+
+  // ── MEAN LINE ──
+  const ym=py(mean);
+  ctx.beginPath(); ctx.strokeStyle='#818cf8'; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
+  ctx.moveTo(XPAD.left,ym); ctx.lineTo(XPAD.left+W,ym); ctx.stroke();
+  ctx.font=`500 ${9*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#818cf8';
+  ctx.fillText(`X̄=${mean.toFixed(2)}`,XPAD.left+W+4*dpr,ym+4*dpr);
+
+  // ── AREA FILL ──
   ctx.beginPath();
-  pts.forEach((p, i) => { const x=px(i),y=py(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
-  ctx.lineTo(px(n-1), py(0)); ctx.lineTo(px(0), py(0)); ctx.closePath();
-  ctx.fillStyle = 'rgba(0,200,255,.06)'; ctx.fill();
+  pts.forEach((p,i)=>{ const x=px(i),y=py(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.lineTo(px(n-1),py(0)); ctx.lineTo(px(0),py(0)); ctx.closePath();
+  ctx.fillStyle='rgba(0,200,255,.04)'; ctx.fill();
 
-  // connecting line
-  ctx.beginPath(); ctx.strokeStyle = '#1a4060'; ctx.lineWidth = 1.2*dpr; ctx.setLineDash([]);
-  pts.forEach((p,i) => { const x=px(i),y=py(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
+  // ── CONNECTING LINE ──
+  ctx.beginPath(); ctx.strokeStyle='#1a3858'; ctx.lineWidth=1.2*dpr; ctx.setLineDash([]);
+  pts.forEach((p,i)=>{ const x=px(i),y=py(p.v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
 
-  // mean line
-  ctx.beginPath(); ctx.strokeStyle = '#818cf8'; ctx.lineWidth = 2*dpr; ctx.setLineDash([]);
-  ctx.moveTo(XPAD.left, ym); ctx.lineTo(XPAD.left+W, ym); ctx.stroke();
-  ctx.font = `500 ${9*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#818cf8';
-  ctx.fillText(`X̄ = ${mean.toFixed(2)}`, XPAD.left+W+5*dpr, ym+4*dpr);
-
-  // UCL
-  ctx.beginPath(); ctx.strokeStyle='#ff4060'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]); ctx.globalAlpha=.9;
-  ctx.moveTo(XPAD.left,yu); ctx.lineTo(XPAD.left+W,yu); ctx.stroke();
-  ctx.setLineDash([]); ctx.globalAlpha=1; ctx.fillStyle='#ff4060';
-  ctx.fillText(`UCL = ${ucl.toFixed(2)}`, XPAD.left+W+5*dpr, yu+4*dpr);
-
-  // LCL (only if > 0)
-  if (lcl > 0.01) {
-    ctx.beginPath(); ctx.strokeStyle='#00e87a'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]); ctx.globalAlpha=.9;
-    ctx.moveTo(XPAD.left,yl); ctx.lineTo(XPAD.left+W,yl); ctx.stroke();
-    ctx.setLineDash([]); ctx.globalAlpha=1; ctx.fillStyle='#00e87a';
-    ctx.fillText(`LCL = ${lcl.toFixed(2)}`, XPAD.left+W+5*dpr, yl+4*dpr);
-  }
-
-  // dots
-  pts.forEach((p, i) => {
+  // ── DOTS ──
+  pts.forEach((p,i)=>{
     const x=px(i), y=py(p.v);
-    const isSig = sigSet.has(i);
-    const isRun = runSet.has(i) && !isSig;
-    const isH   = xHov === i;
-    const col   = isSig ? '#ff4060' : isRun ? '#ffaa20' : '#00c8ff';
-    const r     = isH ? 8*dpr : p.v > 0 ? 4.5*dpr : 3*dpr;
+    const rSet=ptSigs[i];
+    const rule=topRule(rSet);
+    const col=rule ? RCOL[rule] : (p.v>0?'#00c8ff':'#2a4a6a');
+    const isH=xHov===i;
+    const r=isH ? 8.5*dpr : (p.v>0 ? 5*dpr : 3.5*dpr);
 
-    if (isH) {
-      const g = ctx.createRadialGradient(x,y,0,x,y,20*dpr);
-      g.addColorStop(0, col+'50'); g.addColorStop(1, col+'00');
-      ctx.beginPath(); ctx.arc(x,y,20*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    if(isH){
+      const g=ctx.createRadialGradient(x,y,0,x,y,22*dpr);
+      g.addColorStop(0,col+'55'); g.addColorStop(1,col+'00');
+      ctx.beginPath(); ctx.arc(x,y,22*dpr,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
     }
-    if (isSig || isRun) {
-      ctx.beginPath(); ctx.arc(x,y,r+3*dpr,0,Math.PI*2); ctx.fillStyle=col+'28'; ctx.fill();
+    if(rule){
+      // pulsing ring
+      ctx.beginPath(); ctx.arc(x,y,r+4*dpr,0,Math.PI*2); ctx.fillStyle=col+'20'; ctx.fill();
+      ctx.beginPath(); ctx.arc(x,y,r+2*dpr,0,Math.PI*2); ctx.fillStyle=col+'35'; ctx.fill();
     }
-    ctx.beginPath(); ctx.arc(x,y,r+1.5*dpr,0,Math.PI*2); ctx.fillStyle=col+'20'; ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,r+1.5*dpr,0,Math.PI*2); ctx.fillStyle=col+'25'; ctx.fill();
     ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
-    if (r > 3.5*dpr) {
-      ctx.beginPath(); ctx.arc(x,y,r*0.35,0,Math.PI*2); ctx.fillStyle='#00000060'; ctx.fill();
+    if(r>4*dpr){ ctx.beginPath(); ctx.arc(x,y,r*0.32,0,Math.PI*2); ctx.fillStyle='#00000060'; ctx.fill(); }
+
+    // rule label above signal dots
+    if(rule && r>4*dpr){
+      const rn=rule.toUpperCase();
+      ctx.font=`600 ${7.5*dpr}px 'IBM Plex Mono',monospace`;
+      ctx.textAlign='center'; ctx.fillStyle=col;
+      ctx.globalAlpha=isH?1:0.8;
+      ctx.fillText(rn, x, y-r-4*dpr);
+      ctx.globalAlpha=1;
     }
   });
 }
 
-// ── mR CHART ────────────────────────────────────────────────────────
-const mrCanvas = document.getElementById('mr-canvas');
+// ═══════════════════════════════════════════════════════
+//  mR CHART
+// ═══════════════════════════════════════════════════════
+const mrc = document.getElementById('mrc');
 
 function drawMR() {
-  const pts = getFilteredPts();
-  if (pts.length < 2) return;
-  const { mrMean, uclMr, mr } = computeXmR(pts);
+  const pts = getPts();
+  if(pts.length<2) return;
+  const st  = computeStats(pts);
+  const {mr,mrMean,uclMr} = st;
 
-  const ctx = mrCanvas.getContext('2d');
-  const CW  = mrCanvas.width, CH = mrCanvas.height;
-  const W   = CW - MRPAD.left - MRPAD.right;
-  const H   = CH - MRPAD.top  - MRPAD.bottom;
-  const n   = mr.length;
+  const ctx=mrc.getContext('2d');
+  const CW=mrc.width, CH=mrc.height;
+  const W=CW-MRPAD.left-MRPAD.right, H=CH-MRPAD.top-MRPAD.bottom;
+  const n=mr.length;
+  ctx.clearRect(0,0,CW,CH);
 
-  ctx.clearRect(0, 0, CW, CH);
+  const maxV=Math.max(...mr,uclMr)*1.1+0.5;
+  function px(i){return MRPAD.left+(i/Math.max(n-1,1))*W;}
+  function py(v){return MRPAD.top+(1-v/maxV)*H;}
 
-  const maxV = Math.max(...mr, uclMr) * 1.1 + 0.5;
-  function px(i) { return MRPAD.left + (i / Math.max(n-1,1)) * W; }
-  function py(v) { return MRPAD.top  + (1 - v / maxV) * H; }
+  const base=`${10*dpr}px 'IBM Plex Mono',monospace`;
+  const yStep=maxV>10?2:1;
+  for(let v=0;v<=Math.ceil(maxV);v+=yStep){
+    const y=py(v);
+    ctx.beginPath(); ctx.strokeStyle='#0d1824'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(MRPAD.left,y); ctx.lineTo(MRPAD.left+W,y); ctx.stroke();
+    ctx.font=base; ctx.textAlign='right'; ctx.fillStyle='#2a3f5c';
+    ctx.fillText(v,MRPAD.left-7*dpr,y+4*dpr);
+  }
 
-  const step = Math.max(1, Math.round(n / 12));
-  const yStep = maxV > 10 ? 2 : 1;
-  const yTicks = []; for (let v=0; v<=Math.ceil(maxV); v+=yStep) yTicks.push(v);
-
-  drawYGrid(ctx, MRPAD, W, H, yTicks, maxV);
-  // x labels aligned to pts[i+1]
-  const mrPts = pts.slice(1);
-  drawXLabels(ctx, mrPts, px, MRPAD, H, step);
-  drawAxes(ctx, MRPAD, W, H);
-
-  const yu = py(uclMr), ym = py(mrMean);
-  ctx.fillStyle = 'rgba(255,64,96,.04)';
-  ctx.fillRect(MRPAD.left, MRPAD.top, W, yu - MRPAD.top);
-  ctx.fillStyle = 'rgba(255,170,32,.02)';
-  ctx.fillRect(MRPAD.left, yu, W, MRPAD.top+H - yu);
-
-  // bars
-  const barW = Math.max(2*dpr, Math.min(16*dpr, W/n * 0.55));
-  mr.forEach((v, i) => {
-    const x=px(i), barH=py(0)-py(v), y2=py(v);
-    const isHi = v > uclMr;
-    const isH  = mrHov === i;
-    const col  = isHi ? '#ff4060' : '#ffaa20';
-    ctx.fillStyle = col + (isH?'bb':'55');
-    ctx.fillRect(x - barW/2, y2, barW, barH);
-    ctx.strokeStyle = col + (isH ? 'ff' : '99');
-    ctx.lineWidth = 1*dpr; ctx.setLineDash([]);
-    ctx.strokeRect(x - barW/2, y2, barW, barH);
+  const step=Math.max(1,Math.round(n/12));
+  const mrPts=pts.slice(1);
+  ctx.textAlign='center';
+  mrPts.forEach((p,i)=>{
+    if(i%step!==0 && i!==n-1) return;
+    const x=px(i);
+    ctx.beginPath(); ctx.strokeStyle='#0a1420'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.moveTo(x,MRPAD.top); ctx.lineTo(x,MRPAD.top+H); ctx.stroke();
+    ctx.fillStyle='#2a3f5c'; ctx.font=`${9.5*dpr}px 'IBM Plex Mono',monospace`;
+    ctx.fillText(p.d.slice(5),x,MRPAD.top+H+15*dpr);
   });
 
-  // connecting line
-  ctx.beginPath(); ctx.strokeStyle = '#3a4a28'; ctx.lineWidth = 1*dpr; ctx.setLineDash([3*dpr,3*dpr]);
-  mr.forEach((v,i) => { const x=px(i),y=py(v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle='#1a2840'; ctx.lineWidth=dpr; ctx.setLineDash([]);
+  ctx.moveTo(MRPAD.left,MRPAD.top); ctx.lineTo(MRPAD.left,MRPAD.top+H); ctx.lineTo(MRPAD.left+W,MRPAD.top+H); ctx.stroke();
+
+  // zone
+  ctx.fillStyle='rgba(255,64,96,.04)';
+  ctx.fillRect(MRPAD.left,MRPAD.top,W,py(uclMr)-MRPAD.top);
+
+  // bars
+  const barW=Math.max(2*dpr, Math.min(14*dpr, W/n*0.55));
+  mr.forEach((v,i)=>{
+    const x=px(i), bH=py(0)-py(v), y2=py(v);
+    const isHi=v>uclMr, isH=mrHov===i;
+    const col=isHi?'#ff4060':'#ffaa20';
+    ctx.fillStyle=col+(isH?'cc':'55'); ctx.fillRect(x-barW/2,y2,barW,bH);
+    ctx.strokeStyle=col+(isH?'ff':'88'); ctx.lineWidth=dpr; ctx.setLineDash([]);
+    ctx.strokeRect(x-barW/2,y2,barW,bH);
+  });
+
+  // line
+  ctx.beginPath(); ctx.strokeStyle='#3a4428'; ctx.lineWidth=dpr; ctx.setLineDash([3*dpr,3*dpr]);
+  mr.forEach((v,i)=>{ const x=px(i),y=py(v); i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }); ctx.stroke();
   ctx.setLineDash([]);
 
-  // mR̄ line
+  // mR̄
+  const ym=py(mrMean);
   ctx.beginPath(); ctx.strokeStyle='#4a6a8a'; ctx.lineWidth=2*dpr; ctx.setLineDash([]);
   ctx.moveTo(MRPAD.left,ym); ctx.lineTo(MRPAD.left+W,ym); ctx.stroke();
   ctx.font=`500 ${9*dpr}px 'IBM Plex Mono',monospace`; ctx.textAlign='left'; ctx.fillStyle='#4a6a8a';
-  ctx.fillText(`mR̄ = ${mrMean.toFixed(2)}`, MRPAD.left+W+5*dpr, ym+4*dpr);
+  ctx.fillText(`mR̄=${mrMean.toFixed(2)}`,MRPAD.left+W+4*dpr,ym+4*dpr);
 
   // UCL(mR)
-  ctx.beginPath(); ctx.strokeStyle='#ff4060'; ctx.lineWidth=1.5*dpr; ctx.setLineDash([6*dpr,4*dpr]); ctx.globalAlpha=.9;
-  ctx.moveTo(MRPAD.left,yu); ctx.lineTo(MRPAD.left+W,yu); ctx.stroke();
-  ctx.setLineDash([]); ctx.globalAlpha=1; ctx.fillStyle='#ff4060';
-  ctx.fillText(`UCL = ${uclMr.toFixed(2)}`, MRPAD.left+W+5*dpr, yu+4*dpr);
+  const yu=py(uclMr);
+  ctx.beginPath(); ctx.strokeStyle='#ff4060'; ctx.lineWidth=1.4*dpr; ctx.setLineDash([5*dpr,4*dpr]); ctx.globalAlpha=.9;
+  ctx.moveTo(MRPAD.left,yu); ctx.lineTo(MRPAD.left+W,yu); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+  ctx.textAlign='left'; ctx.fillStyle='#ff4060';
+  ctx.fillText(`UCL=${uclMr.toFixed(2)}`,MRPAD.left+W+4*dpr,yu+4*dpr);
 
   // dots
-  mr.forEach((v, i) => {
-    const x=px(i), y=py(v);
-    const isHi=v>uclMr, isH=mrHov===i;
-    const col=isHi?'#ff4060':'#ffaa20';
-    if(isH){
-      const g=ctx.createRadialGradient(x,y,0,x,y,16*dpr);
-      g.addColorStop(0,col+'50'); g.addColorStop(1,col+'00');
-      ctx.beginPath();ctx.arc(x,y,16*dpr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
-    }
-    ctx.beginPath();ctx.arc(x,y,isH?6*dpr:3.5*dpr,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+  mr.forEach((v,i)=>{
+    const x=px(i),y=py(v),isHi=v>uclMr,isH=mrHov===i,col=isHi?'#ff4060':'#ffaa20';
+    if(isH){const g=ctx.createRadialGradient(x,y,0,x,y,14*dpr);g.addColorStop(0,col+'50');g.addColorStop(1,col+'00');ctx.beginPath();ctx.arc(x,y,14*dpr,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();}
+    ctx.beginPath(); ctx.arc(x,y,isH?6*dpr:3.5*dpr,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
   });
 }
 
-// ── RESIZE ──────────────────────────────────────────────────────────
-function resizeAll() {
-  const pts = getFilteredPts();
-  const n   = pts.length;
-  const xH  = Math.min(420, Math.max(280, (xCanvas.parentElement.clientWidth - 64) * 0.32));
-  const mrH = Math.min(260, Math.max(160, (mrCanvas.parentElement.clientWidth - 64) * 0.2));
-  setupCanvas(xCanvas,  xH);
-  setupCanvas(mrCanvas, mrH);
-  rebuildCharts();
+// ═══════════════════════════════════════════════════════
+//  RESIZE + REBUILD
+// ═══════════════════════════════════════════════════════
+function rebuildAll() {
+  const pts    = getPts();
+  const st     = computeStats(pts);
+  const ptSigs = detectAll(pts, st);
+  updateKPI(pts, st, ptSigs);
+  buildSigGrid(pts, st, ptSigs);
+
+  const xH  = Math.min(460, Math.max(300, (xc.parentElement.clientWidth-56)*0.36));
+  const mrH = Math.min(240, Math.max(150, (mrc.parentElement.clientWidth-56)*0.19));
+  setupCanvas(xc,  xH);
+  setupCanvas(mrc, mrH);
+  drawX(); drawMR();
 }
 
-function rebuildCharts() {
-  const pts   = getFilteredPts();
-  const stats = computeXmR(pts);
-  const sigs  = detectSignals(pts, stats.mean, stats.ucl, stats.lcl);
-  updateKPI(pts, stats, sigs);
-  buildSignalList(pts, stats, sigs);
-  drawX();
-  drawMR();
-}
+// ═══════════════════════════════════════════════════════
+//  TOOLTIPS
+// ═══════════════════════════════════════════════════════
+const WDAY = ['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+const RLABEL = { r1:'R1 – poza NPL', r2:'R2 – 2/3 za 2σ', r3:'R3 – 3/5 za 1σ', r4:'R4 – run 8+' };
 
-function rebuildAll() { resizeAll(); }
-
-// ── TOOLTIPS ────────────────────────────────────────────────────────
-function showTT(e, html) {
-  tt.style.display = 'block'; tt.innerHTML = html;
+function posTT(e) {
   let lx=e.clientX+16, ly=e.clientY-10;
-  if (lx+280>window.innerWidth) lx=e.clientX-296;
-  if (ly+200>window.innerHeight) ly=e.clientY-205;
+  if(lx+290>window.innerWidth) lx=e.clientX-306;
+  if(ly+240>window.innerHeight) ly=e.clientY-245;
   tt.style.left=lx+'px'; tt.style.top=ly+'px';
 }
 
-xCanvas.addEventListener('mousemove', e => {
-  const pts   = getFilteredPts();
-  const stats = computeXmR(pts);
-  const sigs  = detectSignals(pts, stats.mean, stats.ucl, stats.lcl);
-  const sigSet = new Set(sigs.filter(s=>s.type==='ucl').map(s=>s.i));
-  const runSet = new Set(sigs.filter(s=>s.type==='run').map(s=>s.i));
-  const n=pts.length;
-  const W=xCanvas.width-XPAD.left-XPAD.right;
-  const rect=xCanvas.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*dpr;
+xc.addEventListener('mousemove', e=>{
+  const pts=getPts(); if(!pts.length) return;
+  const st=computeStats(pts); const ptSigs=detectAll(pts,st);
+  const n=pts.length, W=xc.width-XPAD.left-XPAD.right;
+  const rect=xc.getBoundingClientRect(), mx=(e.clientX-rect.left)*dpr;
   function px(i){return XPAD.left+(i/Math.max(n-1,1))*W;}
-  let found=null,minD=20*dpr;
-  pts.forEach((p,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
+  let found=null, minD=20*dpr;
+  pts.forEach((_,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
   if(found!==null){
-    const p=pts[found],isSig=sigSet.has(found),isRun=runSet.has(found)&&!isSig;
-    const wday=['Nd','Pn','Wt','Śr','Cz','Pt','So'][new Date(p.d+'T00:00:00').getDay()];
+    const p=pts[found], rSet=ptSigs[found];
+    const wday=WDAY[new Date(p.d+'T00:00:00').getDay()];
     const mr=found>0?Math.abs(p.v-pts[found-1].v):'-';
-    showTT(e,`<div class="tt-date">${wday} · ${p.d}</div><hr>
-      <div class="tt-row"><span class="tt-k">Throughput</span><span class="tt-v" style="color:${isSig?'#ff4060':'#00c8ff'}">${p.v} elem.</span></div>
-      <div class="tt-row"><span class="tt-k">mR</span><span class="tt-v">${mr}</span></div>
-      <div class="tt-row"><span class="tt-k">X̄ / UCL / LCL</span><span class="tt-v">${stats.mean.toFixed(1)} / ${stats.ucl.toFixed(1)} / ${stats.lcl.toFixed(1)}</span></div>
-      ${isSig?`<div class="tt-sig">⚠ Sygnał: ${p.v>stats.ucl?'powyżej UCL':'poniżej LCL'}</div>`:''}
-      ${isRun?`<div class="tt-sig run">⚠ Run 8+ po jednej stronie X̄</div>`:''}`);
-    xCanvas.style.cursor='default';
+    const sigsHtml=rSet.size?[...rSet].map(r=>`<div class="tt-sig"><div class="dot" style="background:${RCOL[r]}"></div>${RLABEL[r]}</div>`).join(''):'';
+    tt.style.display='block';
+    tt.innerHTML=`<div class="tt-date">${wday} · ${p.d}</div>
+      <div class="tt-hr"></div>
+      <div class="tt-row"><span class="tt-k">Throughput</span><span class="tt-v" style="color:${topRule(rSet)?RCOL[topRule(rSet)]:'#00c8ff'}">${p.v} elem.</span></div>
+      <div class="tt-row"><span class="tt-k">Moving Range</span><span class="tt-v">${mr}</span></div>
+      <div class="tt-row"><span class="tt-k">X̄ / 1σ / 2σ / UCL</span><span class="tt-v">${st.mean.toFixed(1)} / ${st.s1hi.toFixed(1)} / ${st.s2hi.toFixed(1)} / ${st.ucl.toFixed(1)}</span></div>
+      ${sigsHtml?`<div class="tt-hr"></div><div class="tt-sigs">${sigsHtml}</div>`:''}`;
+    posTT(e); xc.style.cursor='default';
     if(xHov!==found){xHov=found;drawX();}
   } else {
-    tt.style.display='none'; xCanvas.style.cursor='crosshair';
+    tt.style.display='none'; xc.style.cursor='crosshair';
     if(xHov!==null){xHov=null;drawX();}
   }
 });
-xCanvas.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(xHov!==null){xHov=null;drawX();} });
+xc.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(xHov!==null){xHov=null;drawX();} });
 
-mrCanvas.addEventListener('mousemove', e => {
-  const pts   = getFilteredPts();
-  const stats = computeXmR(pts);
-  const n=stats.mr.length;
-  const W=mrCanvas.width-MRPAD.left-MRPAD.right;
-  const rect=mrCanvas.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*dpr;
+mrc.addEventListener('mousemove', e=>{
+  const pts=getPts(); if(pts.length<2) return;
+  const st=computeStats(pts); const {mr,mrMean,uclMr}=st;
+  const n=mr.length, W=mrc.width-MRPAD.left-MRPAD.right;
+  const rect=mrc.getBoundingClientRect(), mx=(e.clientX-rect.left)*dpr;
   function px(i){return MRPAD.left+(i/Math.max(n-1,1))*W;}
-  let found=null,minD=22*dpr;
-  stats.mr.forEach((v,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
+  let found=null, minD=22*dpr;
+  mr.forEach((_,i)=>{const d=Math.abs(mx-px(i));if(d<minD){minD=d;found=i;}});
   if(found!==null){
-    const v=stats.mr[found],p1=pts[found],p2=pts[found+1],isHi=v>stats.uclMr;
-    showTT(e,`<div class="tt-date">mR #${found+1} · ${p2.d}</div><hr>
+    const v=mr[found], p1=pts[found], p2=pts[found+1], isHi=v>uclMr;
+    tt.style.display='block';
+    tt.innerHTML=`<div class="tt-date">mR #${found+1} · ${p2.d}</div>
+      <div class="tt-hr"></div>
       <div class="tt-row"><span class="tt-k">|ΔThroughput|</span><span class="tt-v" style="color:${isHi?'#ff4060':'#ffaa20'}">${v}</span></div>
-      <div class="tt-row"><span class="tt-k">Od (${p1.d})</span><span class="tt-v">${p1.v} elem.</span></div>
-      <div class="tt-row"><span class="tt-k">Do (${p2.d})</span><span class="tt-v">${p2.v} elem.</span></div>
-      <div class="tt-row"><span class="tt-k">mR̄ / UCL(mR)</span><span class="tt-v">${stats.mrMean.toFixed(2)} / ${stats.uclMr.toFixed(2)}</span></div>
-      ${isHi?`<div class="tt-sig">⚠ Powyżej UCL(mR)</div>`:''}`);
-    mrCanvas.style.cursor='default';
+      <div class="tt-row"><span class="tt-k">Od → Do</span><span class="tt-v">${p1.v} → ${p2.v}</span></div>
+      <div class="tt-row"><span class="tt-k">mR̄ / UCL(mR)</span><span class="tt-v">${mrMean.toFixed(2)} / ${uclMr.toFixed(2)}</span></div>
+      ${isHi?`<div class="tt-hr"></div><div class="tt-sigs"><div class="tt-sig"><div class="dot" style="background:#ff4060"></div>Powyżej UCL(mR) – wysoka zmienność</div></div>`:''}`;
+    posTT(e); mrc.style.cursor='default';
     if(mrHov!==found){mrHov=found;drawMR();}
   } else {
-    tt.style.display='none'; mrCanvas.style.cursor='crosshair';
+    tt.style.display='none'; mrc.style.cursor='crosshair';
     if(mrHov!==null){mrHov=null;drawMR();}
   }
 });
-mrCanvas.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(mrHov!==null){mrHov=null;drawMR();} });
+mrc.addEventListener('mouseleave',()=>{ tt.style.display='none'; if(mrHov!==null){mrHov=null;drawMR();} });
 
-// ── INIT ─────────────────────────────────────────────────────────────
-window.addEventListener('resize', resizeAll);
-resizeAll();
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+window.addEventListener('resize', rebuildAll);
+rebuildAll();
 </script>
 </body>
 </html>
