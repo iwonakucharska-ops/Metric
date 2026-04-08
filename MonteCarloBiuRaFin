@@ -1,1 +1,890 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monte Carlo — BiuRaFin Sprint Forecast</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
 
+  :root {
+    --bg: #0b0d14;
+    --surface: #111320;
+    --surface2: #181c2e;
+    --border: #252a45;
+    --accent: #5b7fff;
+    --accent2: #ff5b8a;
+    --accent3: #5bffb8;
+    --accent4: #ffce5b;
+    --text: #e8eaf6;
+    --muted: #636b99;
+    --p10: #ff5b8a;
+    --p50: #5b7fff;
+    --p85: #5bffb8;
+    --p95: #ffce5b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(91,127,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,127,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 48px;
+  }
+
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 400;
+    margin-top: 4px;
+  }
+
+  /* Config panel */
+  .config-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+  }
+
+  .config-group label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .config-group input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+    height: 4px;
+  }
+
+  .config-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  .run-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: opacity 0.2s, transform 0.15s;
+    align-self: flex-end;
+  }
+
+  .run-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .run-btn:active { transform: translateY(0); }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card.p10::before { background: var(--p10); }
+  .stat-card.p50::before { background: var(--p50); }
+  .stat-card.p85::before { background: var(--p85); }
+  .stat-card.p95::before { background: var(--p95); }
+
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+  }
+
+  .stat-card.p10 .stat-value { color: var(--p10); }
+  .stat-card.p50 .stat-value { color: var(--p50); }
+  .stat-card.p85 .stat-value { color: var(--p85); }
+  .stat-card.p95 .stat-value { color: var(--p95); }
+
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Charts grid */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .chart-card.wide {
+    grid-column: 1 / -1;
+  }
+
+  .chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+  }
+
+  .chart-wrap.tall { height: 320px; }
+
+  /* Backlog table */
+  .backlog-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(37,42,69,0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: var(--surface2); }
+
+  tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+  }
+
+  .id-cell {
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .type-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .badge-pbi { background: rgba(91,127,255,0.15); color: var(--accent); }
+  .badge-bug { background: rgba(255,91,138,0.15); color: var(--p10); }
+  .badge-zwrotka { background: rgba(255,206,91,0.15); color: var(--accent4); }
+
+  .state-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .state-active { background: rgba(99,107,153,0.2); color: var(--muted); }
+  .state-review { background: rgba(91,127,255,0.15); color: var(--accent); }
+  .state-test { background: rgba(255,206,91,0.15); color: var(--accent4); }
+  .state-progress { background: rgba(91,255,184,0.15); color: var(--accent3); }
+
+  .effort-cell {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .tag-cell {
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Percentile legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <span class="tag">Monte Carlo Simulation · BiuRaFin · Sprint 89</span>
+    <h1>Sprint Delivery Forecast</h1>
+    <p class="subtitle">Symulacja dostarczenia backlogu na podstawie historycznej zmienności prędkości zespołu</p>
+  </header>
+
+  <!-- Config -->
+  <div class="config-panel">
+    <div class="config-group">
+      <label>Liczba symulacji</label>
+      <input type="range" id="simCount" min="1000" max="20000" step="1000" value="10000">
+      <div class="config-value" id="simCountVal">10 000</div>
+    </div>
+    <div class="config-group">
+      <label>Śr. velocity (SP/sprint)</label>
+      <input type="range" id="avgVelocity" min="20" max="100" step="1" value="52">
+      <div class="config-value" id="avgVelocityVal">52</div>
+    </div>
+    <div class="config-group">
+      <label>Odch. std. velocity</label>
+      <input type="range" id="stdVelocity" min="5" max="30" step="1" value="14">
+      <div class="config-value" id="stdVelocityVal">14</div>
+    </div>
+    <div class="config-group">
+      <label>Śr. effort/item (SP)</label>
+      <input type="range" id="avgEffort" min="2" max="13" step="1" value="5">
+      <div class="config-value" id="avgEffortVal">5</div>
+    </div>
+    <div class="config-group">
+      <label>Odch. effort/item (SP)</label>
+      <input type="range" id="stdEffort" min="1" max="8" step="1" value="3">
+      <div class="config-value" id="stdEffortVal">3</div>
+    </div>
+    <div class="config-group" style="display:flex;flex-direction:column;justify-content:flex-end;">
+      <button class="run-btn" onclick="runSimulation()">▶ Uruchom symulację</button>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stats-row">
+    <div class="stat-card p10">
+      <div class="stat-label">P10 — Pesymistyczny</div>
+      <div class="stat-value" id="stat-p10">—</div>
+      <div class="stat-sub">sprintów do zakończenia</div>
+    </div>
+    <div class="stat-card p50">
+      <div class="stat-label">P50 — Mediana</div>
+      <div class="stat-value" id="stat-p50">—</div>
+      <div class="stat-sub">sprintów do zakończenia</div>
+    </div>
+    <div class="stat-card p85">
+      <div class="stat-label">P85 — Bezpieczny</div>
+      <div class="stat-value" id="stat-p85">—</div>
+      <div class="stat-sub">sprintów do zakończenia</div>
+    </div>
+    <div class="stat-card p95">
+      <div class="stat-label">P95 — Konserwatywny</div>
+      <div class="stat-value" id="stat-p95">—</div>
+      <div class="stat-sub">sprintów do zakończenia</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <!-- Histogram -->
+    <div class="chart-card">
+      <div class="chart-title">Rozkład: Sprints to Complete</div>
+      <div class="legend" id="legend-hist">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--p10)"></span>P10</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--p50)"></span>P50</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--p85)"></span>P85</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--p95)"></span>P95</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="histChart"></canvas>
+      </div>
+    </div>
+
+    <!-- CDF -->
+    <div class="chart-card">
+      <div class="chart-title">CDF — Skumulowane prawdopodobieństwo</div>
+      <div class="chart-wrap">
+        <canvas id="cdfChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Throughput distribution -->
+    <div class="chart-card">
+      <div class="chart-title">Rozkład velocity (symulowanej)</div>
+      <div class="chart-wrap">
+        <canvas id="velocityChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Burndown fan -->
+    <div class="chart-card">
+      <div class="chart-title">Prognoza Burndown (wachlarz percentyli)</div>
+      <div class="chart-wrap">
+        <canvas id="burndownChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Item type breakdown -->
+    <div class="chart-card wide">
+      <div class="chart-title">Szacowany wysiłek wg typu elementu backlogu</div>
+      <div class="chart-wrap">
+        <canvas id="effortChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Backlog table -->
+  <div class="backlog-card">
+    <div class="chart-title">Backlog — Sprint 89 (17 elementów)</div>
+    <table id="backlogTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tytuł</th>
+          <th>Typ</th>
+          <th>Stan</th>
+          <th>Symul. Effort (SP)</th>
+          <th>Tagi</th>
+        </tr>
+      </thead>
+      <tbody id="backlogBody"></tbody>
+    </table>
+  </div>
+
+  <footer>BiuRaFin · Sprint 89 · Monte Carlo Simulation · Generated by Claude</footer>
+</div>
+
+<script>
+// ──────────────────────────────────────────────
+// BACKLOG DATA (from Excel)
+// ──────────────────────────────────────────────
+const backlog = [
+  {id:206846, title:"Całkowita Wartość początkowa na pierwszy dzień roku obrotowego - KPIR i KH", type:"PBI", state:"Active", tags:"Must have"},
+  {id:142220, title:"Zmiana księgowości KH v KPiR v import/aktualizacja podstawy składki zdrowotnej", type:"PBI", state:"Active", tags:"Good to have"},
+  {id:180396, title:"Import dokumentu z EPP vs Rozrachunek - EP", type:"PBI", state:"Ready for Test", tags:""},
+  {id:205490, title:"Tworzenie rozrachunków z zapisów księgowych bez kontrahenta", type:"PBI", state:"Active", tags:""},
+  {id:203116, title:"[Rewizor] [UEPiK] W oknie status księgowy dodajemy brakujące pole Ewidencja księgowa", type:"Bug", state:"Active", tags:"Good to have"},
+  {id:214655, title:"Zestawienie „Środki trwałe amortyzowane jednorazowo" nie uwzględnia dokumentów MO", type:"PBI", state:"Active", tags:"Good to have"},
+  {id:176645, title:"Import dokumentu z EPP vs Rozrachunek - KPIR", type:"PBI", state:"Ready for Test", tags:""},
+  {id:213225, title:"Rozrachunki się nie tworzą przy imporcie z EPP", type:"Zwrotka", state:"Active", tags:""},
+  {id:208740, title:"Program serwisowy - Usuń dane Rachmistrza GT - usuwa wszystkie parametry list", type:"PBI", state:"Active", tags:"Good to have"},
+  {id:209571, title:"[KPiR] Ustawienia wspólnika - aktualizacja informacji odnośnie numeracji kolumn", type:"PBI", state:"Code Review", tags:"Good to have"},
+  {id:214722, title:"[KPiR] Kreator zmiany formy opodatkowania", type:"PBI", state:"Code Review", tags:"Good to have"},
+  {id:212556, title:"Data nadania nr KSeF w schematach ksef do kpir i ep", type:"PBI", state:"Active", tags:"nowy dev"},
+  {id:208838, title:"Optymalizacja Biura GT", type:"PBI", state:"In Progress", tags:"Should have"},
+  {id:212921, title:"[INS-26522332] Zmiana wartości początkowej w OsT", type:"PBI", state:"Code Review", tags:"Should have"},
+  {id:213046, title:"Zbiorcze usuwanie baz w biurze GT", type:"PBI", state:"Active", tags:""},
+  {id:214443, title:"Zajęcie przestrzeni dyskowej przez nadmiarowe pliki .msi", type:"Bug", state:"Active", tags:""},
+  {id:214777, title:"Kwota rozrachunku powinna się zaciągać z pola 'Kwota do zapłaty' z XML", type:"PBI", state:"Active", tags:""},
+];
+
+// ──────────────────────────────────────────────
+// PRNG (Box-Muller)
+// ──────────────────────────────────────────────
+function randn() {
+  let u=0, v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function randNormal(mu, sigma) {
+  return Math.max(0.5, mu + sigma * randn());
+}
+
+// ──────────────────────────────────────────────
+// CONFIG sliders
+// ──────────────────────────────────────────────
+function fmt(id, val, suffix='') {
+  document.getElementById(id+'Val').textContent = Number(val).toLocaleString('pl-PL') + suffix;
+}
+['simCount','avgVelocity','stdVelocity','avgEffort','stdEffort'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', () => fmt(id, el.value));
+});
+
+// ──────────────────────────────────────────────
+// Chart instances
+// ──────────────────────────────────────────────
+let charts = {};
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+const COLORS = {
+  accent:'#5b7fff', accent2:'#ff5b8a', accent3:'#5bffb8', accent4:'#ffce5b',
+  muted:'#636b99', surface:'#181c2e', border:'#252a45', text:'#e8eaf6'
+};
+
+Chart.defaults.color = COLORS.muted;
+Chart.defaults.font.family = "'Space Mono', monospace";
+Chart.defaults.font.size = 11;
+
+// ──────────────────────────────────────────────
+// MAIN SIMULATION
+// ──────────────────────────────────────────────
+let simItems = [];
+
+function runSimulation() {
+  const N = parseInt(document.getElementById('simCount').value);
+  const muV = parseFloat(document.getElementById('avgVelocity').value);
+  const sdV = parseFloat(document.getElementById('stdVelocity').value);
+  const muE = parseFloat(document.getElementById('avgEffort').value);
+  const sdE = parseFloat(document.getElementById('stdEffort').value);
+
+  const n = backlog.length; // 17 items
+
+  // Simulate effort per item (one representative draw for display)
+  simItems = backlog.map(item => {
+    let base = muE;
+    if(item.type === 'Bug') base = muE * 0.7;
+    if(item.type === 'Zwrotka') base = muE * 0.5;
+    if(item.state === 'Code Review') base *= 0.4;
+    if(item.state === 'Ready for Test') base *= 0.3;
+    if(item.state === 'In Progress') base *= 0.6;
+    return { ...item, effort: Math.max(1, Math.round(randNormal(base, sdE * 0.6))) };
+  });
+
+  // Full Monte Carlo: how many sprints to complete all N items?
+  const sprintsNeeded = [];
+  const velocitySamples = [];
+
+  for(let sim=0; sim<N; sim++) {
+    // Draw total scope for this simulation
+    let totalScope = 0;
+    for(let i=0; i<n; i++) {
+      let base = muE;
+      const t = backlog[i].type;
+      const s = backlog[i].state;
+      if(t==='Bug') base *= 0.7;
+      if(t==='Zwrotka') base *= 0.5;
+      if(s==='Code Review') base *= 0.4;
+      if(s==='Ready for Test') base *= 0.3;
+      if(s==='In Progress') base *= 0.6;
+      totalScope += Math.max(1, randNormal(base, sdE));
+    }
+
+    let remaining = totalScope;
+    let sprints = 0;
+    while(remaining > 0 && sprints < 50) {
+      const v = Math.max(1, randNormal(muV, sdV));
+      if(sim < 500) velocitySamples.push(Math.round(v));
+      remaining -= v;
+      sprints++;
+    }
+    sprintsNeeded.push(sprints);
+  }
+
+  sprintsNeeded.sort((a,b)=>a-b);
+
+  const p10 = percentile(sprintsNeeded, 10);
+  const p50 = percentile(sprintsNeeded, 50);
+  const p85 = percentile(sprintsNeeded, 85);
+  const p95 = percentile(sprintsNeeded, 95);
+
+  document.getElementById('stat-p10').textContent = p10;
+  document.getElementById('stat-p50').textContent = p50;
+  document.getElementById('stat-p85').textContent = p85;
+  document.getElementById('stat-p95').textContent = p95;
+
+  drawHistogram(sprintsNeeded, p10, p50, p85, p95);
+  drawCDF(sprintsNeeded);
+  drawVelocityChart(velocitySamples, muV);
+  drawBurndown(muV, sdV, muE, sdE, n, p95);
+  drawEffortBreakdown(simItems);
+  renderTable(simItems);
+}
+
+function percentile(sorted, p) {
+  const idx = Math.ceil((p/100) * sorted.length) - 1;
+  return sorted[Math.max(0,idx)];
+}
+
+// ──────────────────────────────────────────────
+// HISTOGRAM
+// ──────────────────────────────────────────────
+function drawHistogram(data, p10, p50, p85, p95) {
+  destroyChart('hist');
+  const min = Math.min(...data), max = Math.max(...data);
+  const bins = {};
+  for(let v of data) bins[v] = (bins[v]||0)+1;
+  const labels = Object.keys(bins).map(Number).sort((a,b)=>a-b);
+  const counts = labels.map(l => bins[l]);
+
+  const bgColors = labels.map(l => {
+    if(l <= p10) return COLORS.accent2+'99';
+    if(l <= p50) return COLORS.accent+'99';
+    if(l <= p85) return COLORS.accent3+'99';
+    return COLORS.accent4+'99';
+  });
+
+  charts['hist'] = new Chart(document.getElementById('histChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{
+      label: 'Symulacje',
+      data: counts,
+      backgroundColor: bgColors,
+      borderWidth: 0,
+      borderRadius: 4,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.raw} symulacji` } },
+        annotation: {}
+      },
+      scales: {
+        x: { grid: { color: COLORS.border }, ticks: { color: COLORS.muted }, title: { display: true, text: 'Liczba sprintów', color: COLORS.muted } },
+        y: { grid: { color: COLORS.border }, ticks: { color: COLORS.muted }, title: { display: true, text: 'Liczba symulacji', color: COLORS.muted } }
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────
+// CDF
+// ──────────────────────────────────────────────
+function drawCDF(data) {
+  destroyChart('cdf');
+  const bins = {};
+  for(let v of data) bins[v] = (bins[v]||0)+1;
+  const labels = Object.keys(bins).map(Number).sort((a,b)=>a-b);
+  let cum = 0;
+  const cdfVals = labels.map(l => { cum += bins[l]; return +(cum/data.length*100).toFixed(1); });
+
+  charts['cdf'] = new Chart(document.getElementById('cdfChart'), {
+    type: 'line',
+    data: { labels, datasets: [{
+      label: 'P(ukończenie ≤ x sprintów)',
+      data: cdfVals,
+      borderColor: COLORS.accent,
+      backgroundColor: COLORS.accent+'22',
+      fill: true,
+      tension: 0.4,
+      pointRadius: 0,
+      borderWidth: 2.5,
+    },{
+      label: 'P50',
+      data: labels.map(()=>50),
+      borderColor: COLORS.accent+'44',
+      borderDash: [6,4],
+      pointRadius: 0,
+      borderWidth: 1,
+    },{
+      label: 'P85',
+      data: labels.map(()=>85),
+      borderColor: COLORS.accent3+'66',
+      borderDash: [6,4],
+      pointRadius: 0,
+      borderWidth: 1,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.raw}% symulacji ukończyło w ≤${ctx.label} sprintach` } }
+      },
+      scales: {
+        x: { grid:{color:COLORS.border}, ticks:{color:COLORS.muted}, title:{display:true,text:'Sprinty',color:COLORS.muted} },
+        y: { grid:{color:COLORS.border}, ticks:{color:COLORS.muted, callback:v=>v+'%'}, min:0,max:100, title:{display:true,text:'Prawdopodobieństwo',color:COLORS.muted} }
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────
+// VELOCITY DISTRIBUTION
+// ──────────────────────────────────────────────
+function drawVelocityChart(samples, muV) {
+  destroyChart('velocity');
+  const bins = {};
+  for(let v of samples) bins[v]=(bins[v]||0)+1;
+  const labels = Object.keys(bins).map(Number).sort((a,b)=>a-b);
+
+  charts['velocity'] = new Chart(document.getElementById('velocityChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{
+      label: 'Częstość',
+      data: labels.map(l=>bins[l]||0),
+      backgroundColor: labels.map(l => l===muV ? COLORS.accent3+'cc' : COLORS.accent+'55'),
+      borderWidth: 0,
+      borderRadius: 3,
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.raw}× wystąpił`}} },
+      scales: {
+        x: {grid:{color:COLORS.border},ticks:{color:COLORS.muted},title:{display:true,text:'Story Points / sprint',color:COLORS.muted}},
+        y: {grid:{color:COLORS.border},ticks:{color:COLORS.muted},title:{display:true,text:'Częstość',color:COLORS.muted}}
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────
+// BURNDOWN FAN
+// ──────────────────────────────────────────────
+function drawBurndown(muV, sdV, muE, sdE, n, maxS) {
+  destroyChart('burndown');
+
+  const totalSP_p10 = n * Math.max(1,(muE - sdE));
+  const totalSP_med = n * muE;
+  const totalSP_p85 = n * (muE + sdE);
+  const totalSP_p95 = n * (muE + 1.5*sdE);
+
+  const sprintCount = Math.max(maxS + 1, 6);
+  const labels = Array.from({length:sprintCount+1},(_,i)=>i===0?'Start':`S${i}`);
+
+  function burnLine(total, vel) {
+    let rem = total;
+    return labels.map(() => { const v = rem; rem = Math.max(0,rem-vel); return +v.toFixed(1); });
+  }
+
+  charts['burndown'] = new Chart(document.getElementById('burndownChart'), {
+    type:'line',
+    data:{labels, datasets:[
+      {label:'P95 scope',data:burnLine(totalSP_p95,muV-sdV*0.5),borderColor:COLORS.accent4,borderDash:[4,4],pointRadius:0,borderWidth:1.5,fill:false,tension:0},
+      {label:'P85 scope',data:burnLine(totalSP_p85,muV),borderColor:COLORS.accent3,borderDash:[4,4],pointRadius:0,borderWidth:1.5,fill:false,tension:0},
+      {label:'Mediana',data:burnLine(totalSP_med,muV),borderColor:COLORS.accent,pointRadius:3,borderWidth:2.5,fill:false,tension:0},
+      {label:'Optimistic',data:burnLine(totalSP_p10,muV+sdV*0.5),borderColor:COLORS.accent2,borderDash:[4,4],pointRadius:0,borderWidth:1.5,fill:false,tension:0},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,labels:{color:COLORS.muted,boxWidth:12,font:{size:10}}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw} SP pozostało`}}
+      },
+      scales:{
+        x:{grid:{color:COLORS.border},ticks:{color:COLORS.muted}},
+        y:{grid:{color:COLORS.border},ticks:{color:COLORS.muted},title:{display:true,text:'Story Points pozostało',color:COLORS.muted},min:0}
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────
+// EFFORT BREAKDOWN
+// ──────────────────────────────────────────────
+function drawEffortBreakdown(items) {
+  destroyChart('effort');
+
+  const byType = {};
+  for(const it of items) {
+    byType[it.type] = (byType[it.type]||0) + it.effort;
+  }
+  const labels = Object.keys(byType);
+  const vals = labels.map(l=>byType[l]);
+
+  const byState = {};
+  for(const it of items) {
+    byState[it.state] = (byState[it.state]||0) + it.effort;
+  }
+  const sLabels = Object.keys(byState);
+  const sVals = sLabels.map(l=>byState[l]);
+
+  charts['effort'] = new Chart(document.getElementById('effortChart'), {
+    type:'bar',
+    data:{
+      labels: items.map(it=>`#${it.id}`),
+      datasets:[{
+        label:'Symulowany Effort (SP)',
+        data: items.map(it=>it.effort),
+        backgroundColor: items.map(it =>
+          it.type==='Bug' ? COLORS.accent2+'bb' :
+          it.type==='Zwrotka' ? COLORS.accent4+'bb' : COLORS.accent+'bb'
+        ),
+        borderWidth:0,
+        borderRadius:4,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      indexAxis:'x',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:ctx=>{ const it=items[ctx[0].dataIndex]; return `#${it.id}`; },
+          label:ctx=>{ const it=items[ctx.dataIndex]; return [`${it.effort} SP`, it.type, it.state]; }
+        }}
+      },
+      scales:{
+        x:{grid:{color:COLORS.border},ticks:{color:COLORS.muted}},
+        y:{grid:{color:COLORS.border},ticks:{color:COLORS.muted},title:{display:true,text:'Story Points',color:COLORS.muted}}
+      }
+    }
+  });
+}
+
+// ──────────────────────────────────────────────
+// BACKLOG TABLE
+// ──────────────────────────────────────────────
+function renderTable(items) {
+  const tbody = document.getElementById('backlogBody');
+  tbody.innerHTML = '';
+  for(const it of items) {
+    const typeCls = it.type==='Bug'?'badge-bug':it.type==='Zwrotka'?'badge-zwrotka':'badge-pbi';
+    const stateCls = it.state==='Code Review'?'state-review':it.state==='Ready for Test'?'state-test':it.state==='In Progress'?'state-progress':'state-active';
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td class="id-cell">${it.id}</td>
+        <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;">${it.title}</td>
+        <td><span class="type-badge ${typeCls}">${it.type}</span></td>
+        <td><span class="state-badge ${stateCls}">${it.state}</span></td>
+        <td class="effort-cell" style="color:var(--accent3)">${it.effort} SP</td>
+        <td class="tag-cell">${it.tags||'—'}</td>
+      </tr>
+    `);
+  }
+}
+
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+window.addEventListener('load', () => {
+  runSimulation();
+});
+</script>
+</body>
+</html>
