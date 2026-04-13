@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,320 +7,108 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --surface: #141720;
-    --border: #1e2330;
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --accent: #5b8af4;
-
-    --small: #22c55e;
-    --small-bg: rgba(34,197,94,0.10);
-    --medium: #f97316;
-    --medium-bg: rgba(249,115,22,0.10);
-    --large: #ef4444;
-    --large-bg: rgba(239,68,68,0.10);
-
-    --p50: #facc15;
-    --p85: #a78bfa;
-    --p95: #f472b6;
+    --bg: #f0f2f7; --surface: #ffffff; --border: #dde1ea;
+    --text: #1a1e2a; --muted: #7c8494; --accent: #3b6fe0;
+    --small: #16a34a; --small-bg: rgba(22,163,74,0.10);
+    --medium: #ea6c00; --medium-bg: rgba(234,108,0,0.10);
+    --large: #dc2626; --large-bg: rgba(220,38,38,0.10);
+    --p50: #a16207; --p85: #6d28d9; --p95: #be185d;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 40px 32px 60px; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    padding: 40px 32px 60px;
-  }
+  header { display: flex; flex-direction: column; gap: 4px; margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 28px; }
+  header .eyebrow { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); }
+  header h1 { font-family: 'Syne', sans-serif; font-size: clamp(26px,4vw,40px); font-weight: 800; letter-spacing: -0.02em; color: var(--text); }
+  header p { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: 300; }
 
-  header {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 40px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 28px;
-  }
-  header .eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-  header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(26px, 4vw, 40px);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: #fff;
-  }
-  header p {
-    font-size: 14px;
-    color: var(--muted);
-    margin-top: 4px;
-    font-weight: 300;
-  }
+  .stats-row { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 22px; min-width: 130px; flex: 1; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+  .stat-card .label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .stat-card .value { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; line-height: 1; }
+  .stat-card .unit { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-  /* STATS ROW */
-  .stats-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 32px;
-    flex-wrap: wrap;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 22px;
-    min-width: 130px;
-    flex: 1;
-  }
-  .stat-card .label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-  .stat-card .value {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    line-height: 1;
-  }
-  .stat-card .unit {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
-  /* SIZE LEGEND */
-  .legend {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    font-family: 'DM Mono', monospace;
-  }
-  .legend-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-  .legend-line {
-    width: 28px; height: 2px;
-    display: inline-block;
-  }
+  .legend { display: flex; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   .legend-sep { color: var(--border); font-size: 18px; }
 
-  /* CHART AREA */
-  .chart-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px 20px;
-    margin-bottom: 28px;
-  }
-  .chart-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 20px;
-    letter-spacing: -0.01em;
-  }
+  .chart-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px 20px; margin-bottom: 28px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+  .chart-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; letter-spacing: -0.01em; }
+  .chart-subtitle { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 18px; }
 
-  /* SCATTER PLOT */
-  #scatter-container {
-    position: relative;
-    width: 100%;
-    height: 340px;
-  }
-  #scatter-container svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
+  #scatter-container { position: relative; width: 100%; height: 360px; }
+  #scatter-container svg { width: 100%; height: 100%; overflow: visible; }
+  #dist-container { position: relative; width: 100%; height: 220px; }
+  #dist-container svg { width: 100%; height: 100%; overflow: visible; }
 
-  /* DISTRIBUTION */
-  #dist-container {
-    position: relative;
-    width: 100%;
-    height: 220px;
+  /* REMOVE MODE */
+  .chart-top { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+  .btn-remove-mode {
+    font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 16px;
+    border-radius: 20px; border: 1px solid rgba(239,68,68,0.35);
+    background: transparent; color: var(--large); cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0;
   }
-  #dist-container svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
+  .btn-remove-mode.active { background: var(--large); color: #fff; border-color: var(--large); }
+  .btn-remove-mode:hover:not(.active) { background: rgba(239,68,68,0.1); }
+
+  .mode-bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 10px 14px; margin-bottom: 14px;
+    background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.18); border-radius: 10px;
   }
+  .mode-bar.hidden { display: none; }
+  .mode-indicator { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--large); letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--large); animation: pulse 1.2s infinite; flex-shrink: 0; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
+  .removed-chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+  .removed-chip { display: flex; align-items: center; gap: 5px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); border-radius: 20px; padding: 3px 10px; font-family: 'DM Mono', monospace; font-size: 11px; color: #fca5a5; }
+  .removed-chip button { background: none; border: none; color: #fca5a5; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; margin-left: 2px; opacity: 0.7; }
+  .removed-chip button:hover { opacity: 1; }
+  .btn-restore-all { font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn-restore-all:hover { color: var(--text); border-color: #4b5563; }
+
+  body.remove-mode .scatter-dot:not(.dot-removed) { cursor: crosshair !important; }
 
   /* TOOLTIP */
-  .tooltip {
-    position: fixed;
-    background: #1a1f2e;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    font-size: 13px;
-    z-index: 100;
-    max-width: 260px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-  }
+  .tooltip { position: fixed; background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; pointer-events: none; opacity: 0; transition: opacity 0.15s; font-size: 13px; z-index: 100; max-width: 270px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); color: var(--text); }
   .tooltip.visible { opacity: 1; }
-  .tooltip .tt-header {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-  .tooltip .tt-lead {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: 6px;
-  }
-  .tooltip .tt-row {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 3px;
-    display: flex;
-    gap: 6px;
-  }
-  .tooltip .tt-row span:first-child { color: #aaa; }
+  .tt-header { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .tt-lead { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+  .tt-row { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 6px; }
+  .tt-row span:first-child { color: #555; }
+  .tt-hint { margin-top: 10px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.06em; border-top: 1px solid var(--border); padding-top: 8px; }
 
-  /* DATA TABLE */
-  .table-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    margin-bottom: 28px;
-  }
-  .table-header {
-    padding: 18px 24px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .table-header h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  .filter-btns {
-    display: flex;
-    gap: 6px;
-  }
-  .filter-btn {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.06em;
-  }
-  .filter-btn:hover, .filter-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  thead th {
-    background: #0f1218;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 10px 16px;
-    text-align: left;
-    font-weight: 500;
-    border-bottom: 1px solid var(--border);
-  }
-  tbody tr {
-    border-bottom: 1px solid rgba(30,35,48,0.6);
-    transition: background 0.1s;
-  }
+  /* TABLE */
+  .table-section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 28px; }
+  .table-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .table-header h2 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.06em; }
+  .filter-btn:hover, .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { background: #f8f9fb; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 10px 16px; text-align: left; font-weight: 500; border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid rgba(30,35,48,0.6); transition: background 0.1s; }
   tbody tr:hover { background: rgba(91,138,244,0.04); }
+  tbody tr.row-removed { opacity: 0.35; background: rgba(239,68,68,0.03); }
   tbody tr:last-child { border-bottom: none; }
-  td {
-    padding: 10px 16px;
-    vertical-align: middle;
-  }
-  td.num {
-    font-family: 'DM Mono', monospace;
-    text-align: right;
-  }
-
-  .badge {
-    display: inline-block;
-    padding: 2px 9px;
-    border-radius: 20px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
+  td { padding: 10px 16px; vertical-align: middle; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; }
   .badge-small { background: var(--small-bg); color: var(--small); }
   .badge-medium { background: var(--medium-bg); color: var(--medium); }
   .badge-large { background: var(--large-bg); color: var(--large); }
   .badge-type { background: rgba(91,138,244,0.12); color: var(--accent); }
   .badge-bug { background: rgba(239,68,68,0.10); color: #f87171; }
-
-  .lead-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .lead-bar-track {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    min-width: 60px;
-    max-width: 120px;
-  }
-  .lead-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.3s;
-  }
-  .lead-val {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    min-width: 32px;
-    text-align: right;
-  }
+  .lead-bar { display: flex; align-items: center; gap: 10px; }
+  .lead-bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; min-width: 60px; max-width: 120px; }
+  .lead-bar-fill { height: 100%; border-radius: 2px; }
+  .lead-val { font-family: 'DM Mono', monospace; font-size: 13px; min-width: 36px; text-align: right; }
+  .btn-row-action { background: none; font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 9px; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn-row-remove { border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+  .btn-row-remove:hover { background: rgba(239,68,68,0.1); }
+  .btn-row-restore { border: 1px solid rgba(91,138,244,0.3); color: var(--accent); }
+  .btn-row-restore:hover { background: rgba(91,138,244,0.1); }
 </style>
 </head>
 <body>
@@ -329,59 +116,61 @@
 <header>
   <div class="eyebrow">Sprint Analysis · Release 1.87</div>
   <h1>Lead Time Distribution</h1>
-  <p>43 completed items · from In Progress to Closed · colored by size category</p>
+  <p id="header-sub">43 completed items · from In Progress to Closed · colored by size</p>
 </header>
 
-<!-- STATS -->
 <div class="stats-row" id="stats-row"></div>
 
-<!-- SCATTER CHART -->
 <div class="chart-section">
-  <div class="chart-title">Scatter — Lead Time per Item (sorted by duration)</div>
+  <div class="chart-top">
+    <div>
+      <div class="chart-title">Scatter — Lead Time per Item</div>
+      <div class="chart-subtitle">Dashed lines = P50 / P85 / P95 computed from <span style="color:var(--medium)">Medium</span> items only · recalculates live as items are removed</div>
+    </div>
+    <button class="btn-remove-mode" id="btn-remove-mode" onclick="toggleRemoveMode()">✕ Remove Outliers</button>
+  </div>
+
+  <div class="mode-bar hidden" id="mode-bar">
+    <div class="mode-indicator"><span class="pulse"></span>REMOVE MODE — click a dot to exclude</div>
+    <div class="removed-chips" id="removed-chips"></div>
+    <button class="btn-restore-all" onclick="restoreAll()">↩ Restore All</button>
+  </div>
+
   <div class="legend" id="legend"></div>
   <div id="scatter-container"><svg id="scatter-svg"></svg></div>
 </div>
 
-<!-- DISTRIBUTION CHART -->
 <div class="chart-section">
   <div class="chart-title">Distribution — Lead Time Histogram</div>
+  <div class="chart-subtitle">Vertical dashed lines = Medium P50 / P85 / P95</div>
   <div id="dist-container"><svg id="dist-svg"></svg></div>
 </div>
 
-<!-- TABLE -->
 <div class="table-section">
   <div class="table-header">
     <h2>All Items</h2>
     <div class="filter-btns">
-      <button class="filter-btn active" onclick="filterTable('all', this)">All</button>
-      <button class="filter-btn" onclick="filterTable('Small', this)" style="color:var(--small); border-color:var(--small-bg)">Small</button>
-      <button class="filter-btn" onclick="filterTable('Medium', this)" style="color:var(--medium); border-color:var(--medium-bg)">Medium</button>
-      <button class="filter-btn" onclick="filterTable('Large', this)" style="color:var(--large); border-color:var(--large-bg)">Large</button>
+      <button class="filter-btn active" onclick="filterTable('all',this)">All</button>
+      <button class="filter-btn" onclick="filterTable('Small',this)" style="color:var(--small);border-color:var(--small-bg)">Small</button>
+      <button class="filter-btn" onclick="filterTable('Medium',this)" style="color:var(--medium);border-color:var(--medium-bg)">Medium</button>
+      <button class="filter-btn" onclick="filterTable('Large',this)" style="color:var(--large);border-color:var(--large-bg)">Large</button>
     </div>
   </div>
-  <div style="overflow-x:auto;">
-  <table id="data-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Type</th>
-        <th>Priority</th>
-        <th>Stage</th>
-        <th>In Progress</th>
-        <th>Closed</th>
-        <th style="text-align:right">Lead Time</th>
-        <th>Size</th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Type</th><th>Priority</th><th>Stage</th>
+        <th>In Progress</th><th>Closed</th><th style="text-align:right">Lead Time</th><th>Size</th><th></th>
+      </tr></thead>
+      <tbody id="table-body"></tbody>
+    </table>
   </div>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
 
 <script>
-const DATA = [
+const ALL_DATA = [
   {index:1,typ:"PBI",priorytet:"Must have",etap:"etap 0, etap 1",ip:"2025-08-13",closed:"2026-01-07",lead_time:147,size:"Large"},
   {index:2,typ:"PBI",priorytet:"Should have",etap:"etap 0, etap 1",ip:"2025-12-10",closed:"2026-01-07",lead_time:28,size:"Medium"},
   {index:3,typ:"PBI",priorytet:"Must have",etap:"etap 0, etap 1",ip:"2025-12-08",closed:"2026-01-05",lead_time:28,size:"Medium"},
@@ -427,293 +216,316 @@ const DATA = [
   {index:43,typ:"PBI",priorytet:"Must have",etap:"etap 0, etap 1, etap 2",ip:"2025-12-23",closed:"2026-01-26",lead_time:34,size:"Medium"}
 ];
 
-const P50 = 28.0, P85 = 101.1, P95 = 108.4;
+const COLOR = { Small:'#22c55e', Medium:'#f97316', Large:'#ef4444' };
 const MAX_LT = 148;
+let removedSet = new Set();
+let removeMode = false;
+let tableFilter = 'all';
 
-const COLOR = { Small: '#22c55e', Medium: '#f97316', Large: '#ef4444' };
-const COLOR_BG = { Small: 'rgba(34,197,94,0.10)', Medium: 'rgba(249,115,22,0.10)', Large: 'rgba(239,68,68,0.10)' };
+function activeData() { return ALL_DATA.filter(d => !removedSet.has(d.index)); }
 
-// Stats
-const counts = {Small:0, Medium:0, Large:0};
-DATA.forEach(d => counts[d.size]++);
-const avg = (DATA.reduce((s,d)=>s+d.lead_time,0)/DATA.length).toFixed(1);
-
-document.getElementById('stats-row').innerHTML = `
-  <div class="stat-card">
-    <div class="label">Total Items</div>
-    <div class="value" style="color:#fff">${DATA.length}</div>
-    <div class="unit">completed</div>
-  </div>
-  <div class="stat-card">
-    <div class="label">Avg Lead Time</div>
-    <div class="value" style="color:var(--accent)">${avg}</div>
-    <div class="unit">days</div>
-  </div>
-  <div class="stat-card">
-    <div class="label">P50 Median</div>
-    <div class="value" style="color:var(--p50)">${P50}</div>
-    <div class="unit">days</div>
-  </div>
-  <div class="stat-card">
-    <div class="label">P85</div>
-    <div class="value" style="color:var(--p85)">${P85}</div>
-    <div class="unit">days</div>
-  </div>
-  <div class="stat-card">
-    <div class="label">P95</div>
-    <div class="value" style="color:var(--p95)">${P95}</div>
-    <div class="unit">days</div>
-  </div>
-  <div class="stat-card" style="border-color:var(--small-bg)">
-    <div class="label" style="color:var(--small)">Small (≤15d)</div>
-    <div class="value" style="color:var(--small)">${counts.Small}</div>
-    <div class="unit">items</div>
-  </div>
-  <div class="stat-card" style="border-color:var(--medium-bg)">
-    <div class="label" style="color:var(--medium)">Medium (≤45d)</div>
-    <div class="value" style="color:var(--medium)">${counts.Medium}</div>
-    <div class="unit">items</div>
-  </div>
-  <div class="stat-card" style="border-color:var(--large-bg)">
-    <div class="label" style="color:var(--large)">Large (>45d)</div>
-    <div class="value" style="color:var(--large)">${counts.Large}</div>
-    <div class="unit">items</div>
-  </div>
-`;
-
-// Legend
-document.getElementById('legend').innerHTML = `
-  <div class="legend-item"><span class="legend-dot" style="background:var(--small)"></span> Small ≤15d</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--medium)"></span> Medium ≤45d</div>
-  <div class="legend-item"><span class="legend-dot" style="background:var(--large)"></span> Large >45d</div>
-  <div class="legend-sep">|</div>
-  <div class="legend-item"><span class="legend-line" style="background:var(--p50)"></span> P50 = ${P50}d</div>
-  <div class="legend-item"><span class="legend-line" style="background:var(--p85)"></span> P85 = ${P85}d</div>
-  <div class="legend-item"><span class="legend-line" style="background:var(--p95)"></span> P95 = ${P95}d</div>
-`;
-
-// SCATTER CHART
-function drawScatter() {
-  const svg = document.getElementById('scatter-svg');
-  const W = svg.parentElement.clientWidth;
-  const H = 340;
-  const PAD = { top: 20, right: 20, bottom: 40, left: 52 };
-  const plotW = W - PAD.left - PAD.right;
-  const plotH = H - PAD.top - PAD.bottom;
-
-  const sorted = [...DATA].sort((a,b)=>a.lead_time-b.lead_time);
-  const n = sorted.length;
-
-  const xScale = i => PAD.left + (i / (n-1)) * plotW;
-  const yScale = v => PAD.top + plotH - (v / 160) * plotH;
-
-  let html = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-
-  // Grid lines
-  [0,20,40,60,80,100,120,140,160].forEach(v => {
-    const y = yScale(v);
-    html += `<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="#1e2330" stroke-width="1"/>`;
-    html += `<text x="${PAD.left-6}" y="${y+4}" text-anchor="end" fill="#4b5563" font-size="11" font-family="DM Mono,monospace">${v}</text>`;
-  });
-
-  // X axis label
-  html += `<text x="${PAD.left}" y="${H-6}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace">0</text>`;
-  html += `<text x="${W-PAD.right}" y="${H-6}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" text-anchor="end">${n}</text>`;
-
-  // Shaded zones
-  const zones = [
-    {from:0,to:15,color:'rgba(34,197,94,0.04)'},
-    {from:15,to:45,color:'rgba(249,115,22,0.04)'},
-    {from:45,to:160,color:'rgba(239,68,68,0.04)'}
-  ];
-  zones.forEach(z => {
-    const y1 = yScale(z.to), y2 = yScale(z.from);
-    html += `<rect x="${PAD.left}" y="${y1}" width="${plotW}" height="${y2-y1}" fill="${z.color}"/>`;
-  });
-
-  // Percentile lines
-  const plines = [
-    {v:P50,color:'#facc15',label:'P50'},
-    {v:P85,color:'#a78bfa',label:'P85'},
-    {v:P95,color:'#f472b6',label:'P95'}
-  ];
-  plines.forEach(p => {
-    const y = yScale(p.v);
-    html += `<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="${p.color}" stroke-width="1.5" stroke-dasharray="5,4"/>`;
-    html += `<text x="${W-PAD.right+4}" y="${y+4}" fill="${p.color}" font-size="11" font-family="DM Mono,monospace">${p.label}</text>`;
-  });
-
-  // Dots
-  sorted.forEach((d, i) => {
-    const x = xScale(i);
-    const y = yScale(d.lead_time);
-    const c = COLOR[d.size];
-    html += `<circle cx="${x}" cy="${y}" r="7" fill="${c}" fill-opacity="0.18" stroke="${c}" stroke-width="1.5"
-      class="scatter-dot"
-      data-idx="${d.index}" data-typ="${d.typ}" data-prio="${d.priorytet}" data-etap="${d.etap}"
-      data-ip="${d.ip}" data-closed="${d.closed}" data-lt="${d.lead_time}" data-size="${d.size}"
-      data-color="${c}"
-      style="cursor:pointer;transition:r 0.15s,fill-opacity 0.15s"/>`;
-  });
-
-  // Axis
-  html += `<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+plotH}" stroke="#2a3040" stroke-width="1"/>`;
-  html += `<line x1="${PAD.left}" y1="${PAD.top+plotH}" x2="${W-PAD.right}" y2="${PAD.top+plotH}" stroke="#2a3040" stroke-width="1"/>`;
-
-  // Y axis label
-  html += `<text x="14" y="${PAD.top+plotH/2}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" transform="rotate(-90,14,${PAD.top+plotH/2})" text-anchor="middle">Days</text>`;
-  html += `<text x="${PAD.left+plotW/2}" y="${H-6}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" text-anchor="middle">Items (sorted by lead time)</text>`;
-
-  html += '</svg>';
-  svg.outerHTML = `<svg id="scatter-svg">${html.replace('<svg viewBox','<svg id="scatter-svg" viewBox').split('<svg id="scatter-svg">')[1]}`;
-  document.getElementById('scatter-svg').innerHTML = html.match(/<svg[^>]*>([\s\S]*)<\/svg>/)[1];
-  document.getElementById('scatter-svg').setAttribute('viewBox', `0 0 ${W} ${H}`);
-
-  // reattach events
-  document.querySelectorAll('.scatter-dot').forEach(dot => {
-    dot.addEventListener('mouseenter', e => showTooltip(e, dot));
-    dot.addEventListener('mousemove', e => moveTooltip(e));
-    dot.addEventListener('mouseleave', hideTooltip);
-  });
+function pct(arr, p) {
+  if (!arr.length) return 0;
+  const s = [...arr].sort((a,b)=>a-b);
+  const idx = (p/100)*(s.length-1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  return +(s[lo] + (s[hi]-s[lo])*(idx-lo)).toFixed(1);
 }
 
-// HISTOGRAM
-function drawHistogram() {
-  const svg = document.getElementById('dist-svg');
-  const W = svg.parentElement.clientWidth;
-  const H = 220;
-  const PAD = { top: 16, right: 20, bottom: 40, left: 52 };
-  const plotW = W - PAD.left - PAD.right;
-  const plotH = H - PAD.top - PAD.bottom;
+function getMedPct() {
+  const vals = activeData().filter(d=>d.size==='Medium').map(d=>d.lead_time);
+  return { p50: pct(vals,50), p85: pct(vals,85), p95: pct(vals,95), n: vals.length };
+}
 
-  const binSize = 10;
-  const bins = {};
-  for (let b = 0; b <= 150; b+=binSize) bins[b] = [];
-  DATA.forEach(d => {
-    const b = Math.floor(d.lead_time/binSize)*binSize;
-    if (bins[b] !== undefined) bins[b].push(d);
-  });
+// ── STATS ────────────────────────────────────────────────────
+function renderStats() {
+  const data = activeData();
+  const c = {Small:0,Medium:0,Large:0};
+  data.forEach(d=>c[d.size]++);
+  const avg = data.length ? (data.reduce((s,d)=>s+d.lead_time,0)/data.length).toFixed(1) : '—';
+  const {p50,p85,p95} = getMedPct();
+  const rem = removedSet.size;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="label">Active Items</div>
+      <div class="value" style="color:#fff">${data.length}</div>
+      <div class="unit">${rem>0?rem+' excluded':'\u00a0'}</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Avg Lead Time</div>
+      <div class="value" style="color:var(--accent)">${avg}</div>
+      <div class="unit">days · all items</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(250,204,21,0.25)">
+      <div class="label" style="color:var(--p50)">Medium P50</div>
+      <div class="value" style="color:var(--p50)">${p50}</div>
+      <div class="unit">days</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(167,139,250,0.25)">
+      <div class="label" style="color:var(--p85)">Medium P85</div>
+      <div class="value" style="color:var(--p85)">${p85}</div>
+      <div class="unit">days</div>
+    </div>
+    <div class="stat-card" style="border-color:rgba(244,114,182,0.25)">
+      <div class="label" style="color:var(--p95)">Medium P95</div>
+      <div class="value" style="color:var(--p95)">${p95}</div>
+      <div class="unit">days</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--small-bg)">
+      <div class="label" style="color:var(--small)">Small ≤15d</div>
+      <div class="value" style="color:var(--small)">${c.Small}</div>
+      <div class="unit">items</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--medium-bg)">
+      <div class="label" style="color:var(--medium)">Medium ≤45d</div>
+      <div class="value" style="color:var(--medium)">${c.Medium}</div>
+      <div class="unit">items</div>
+    </div>
+    <div class="stat-card" style="border-color:var(--large-bg)">
+      <div class="label" style="color:var(--large)">Large >45d</div>
+      <div class="value" style="color:var(--large)">${c.Large}</div>
+      <div class="unit">items</div>
+    </div>`;
+  document.getElementById('header-sub').textContent =
+    `${data.length} active items · from In Progress to Closed · colored by size${rem>0?' · '+rem+' item(s) excluded':''}`;
+}
 
-  const binKeys = Object.keys(bins).map(Number);
-  const maxCount = Math.max(...Object.values(bins).map(a=>a.length));
-  const n = binKeys.length;
+// ── LEGEND ────────────────────────────────────────────────────
+function renderLegend() {
+  const {p50,p85,p95} = getMedPct();
+  document.getElementById('legend').innerHTML = `
+    <div class="legend-item"><span class="legend-dot" style="background:var(--small)"></span>Small ≤15d</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--medium)"></span>Medium ≤45d</div>
+    <div class="legend-item"><span class="legend-dot" style="background:var(--large)"></span>Large >45d</div>
+    <div class="legend-sep">|</div>
+    <div class="legend-item"><span class="legend-dot" style="background:none;border:2px dashed var(--p50)"></span><span style="color:var(--p50)">Med P50=${p50}d</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:none;border:2px dashed var(--p85)"></span><span style="color:var(--p85)">Med P85=${p85}d</span></div>
+    <div class="legend-item"><span class="legend-dot" style="background:none;border:2px dashed var(--p95)"></span><span style="color:var(--p95)">Med P95=${p95}d</span></div>`;
+}
 
-  const xScale = i => PAD.left + (i / n) * plotW;
-  const yScale = v => PAD.top + plotH - (v / (maxCount+1)) * plotH;
-  const barW = plotW / n - 2;
+// ── SCATTER ────────────────────────────────────────────────────
+function drawScatter() {
+  const container = document.getElementById('scatter-container');
+  const W = container.clientWidth || 800;
+  const H = 360;
+  const PAD = {top:20,right:58,bottom:40,left:52};
+  const PW = W-PAD.left-PAD.right, PH = H-PAD.top-PAD.bottom;
 
-  let html = '';
+  // stable x-position: rank ALL items by lead_time
+  const allSorted = [...ALL_DATA].sort((a,b)=>a.lead_time-b.lead_time);
+  const allN = allSorted.length;
+  const xOf = idx => PAD.left + (allSorted.findIndex(d=>d.index===idx)/Math.max(allN-1,1))*PW;
+  const yOf = v => PAD.top + PH - (v/160)*PH;
+  const {p50,p85,p95} = getMedPct();
+
+  let h = '';
 
   // Grid
-  for (let v=0; v<=maxCount; v++) {
-    if (v % 2 === 0) {
-      const y = yScale(v);
-      html += `<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="#1e2330" stroke-width="1"/>`;
-      html += `<text x="${PAD.left-6}" y="${y+4}" text-anchor="end" fill="#4b5563" font-size="11" font-family="DM Mono,monospace">${v}</text>`;
-    }
-  }
-
-  // Bars
-  binKeys.forEach((b, i) => {
-    const items = bins[b];
-    if (items.length === 0) return;
-    const x = xScale(i) + 1;
-    const barHeight = (items.length / (maxCount+1)) * plotH;
-    const y = PAD.top + plotH - barHeight;
-
-    // color by dominant size in bin
-    const sizeCounts = {Small:0,Medium:0,Large:0};
-    items.forEach(d=>sizeCounts[d.size]++);
-    const dom = Object.keys(sizeCounts).sort((a,b)=>sizeCounts[b]-sizeCounts[a])[0];
-    const c = COLOR[dom];
-
-    html += `<rect x="${x}" y="${y}" width="${barW}" height="${barHeight}" fill="${c}" fill-opacity="0.25" rx="3"/>`;
-    html += `<rect x="${x}" y="${y}" width="${barW}" height="3" fill="${c}" rx="1"/>`;
-
-    // x label
-    html += `<text x="${x+barW/2}" y="${PAD.top+plotH+14}" text-anchor="middle" fill="#4b5563" font-size="10" font-family="DM Mono,monospace">${b}</text>`;
+  [0,20,40,60,80,100,120,140,160].forEach(v => {
+    const y=yOf(v);
+    h+=`<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="#1e2330" stroke-width="1"/>`;
+    h+=`<text x="${PAD.left-6}" y="${y+4}" text-anchor="end" fill="#4b5563" font-size="11" font-family="DM Mono,monospace">${v}</text>`;
   });
 
-  // Percentile lines
-  const plines = [
-    {v:P50,color:'#facc15',label:'P50'},
-    {v:P85,color:'#a78bfa',label:'P85'},
-    {v:P95,color:'#f472b6',label:'P95'}
-  ];
-  plines.forEach(p => {
-    const xPct = PAD.left + (p.v / 160) * plotW;
-    html += `<line x1="${xPct}" y1="${PAD.top}" x2="${xPct}" y2="${PAD.top+plotH}" stroke="${p.color}" stroke-width="1.5" stroke-dasharray="5,4"/>`;
-    html += `<text x="${xPct+3}" y="${PAD.top+12}" fill="${p.color}" font-size="10" font-family="DM Mono,monospace">${p.label}</text>`;
+  // Zone bands
+  [{f:0,t:15,c:'rgba(34,197,94,0.04)'},{f:15,t:45,c:'rgba(249,115,22,0.04)'},{f:45,t:160,c:'rgba(239,68,68,0.04)'}]
+  .forEach(z=>{ const y1=yOf(z.t),y2=yOf(z.f); h+=`<rect x="${PAD.left}" y="${y1}" width="${PW}" height="${y2-y1}" fill="${z.c}"/>`; });
+
+  // Medium percentile lines (dashed)
+  [{v:p50,c:'#facc15',l:'Med P50'},{v:p85,c:'#a78bfa',l:'Med P85'},{v:p95,c:'#f472b6',l:'Med P95'}].forEach(p => {
+    const y=yOf(p.v);
+    h+=`<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="${p.c}" stroke-width="1.5" stroke-dasharray="7,5"/>`;
+    h+=`<text x="${W-PAD.right+5}" y="${y+4}" fill="${p.c}" font-size="10" font-family="DM Mono,monospace" font-weight="500">${p.l}</text>`;
+    h+=`<text x="${W-PAD.right+5}" y="${y+15}" fill="${p.c}" font-size="9" font-family="DM Mono,monospace" opacity="0.75">${p.v}d</text>`;
+  });
+
+  // Dots (all items — removed shown faded)
+  ALL_DATA.forEach(d => {
+    const rem = removedSet.has(d.index);
+    const x = xOf(d.index), y = yOf(d.lead_time);
+    const fill = rem ? '#374151' : COLOR[d.size];
+    const fo = rem ? '0.2' : '0.18';
+    const so = rem ? '0.25' : '1';
+    h += `<circle cx="${x}" cy="${y}" r="7"
+      fill="${fill}" fill-opacity="${fo}" stroke="${fill}" stroke-width="1.5" stroke-opacity="${so}"
+      class="scatter-dot${rem?' dot-removed':''}"
+      data-idx="${d.index}" data-typ="${d.typ}" data-prio="${d.priorytet}" data-etap="${d.etap}"
+      data-ip="${d.ip}" data-closed="${d.closed}" data-lt="${d.lead_time}" data-size="${d.size}"
+      data-rem="${rem}" style="cursor:pointer"/>`;
+    if (rem) {
+      h+=`<text x="${x}" y="${y+4}" text-anchor="middle" fill="#6b7280" font-size="9"
+        font-family="DM Mono,monospace" pointer-events="none">✕</text>`;
+    }
   });
 
   // Axes
-  html += `<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+plotH}" stroke="#2a3040" stroke-width="1"/>`;
-  html += `<line x1="${PAD.left}" y1="${PAD.top+plotH}" x2="${W-PAD.right}" y2="${PAD.top+plotH}" stroke="#2a3040" stroke-width="1"/>`;
-  html += `<text x="14" y="${PAD.top+plotH/2}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" transform="rotate(-90,14,${PAD.top+plotH/2})" text-anchor="middle">Count</text>`;
-  html += `<text x="${PAD.left+plotW/2}" y="${H-4}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" text-anchor="middle">Lead Time (days)</text>`;
+  h+=`<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+PH}" stroke="#2a3040" stroke-width="1"/>`;
+  h+=`<line x1="${PAD.left}" y1="${PAD.top+PH}" x2="${W-PAD.right}" y2="${PAD.top+PH}" stroke="#2a3040" stroke-width="1"/>`;
+  h+=`<text x="14" y="${PAD.top+PH/2}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" transform="rotate(-90,14,${PAD.top+PH/2})" text-anchor="middle">Days</text>`;
+  h+=`<text x="${PAD.left+PW/2}" y="${H-6}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" text-anchor="middle">Items (sorted by lead time)</text>`;
 
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.innerHTML = html;
+  const svg = document.getElementById('scatter-svg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML = h;
+
+  svg.querySelectorAll('.scatter-dot').forEach(dot => {
+    dot.addEventListener('mouseenter', e=>showTT(e,dot));
+    dot.addEventListener('mousemove', e=>moveTT(e));
+    dot.addEventListener('mouseleave', hideTT);
+    dot.addEventListener('click', e=>handleClick(e,dot));
+  });
 }
 
-// TOOLTIP
-const tooltip = document.getElementById('tooltip');
-function showTooltip(e, dot) {
-  const c = dot.dataset.color;
-  tooltip.innerHTML = `
-    <div class="tt-header">#${dot.dataset.idx} · ${dot.dataset.typ}</div>
+// ── HISTOGRAM ────────────────────────────────────────────────────
+function drawHistogram() {
+  const container = document.getElementById('dist-container');
+  const W = container.clientWidth || 800;
+  const H = 220;
+  const PAD = {top:16,right:20,bottom:40,left:52};
+  const PW = W-PAD.left-PAD.right, PH = H-PAD.top-PAD.bottom;
+
+  const data = activeData();
+  const binSz = 10;
+  const bins = {};
+  for (let b=0;b<=150;b+=binSz) bins[b]=[];
+  data.forEach(d=>{ const b=Math.floor(d.lead_time/binSz)*binSz; if(bins[b]!==undefined) bins[b].push(d); });
+
+  const bKeys = Object.keys(bins).map(Number);
+  const maxC = Math.max(...Object.values(bins).map(a=>a.length),1);
+  const n = bKeys.length;
+  const xS = i => PAD.left+(i/n)*PW;
+  const yS = v => PAD.top+PH-(v/(maxC+1))*PH;
+  const bW = PW/n-2;
+  const {p50,p85,p95} = getMedPct();
+
+  let h='';
+  for (let v=0;v<=maxC;v++) {
+    if (v%2===0) {
+      const y=yS(v);
+      h+=`<line x1="${PAD.left}" y1="${y}" x2="${W-PAD.right}" y2="${y}" stroke="#1e2330" stroke-width="1"/>`;
+      h+=`<text x="${PAD.left-6}" y="${y+4}" text-anchor="end" fill="#4b5563" font-size="11" font-family="DM Mono,monospace">${v}</text>`;
+    }
+  }
+  bKeys.forEach((b,i)=>{
+    const items=bins[b]; if(!items.length) return;
+    const x=xS(i)+1, bh=(items.length/(maxC+1))*PH, y=PAD.top+PH-bh;
+    const sc={Small:0,Medium:0,Large:0};
+    items.forEach(d=>sc[d.size]++);
+    const dom=Object.keys(sc).sort((a,b2)=>sc[b2]-sc[a])[0];
+    const c=COLOR[dom];
+    h+=`<rect x="${x}" y="${y}" width="${bW}" height="${bh}" fill="${c}" fill-opacity="0.25" rx="3"/>`;
+    h+=`<rect x="${x}" y="${y}" width="${bW}" height="3" fill="${c}" rx="1"/>`;
+    h+=`<text x="${x+bW/2}" y="${PAD.top+PH+14}" text-anchor="middle" fill="#4b5563" font-size="10" font-family="DM Mono,monospace">${b}</text>`;
+  });
+  // Medium pct vertical lines
+  [{v:p50,c:'#facc15',l:'P50'},{v:p85,c:'#a78bfa',l:'P85'},{v:p95,c:'#f472b6',l:'P95'}].forEach(p=>{
+    const xp=PAD.left+(p.v/160)*PW;
+    h+=`<line x1="${xp}" y1="${PAD.top}" x2="${xp}" y2="${PAD.top+PH}" stroke="${p.c}" stroke-width="1.5" stroke-dasharray="7,5"/>`;
+    h+=`<text x="${xp+3}" y="${PAD.top+13}" fill="${p.c}" font-size="10" font-family="DM Mono,monospace">${p.l}</text>`;
+  });
+  h+=`<line x1="${PAD.left}" y1="${PAD.top}" x2="${PAD.left}" y2="${PAD.top+PH}" stroke="#2a3040" stroke-width="1"/>`;
+  h+=`<line x1="${PAD.left}" y1="${PAD.top+PH}" x2="${W-PAD.right}" y2="${PAD.top+PH}" stroke="#2a3040" stroke-width="1"/>`;
+  h+=`<text x="14" y="${PAD.top+PH/2}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" transform="rotate(-90,14,${PAD.top+PH/2})" text-anchor="middle">Count</text>`;
+  h+=`<text x="${PAD.left+PW/2}" y="${H-4}" fill="#4b5563" font-size="11" font-family="DM Mono,monospace" text-anchor="middle">Lead Time (days)</text>`;
+
+  const svg = document.getElementById('dist-svg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.innerHTML = h;
+}
+
+// ── TOOLTIP ────────────────────────────────────────────────────
+const ttEl = document.getElementById('tooltip');
+function showTT(e, dot) {
+  const rem = dot.dataset.rem === 'true';
+  const c = rem ? '#6b7280' : COLOR[dot.dataset.size];
+  const hint = removeMode
+    ? `<div class="tt-hint" style="color:${rem?'var(--accent)':'var(--large)'}">${rem?'↩ Click to restore':'✕ Click to exclude'}</div>` : '';
+  ttEl.innerHTML = `
+    <div class="tt-header">#${dot.dataset.idx} · ${dot.dataset.typ}${rem?' · <span style="color:#f87171">excluded</span>':''}</div>
     <div class="tt-lead" style="color:${c}">${dot.dataset.lt} days</div>
     <div class="tt-row"><span>Size</span><span style="color:${c}">${dot.dataset.size}</span></div>
     <div class="tt-row"><span>Priority</span><span>${dot.dataset.prio}</span></div>
     <div class="tt-row"><span>Stage</span><span>${dot.dataset.etap}</span></div>
     <div class="tt-row"><span>In Progress</span><span>${dot.dataset.ip}</span></div>
     <div class="tt-row"><span>Closed</span><span>${dot.dataset.closed}</span></div>
-  `;
-  tooltip.classList.add('visible');
-  moveTooltip(e);
-  dot.setAttribute('r','10');
-  dot.setAttribute('fill-opacity','0.5');
+    ${hint}`;
+  ttEl.classList.add('visible');
+  moveTT(e);
+  if (!rem) { dot.setAttribute('r','10'); dot.setAttribute('fill-opacity','0.5'); }
 }
-function moveTooltip(e) {
-  let x = e.clientX + 14, y = e.clientY + 14;
-  if (x + 270 > window.innerWidth) x = e.clientX - 280;
-  if (y + 180 > window.innerHeight) y = e.clientY - 190;
-  tooltip.style.left = x + 'px';
-  tooltip.style.top = y + 'px';
+function moveTT(e) {
+  let x=e.clientX+14,y=e.clientY+14;
+  if(x+280>window.innerWidth) x=e.clientX-288;
+  if(y+210>window.innerHeight) y=e.clientY-218;
+  ttEl.style.left=x+'px'; ttEl.style.top=y+'px';
 }
-function hideTooltip(e) {
-  tooltip.classList.remove('visible');
-  e.target.setAttribute('r','7');
-  e.target.setAttribute('fill-opacity','0.18');
+function hideTT(e) {
+  ttEl.classList.remove('visible');
+  const rem = e.target.dataset.rem==='true';
+  if (!rem) { e.target.setAttribute('r','7'); e.target.setAttribute('fill-opacity','0.18'); }
 }
 
-// TABLE
-function renderTable(filter) {
-  const body = document.getElementById('table-body');
-  const items = filter === 'all' ? DATA : DATA.filter(d=>d.size===filter);
-  body.innerHTML = items.map(d => {
-    const c = COLOR[d.size];
-    const pct = Math.round((d.lead_time / MAX_LT) * 100);
-    return `
-      <tr data-size="${d.size}">
-        <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px">${d.index}</td>
-        <td><span class="badge ${d.typ==='Bug'?'badge-bug':'badge-type'}">${d.typ}</span></td>
-        <td style="font-size:12px;color:#9ca3af">${d.priorytet}</td>
-        <td style="font-size:12px;color:#6b7280">${d.etap}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px;color:#6b7280">${d.ip}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:12px;color:#6b7280">${d.closed}</td>
-        <td>
-          <div class="lead-bar">
-            <div class="lead-bar-track">
-              <div class="lead-bar-fill" style="width:${pct}%;background:${c}"></div>
-            </div>
-            <div class="lead-val" style="color:${c}">${d.lead_time}d</div>
-          </div>
-        </td>
-        <td><span class="badge badge-${d.size.toLowerCase()}">${d.size}</span></td>
-      </tr>`;
+// ── REMOVE MODE ────────────────────────────────────────────────────
+function toggleRemoveMode() {
+  removeMode = !removeMode;
+  const btn = document.getElementById('btn-remove-mode');
+  const bar = document.getElementById('mode-bar');
+  if (removeMode) { btn.classList.add('active'); btn.textContent='✕ Exit Remove Mode'; bar.classList.remove('hidden'); document.body.classList.add('remove-mode'); }
+  else { btn.classList.remove('active'); btn.textContent='✕ Remove Outliers'; bar.classList.add('hidden'); document.body.classList.remove('remove-mode'); }
+  renderTable();
+}
+
+function handleClick(e, dot) {
+  if (!removeMode) return;
+  e.stopPropagation();
+  const idx = +dot.dataset.idx;
+  if (removedSet.has(idx)) removedSet.delete(idx); else removedSet.add(idx);
+  hideTT({target:dot});
+  refreshAll();
+}
+
+function restoreItem(idx) { removedSet.delete(+idx); refreshAll(); }
+function restoreAll() { removedSet.clear(); refreshAll(); }
+
+function renderChips() {
+  const el = document.getElementById('removed-chips');
+  if (!removedSet.size) { el.innerHTML='<span style="font-family:DM Mono,monospace;font-size:11px;color:#374151">No items excluded</span>'; return; }
+  el.innerHTML = [...removedSet].map(idx => {
+    const d=ALL_DATA.find(x=>x.index===idx);
+    return `<div class="removed-chip">#${idx}·${d.lead_time}d<button onclick="restoreItem(${idx})">↩</button></div>`;
   }).join('');
 }
+
+// ── TABLE ────────────────────────────────────────────────────
+function renderTable(f) {
+  if (f) tableFilter = f;
+  const items = tableFilter==='all' ? ALL_DATA : ALL_DATA.filter(d=>d.size===tableFilter);
+  const body = document.getElementById('table-body');
+  body.innerHTML = items.map(d => {
+    const rem = removedSet.has(d.index);
+    const c = rem ? '#374151' : COLOR[d.size];
+    const pct2 = Math.round((d.lead_time/MAX_LT)*100);
+    const actionBtn = rem
+      ? `<button class="btn-row-action btn-row-restore" onclick="restoreItem(${d.index})">↩ restore</button>`
+      : (removeMode ? `<button class="btn-row-action btn-row-remove" onclick="removeItem(${d.index})">✕</button>` : '');
+    return `<tr class="${rem?'row-removed':''}">
+      <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:11px">${d.index}</td>
+      <td><span class="badge ${d.typ==='Bug'?'badge-bug':'badge-type'}">${d.typ}</span></td>
+      <td style="font-size:12px;color:#9ca3af">${d.priorytet}</td>
+      <td style="font-size:12px;color:#6b7280">${d.etap}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:#6b7280">${d.ip}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:#6b7280">${d.closed}</td>
+      <td><div class="lead-bar">
+        <div class="lead-bar-track"><div class="lead-bar-fill" style="width:${pct2}%;background:${c}"></div></div>
+        <div class="lead-val" style="color:${c}">${d.lead_time}d</div>
+      </div></td>
+      <td><span class="badge badge-${d.size.toLowerCase()}">${d.size}</span></td>
+      <td>${actionBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+function removeItem(idx) { removedSet.add(+idx); refreshAll(); }
 
 function filterTable(f, btn) {
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -721,15 +533,18 @@ function filterTable(f, btn) {
   renderTable(f);
 }
 
-// INIT
-renderTable('all');
-drawScatter();
-drawHistogram();
-
-window.addEventListener('resize', () => {
+// ── REFRESH ALL ────────────────────────────────────────────────────
+function refreshAll() {
+  renderStats();
+  renderLegend();
   drawScatter();
   drawHistogram();
-});
+  renderChips();
+  renderTable();
+}
+
+refreshAll();
+window.addEventListener('resize', () => { drawScatter(); drawHistogram(); });
 </script>
 </body>
 </html>
