@@ -399,7 +399,7 @@ footer {
 <!-- ═══════════════ GLOBAL HEADER ═══════════════ -->
 <div class="global-header">
   <div class="global-header-title">
-    <div class="eyebrow">Symulacja Monte Carlo · v88 Dane Historyczne · 10 000 iteracji</div>
+    <div class="eyebrow">Symulacja Monte Carlo · v88 Dane Historyczne · 10 000 iteracji · bufor 3 dni rob. (symulacja liczy do 20.06, twardy deadline 23.06)</div>
     <h1>Prognoza <em>daty dostawy</em></h1>
   </div>
   <nav class="tab-nav">
@@ -431,7 +431,7 @@ footer {
   </div>
   <div class="deadline-banner" id="banner50">
     <div class="prob" id="prob50">—</div>
-    <div class="prob-label"><strong>prawdopodobieństwo ukończenia przed 23.06.2026</strong>50 PBI + ~10 bugów wrzutkowych · dane historyczne: 60 zadań v88</div>
+    <div class="prob-label"><strong>prawdopodobieństwo ukończenia przed 20.06.2026 (bufor 3 dni rob.)</strong>twardy deadline: 23.06 · 50 PBI + ~10 bugów · dane historyczne: 60 zadań v88</div>
   </div>
   <div class="charts-section">
     <div class="chart-box"><h3>Rozkład dat ukończenia</h3><div class="chart-desc">HISTOGRAM · 10 000 symulacji · grupowanie co 7 dni</div><div class="chart-wrap"><canvas id="hist50"></canvas></div></div>
@@ -464,7 +464,7 @@ footer {
   </div>
   <div class="deadline-banner" id="banner28">
     <div class="prob" id="prob28">—</div>
-    <div class="prob-label"><strong>prawdopodobieństwo ukończenia przed 23.06.2026</strong>28 PBI + ~6 bugów wrzutkowych · dane historyczne: 60 zadań v88</div>
+    <div class="prob-label"><strong>prawdopodobieństwo ukończenia przed 20.06.2026 (bufor 3 dni rob.)</strong>twardy deadline: 23.06 · 28 PBI + ~6 bugów · dane historyczne: 60 zadań v88</div>
   </div>
   <div class="compare-strip"><h3>Porównanie wszystkich scenariuszy</h3><table class="compare-table" id="cmpTable28"></table></div>
   <div class="charts-section">
@@ -498,7 +498,7 @@ footer {
   </div>
   <div class="deadline-banner" id="banner23">
     <div class="prob" id="prob23">—</div>
-    <div class="prob-label"><strong>prawdopodobieństwo ukończenia przed 23.06.2026</strong>23 PBI + ~5 bugów wrzutkowych · dane historyczne: 60 zadań v88</div>
+    <div class="prob-label"><strong>prawdopodobieństwo ukończenia przed 20.06.2026 (bufor 3 dni rob.)</strong>twardy deadline: 23.06 · 23 PBI + ~5 bugów · dane historyczne: 60 zadań v88</div>
   </div>
   <div class="compare-strip"><h3>Porównanie wszystkich scenariuszy</h3><table class="compare-table" id="cmpTable23"></table></div>
   <div class="charts-section">
@@ -516,7 +516,7 @@ footer {
   </div></div>
 </div>
 
-<footer>Monte Carlo · bootstrap z danych v88 (60 zadań) · Start 28.04.2026 · Deadline 23.06.2026 · Wygenerowano 2026-04-27</footer>
+<footer>Monte Carlo · bootstrap z danych v88 (60 zadań) · Start 28.04.2026 · Bufor symulacji 20.06.2026 · Twardy deadline 23.06.2026 · Wygenerowano 2026-04-27</footer>
 
 <script>
 // ─── TAB SWITCH ──────────────────────────────────────────────────
@@ -584,10 +584,12 @@ function workDaysBetween(a, b) {
   return n;
 }
 
-const START    = new Date('2026-04-28');
-const DEADLINE = new Date('2026-06-23');
-const N_SIM    = 10000;
-const WINDOW   = 14;
+const START         = new Date('2026-04-28');
+const DEADLINE_SIM  = new Date('2026-06-20'); // bufor 3 dni rob. — symulacja liczy względem tego
+const DEADLINE_HARD = new Date('2026-06-23'); // twardy termin — widoczny na wykresach jako linia
+const DEADLINE      = DEADLINE_SIM;           // alias używany przez renderPanel
+const N_SIM         = 10000;
+const WINDOW        = 14;
 
 function sampleTP() { return Math.max(1, TP_SAMPLES[Math.floor(Math.random() * TP_SAMPLES.length)]); }
 
@@ -630,16 +632,25 @@ function renderPanel({ sfx, scope, sensRange, highlightScope }) {
   document.getElementById('status' + sfx).innerHTML =
     `<span style="color:var(--green);font-weight:600">✓</span> <span>Symulacja zakończona · ${N_SIM.toLocaleString()} iteracji</span>`;
 
-  // cards
+  // cards — delta relative to DEADLINE_SIM (bufor), tooltip shows both
   [['p50', p50], ['p85', p85], ['p95', p95]].forEach(([cls, date], i) => {
-    const diff = daysDiff(DEADLINE, date);
-    const wd   = workDaysBetween(START, date);
+    const diffSim  = daysDiff(DEADLINE_SIM,  date); // vs bufor 20.06
+    const diffHard = daysDiff(DEADLINE_HARD, date); // vs twardy 23.06
+    const wd = workDaysBetween(START, date);
     document.getElementById(`d${sfx}_${cls}`).textContent = fmt(date);
     document.getElementById(`s${sfx}_${cls}`).textContent = `${wd} dni rob. od startu`;
     const el = document.getElementById(`dt${sfx}_${cls}`);
-    if (diff <= 0)       { el.textContent = `${Math.abs(diff)} dni przed deadline`; el.className = 'delta ok'; }
-    else if (diff <= 14) { el.textContent = `${diff} dni po deadline`;              el.className = 'delta warn'; }
-    else                 { el.textContent = `${diff} dni po deadline`;              el.className = 'delta over'; }
+    if (diffSim <= 0) {
+      const margin = Math.abs(diffSim);
+      el.textContent = `${margin} dni przed buforem (20.06)`;
+      el.className = 'delta ok';
+    } else if (diffHard <= 0) {
+      el.textContent = `po buforze, ${Math.abs(diffHard)} dni przed 23.06`;
+      el.className = 'delta warn';
+    } else {
+      el.textContent = `${diffHard} dni po deadline 23.06`;
+      el.className = 'delta over';
+    }
     setTimeout(() => document.getElementById(`c${sfx}_${cls}`).classList.add('visible'), i * 150);
   });
 
@@ -703,7 +714,8 @@ function renderPanel({ sfx, scope, sensRange, highlightScope }) {
       }
     },
     plugins: [vLinePlugin('vl_hist_'+sfx, minD, BS, [
-      { date: DEADLINE, color: '#1a4a7a', label: 'Deadline', dash: [5,4] },
+      { date: DEADLINE_HARD, color: '#1a4a7a', label: '23.06 (twardy)', dash: [5,4] },
+      { date: DEADLINE_SIM,  color: '#5b8dd9', label: '20.06 (bufor)',  dash: [3,5] },
       { date: p50, color: '#1a7a4a', label: 'P50', dash: [3,3] },
       { date: p85, color: '#c47d0e', label: 'P85', dash: [3,3] },
       { date: p95, color: '#c0392b', label: 'P95', dash: [3,3] },
@@ -740,13 +752,16 @@ function renderPanel({ sfx, scope, sensRange, highlightScope }) {
           ctx.fillStyle = col; ctx.font = '9px IBM Plex Mono'; ctx.fillText(lbl, chartArea.right - 25, yPx - 3);
           ctx.restore();
         });
-        const xPx = scales.x.getPixelForValue(daysDiff(minD, DEADLINE) / BS);
-        if (xPx >= chartArea.left && xPx <= chartArea.right) {
-          ctx.save(); ctx.strokeStyle = '#1a4a7a'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
-          ctx.beginPath(); ctx.moveTo(xPx, chartArea.top); ctx.lineTo(xPx, chartArea.bottom); ctx.stroke();
-          ctx.fillStyle = '#1a4a7a'; ctx.font = 'bold 9px IBM Plex Mono'; ctx.fillText('23.06', xPx + 3, chartArea.top + 10);
-          ctx.restore();
-        }
+        // deadline verticals — bufor + twardy
+        [[DEADLINE_SIM,'#5b8dd9','20.06'],[DEADLINE_HARD,'#1a4a7a','23.06']].forEach(([dl,col,lbl]) => {
+          const xPx = scales.x.getPixelForValue(daysDiff(minD, dl) / BS);
+          if (xPx >= chartArea.left && xPx <= chartArea.right) {
+            ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+            ctx.beginPath(); ctx.moveTo(xPx, chartArea.top); ctx.lineTo(xPx, chartArea.bottom); ctx.stroke();
+            ctx.fillStyle = col; ctx.font = 'bold 9px IBM Plex Mono'; ctx.fillText(lbl, xPx + 3, chartArea.top + 10);
+            ctx.restore();
+          }
+        });
       }
     }]
   });
@@ -794,12 +809,20 @@ function renderPanel({ sfx, scope, sensRange, highlightScope }) {
       id: 'sens_dl_' + sfx,
       afterDraw(chart) {
         const { ctx, chartArea, scales } = chart;
-        const yPx = scales.y.getPixelForValue(daysDiff(START, DEADLINE));
+        const yPx = scales.y.getPixelForValue(daysDiff(START, DEADLINE_HARD));
         if (yPx < chartArea.top || yPx > chartArea.bottom) return;
         ctx.save(); ctx.strokeStyle = '#1a4a7a'; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
         ctx.beginPath(); ctx.moveTo(chartArea.left, yPx); ctx.lineTo(chartArea.right, yPx); ctx.stroke();
-        ctx.fillStyle = '#1a4a7a'; ctx.font = 'bold 9px IBM Plex Mono'; ctx.fillText('Deadline 23.06', chartArea.left + 6, yPx - 5);
+        ctx.fillStyle = '#1a4a7a'; ctx.font = 'bold 9px IBM Plex Mono'; ctx.fillText('Deadline twardy 23.06', chartArea.left + 6, yPx - 5);
         ctx.restore();
+        // bufor line
+        const yPx2 = scales.y.getPixelForValue(daysDiff(START, DEADLINE_SIM));
+        if (yPx2 >= chartArea.top && yPx2 <= chartArea.bottom) {
+          ctx.save(); ctx.strokeStyle = '#5b8dd9'; ctx.lineWidth = 1.5; ctx.setLineDash([3,5]);
+          ctx.beginPath(); ctx.moveTo(chartArea.left, yPx2); ctx.lineTo(chartArea.right, yPx2); ctx.stroke();
+          ctx.fillStyle = '#5b8dd9'; ctx.font = '9px IBM Plex Mono'; ctx.fillText('Bufor 20.06', chartArea.left + 6, yPx2 - 4);
+          ctx.restore();
+        }
       }
     }]
   });
@@ -809,10 +832,11 @@ function renderPanel({ sfx, scope, sensRange, highlightScope }) {
 
 // ─── COMPARISON TABLE BUILDER ────────────────────────────────────
 function chipStatus(date) {
-  const diff = daysDiff(DEADLINE, date);
-  if (diff <= 0)       return `<span class="chip ok">${Math.abs(diff)}d przed</span>`;
-  if (diff <= 14)      return `<span class="chip warn">${diff}d po</span>`;
-  return `<span class="chip over">${diff}d po</span>`;
+  const diffSim  = daysDiff(DEADLINE_SIM,  date);
+  const diffHard = daysDiff(DEADLINE_HARD, date);
+  if (diffSim <= 0)       return `<span class="chip ok">${Math.abs(diffSim)}d przed buforem</span>`;
+  if (diffHard <= 0)      return `<span class="chip warn">po buf., ${Math.abs(diffHard)}d przed 23.06</span>`;
+  return `<span class="chip over">${diffHard}d po 23.06</span>`;
 }
 
 function probChip(p) {
