@@ -202,7 +202,7 @@
     <span class="meta-item">Start: <strong>05.05.2026</strong></span>
     <span class="meta-item">Deadline: <strong>20.06.2026</strong></span>
     <span class="meta-item">Symulacje: <strong>10 000</strong></span>
-    <span class="meta-item">Dane: <strong>15.02–26.04.2026</strong> (10 tyg., bez outliера 22.03)</span>
+    <span class="meta-item">Założenie: <strong>8 PBI / tydzień</strong> (konserwatywne, wariancja ±2)</span>
   </div>
 </div>
 
@@ -314,7 +314,7 @@
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────────────────
-const throughput = [13, 18, 14, 15, 13, 8, 9, 13, 15, 9]; // bez outliера 26
+const throughput = [6,7,7,8,8,8,8,9,9,10]; // konserwatywne: mediana 8 PBI/tydzień, wariancja ±2
 const TARGET = 46;
 const START    = new Date(2026, 4, 5);
 const DEADLINE = new Date(2026, 5, 20);
@@ -374,9 +374,20 @@ const minS=Math.min(...sim2), maxS=Math.max(...sim2);
 const h2={}; for(let s=minS;s<=maxS;s++) h2[s]=0;
 sim2.forEach(s=>h2[s]++);
 const svals=Object.keys(h2).map(Number);
-const h2L=svals.map(String);
-const h2D=svals.map(s=>+(h2[s]/N*100).toFixed(2));
-const h2C=svals.map(s=>s>=sp50?'rgba(22,163,74,0.25)':s>=sp85?'rgba(37,99,235,0.2)':s>=sp95?'rgba(220,38,38,0.2)':'rgba(220,38,38,0.1)');
+// Bin into groups of 2 for readability
+const BIN=2;
+const bvals=[], bdata=[], bcolors=[];
+for(let i=0;i<svals.length;i+=BIN){
+  const grp=svals.slice(i,i+BIN);
+  const cnt=grp.reduce((a,s)=>a+h2[s],0);
+  const mid=grp[Math.floor(grp.length/2)];
+  bvals.push(mid);
+  bdata.push(+(cnt/N*100).toFixed(2));
+  bcolors.push(mid>=sp50?'rgba(22,163,74,0.25)':mid>=sp85?'rgba(37,99,235,0.2)':mid>=sp95?'rgba(220,38,38,0.2)':'rgba(220,38,38,0.1)');
+}
+const h2L=bvals.map(String);
+const h2D=bdata;
+const h2C=bcolors;
 
 // CDF2 (from right)
 const cum2=new Array(svals.length);
@@ -397,10 +408,22 @@ function makeVline(id, markerLabels, allLabels) {
         const xp=x.getPixelForValue(idx);
         ctx.save();
         ctx.strokeStyle=colors[i]; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
-        ctx.beginPath(); ctx.moveTo(xp,top); ctx.lineTo(xp,bottom); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(xp,top+22); ctx.lineTo(xp,bottom); ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle=colors[i]; ctx.font=`500 10px ${MONO}`; ctx.textAlign='center';
-        ctx.fillText(tags[i], xp, top-5);
+        const tag=tags[i];
+        ctx.font=`600 10px ${MONO}`;
+        const tw=ctx.measureText(tag).width;
+        const pad=4, ph=16, px2=xp-tw/2-pad, py=top+4;
+        ctx.fillStyle=colors[i];
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(px2,py,tw+pad*2,ph,3);
+        else ctx.rect(px2,py,tw+pad*2,ph);
+        ctx.fill();
+        ctx.fillStyle='#fff';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.fillText(tag, xp, py+ph/2);
+        ctx.textBaseline='alphabetic';
         ctx.restore();
       });
     }
@@ -418,8 +441,17 @@ function makeHline(id, pcts) {
         ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
         ctx.beginPath(); ctx.moveTo(left,yp); ctx.lineTo(right,yp); ctx.stroke();
         ctx.setLineDash([]);
-        ctx.fillStyle=color; ctx.font=`500 10px ${MONO}`; ctx.textAlign='right';
-        ctx.fillText(label, right-4, yp-4);
+        ctx.font=`600 10px ${MONO}`;
+        const tw2=ctx.measureText(label).width;
+        const pad2=4, ph2=15;
+        ctx.fillStyle=color;
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(right-tw2-pad2*2-2, yp-ph2-1, tw2+pad2*2, ph2, 3);
+        else ctx.rect(right-tw2-pad2*2-2, yp-ph2-1, tw2+pad2*2, ph2);
+        ctx.fill();
+        ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(label, right-tw2/2-pad2-2, yp-ph2/2-1);
+        ctx.textBaseline='alphabetic';
         ctx.restore();
       });
     }
@@ -448,6 +480,7 @@ new Chart(document.getElementById('histChart'),{
   data:{labels:h1L,datasets:[{data:h1D,backgroundColor:h1C,borderColor:h1B,borderWidth:1.5,borderRadius:3,borderSkipped:false}]},
   options:{
     responsive:true, maintainAspectRatio:false,
+    layout:{padding:{top:28}},
     plugins:{
       legend:{display:false},
       tooltip:{...tooltipBase,callbacks:{title:i=>`Tydzień: ${i[0].label}`,label:i=>`${i.raw}% symulacji`}},
@@ -468,6 +501,7 @@ new Chart(document.getElementById('cdfChart'),{
   data:{labels:h1L,datasets:[{data:cdfD,borderColor:'#374151',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,65,81,0.05)'},tension:0.35}]},
   options:{
     responsive:true, maintainAspectRatio:false,
+    layout:{padding:{top:28}},
     plugins:{
       legend:{display:false},
       tooltip:{...tooltipBase,callbacks:{title:i=>`Do ${i[0].label}`,label:i=>`${(+i.raw).toFixed(1)}% symulacji`}},
@@ -481,12 +515,14 @@ new Chart(document.getElementById('cdfChart'),{
 });
 
 // 3. Scope histogram
-Chart.register(makeVline('vl2',[String(sp50),String(sp85),String(sp95)],h2L));
+const vl2markers=[sp50,sp85,sp95].map(v=>{const b=bvals.reduce((a,c)=>Math.abs(c-v)<Math.abs(a-v)?c:a);return String(b);});
+Chart.register(makeVline('vl2',vl2markers,h2L));
 new Chart(document.getElementById('scopeHistChart'),{
   type:'bar',
   data:{labels:h2L,datasets:[{data:h2D,backgroundColor:h2C,borderRadius:3,borderWidth:0}]},
   options:{
     responsive:true, maintainAspectRatio:false,
+    layout:{padding:{top:28}},
     plugins:{
       legend:{display:false},
       tooltip:{...tooltipBase,callbacks:{title:i=>`${i[0].label} PBI`,label:i=>`${i.raw}% symulacji`}},
@@ -511,6 +547,7 @@ new Chart(document.getElementById('scopeCdfChart'),{
   data:{labels:h2L,datasets:[{data:cum2,borderColor:'#374151',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,65,81,0.05)'},tension:0.35}]},
   options:{
     responsive:true, maintainAspectRatio:false,
+    layout:{padding:{top:28}},
     plugins:{
       legend:{display:false},
       tooltip:{...tooltipBase,callbacks:{title:i=>`≥ ${i[0].label} PBI`,label:i=>`prawdopodob.: ${(+i.raw).toFixed(1)}%`}},
