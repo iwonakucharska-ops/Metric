@@ -1,573 +1,479 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monte Carlo — Zespół MKi</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg:      #f5f4f0;
-    --surface: #ffffff;
-    --border:  #e2dfd8;
-    --text:    #1c1917;
-    --muted:   #78716c;
-    --muted2:  #a8a29e;
-    --p50:     #16a34a;
-    --p85:     #2563eb;
-    --p95:     #dc2626;
-    --shadow:  0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 2.5rem;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monte Carlo – Zespół Rew</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* HEADER */
-  .page-header { margin-bottom: 1.6rem; }
-  .page-header h1 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-  .meta {
-    display: flex;
-    gap: 1.8rem;
-    margin-top: 0.4rem;
-    flex-wrap: wrap;
-  }
-  .meta-item {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-  .meta-item strong { color: var(--text); font-weight: 500; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8f7f4;
+      color: #1a1a18;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
 
-  /* TABS */
-  .tabs {
-    display: flex;
-    border-bottom: 1.5px solid var(--border);
-    margin-bottom: 1.5rem;
-  }
-  .tab-btn {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 0.55rem 1.1rem;
-    border: none;
-    background: none;
-    color: var(--muted);
-    cursor: pointer;
-    position: relative;
-    bottom: -1.5px;
-    border-bottom: 2px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; animation: fadeUp 0.2s ease; }
-  @keyframes fadeUp {
-    from { opacity:0; transform: translateY(5px); }
-    to   { opacity:1; transform: translateY(0); }
-  }
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
 
-  /* STAT CARDS */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-    gap: 1rem;
-    margin-bottom: 1.2rem;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1rem 1.3rem;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .stat-card::after {
-    content: '';
-    position: absolute;
-    left:0; top:0; bottom:0;
-    width: 3px;
-    border-radius: 10px 0 0 10px;
-  }
-  .stat-card.p50::after { background: var(--p50); }
-  .stat-card.p85::after { background: var(--p85); }
-  .stat-card.p95::after { background: var(--p95); }
-  .stat-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted2);
-    margin-bottom: 0.35rem;
-  }
-  .stat-value {
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1;
-    margin-bottom: 0.2rem;
-  }
-  .stat-card.p50 .stat-value { color: var(--p50); }
-  .stat-card.p85 .stat-value { color: var(--p85); }
-  .stat-card.p95 .stat-value { color: var(--p95); }
-  .stat-sub { font-family: 'DM Mono', monospace; font-size: 0.67rem; color: var(--muted2); }
+    header {
+      margin-bottom: 2rem;
+    }
 
-  /* CHART GRID */
-  .charts-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .chart-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.3rem 1.5rem;
-    box-shadow: var(--shadow);
-  }
-  .chart-panel-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 0.15rem;
-  }
-  .chart-panel-sub {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.63rem;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--muted2);
-    margin-bottom: 1rem;
-  }
-  .chart-wrap { position: relative; height: 265px; }
+    header h1 {
+      font-size: 22px;
+      font-weight: 500;
+      color: #1a1a18;
+      margin-bottom: 4px;
+    }
 
-  /* LEGEND */
-  .legend {
-    display: flex;
-    gap: 1.2rem;
-    margin-top: 0.9rem;
-    padding-top: 0.7rem;
-    border-top: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.68rem;
-    font-weight: 500;
-    color: var(--muted);
-  }
-  .leg-swatch {
-    width: 18px; height: 2px; border-radius: 2px; flex-shrink: 0;
-  }
+    header p {
+      font-size: 14px;
+      color: #888780;
+    }
 
-  /* NOTE */
-  .note {
-    margin-top: 1rem;
-    font-size: 0.71rem;
-    color: var(--muted);
-    line-height: 1.7;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.85rem 1.1rem;
-  }
-  .note strong { color: var(--text); }
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #e0ddd6;
+      margin-bottom: 1.5rem;
+    }
 
-  @media(max-width:720px){
-    body { padding: 1rem; }
-    .charts-grid { grid-template-columns: 1fr; }
-    .stats-row { grid-template-columns: 1fr; }
-    .meta { gap: 1rem; }
-  }
-</style>
+    .tab-btn {
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: #888780;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab-btn.active {
+      color: #185FA5;
+      border-bottom-color: #185FA5;
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: #444441;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-card {
+      background: #fff;
+      border: 1px solid #e0ddd6;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .metric-card .label {
+      font-size: 12px;
+      color: #888780;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .metric-card .weeks {
+      font-size: 22px;
+      font-weight: 500;
+      color: #1a1a18;
+      line-height: 1.2;
+    }
+
+    .metric-card .date {
+      font-size: 13px;
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    .metric-card.p50 .date { color: #185FA5; }
+    .metric-card.p85 .date { color: #1D9E75; }
+    .metric-card.p95 .date { color: #D85A30; }
+
+    .chart-card {
+      background: #fff;
+      border: 1px solid #e0ddd6;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .chart-card .chart-title {
+      font-size: 13px;
+      color: #888780;
+      margin-bottom: 12px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #888780;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 280px;
+    }
+
+    .chart-wrap.cdf {
+      height: 240px;
+    }
+
+    footer {
+      margin-top: 2.5rem;
+      font-size: 12px;
+      color: #b4b2a9;
+      border-top: 1px solid #e0ddd6;
+      padding-top: 1rem;
+    }
+
+    @media (max-width: 560px) {
+      .metric-grid { grid-template-columns: 1fr; }
+      .tab-btn { padding: 10px 16px; font-size: 13px; }
+    }
+  </style>
 </head>
 <body>
+<div class="container">
 
-<div class="page-header">
-  <h1>Monte Carlo Forecast · Zespół MKi</h1>
-  <div class="meta">
-    <span class="meta-item">Cel: <strong>46 PBI</strong></span>
-    <span class="meta-item">Start: <strong>05.05.2026</strong></span>
-    <span class="meta-item">Deadline: <strong>20.06.2026</strong></span>
-    <span class="meta-item">Symulacje: <strong>10 000</strong></span>
-    <span class="meta-item">Założenie: <strong>8 PBI / tydzień</strong> (konserwatywne, wariancja ±2)</span>
-  </div>
-</div>
+  <header>
+    <h1>Symulacja Monte Carlo – Zespół Rew</h1>
+    <p id="subtitle">Start: — &nbsp;|&nbsp; 10 000 symulacji &nbsp;|&nbsp; Throughput: dane tygodniowe (lut–maj 2026)</p>
+  </header>
 
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('forecast',this)">📅 Kiedy ukończymy 46 PBI?</button>
-  <button class="tab-btn" onclick="switchTab('scope',this)">📦 Ile PBI do 20.06.2026?</button>
-</div>
-
-<!-- TAB 1 -->
-<div id="tab-forecast" class="tab-content active">
-  <div class="stats-row">
-    <div class="stat-card p50">
-      <div class="stat-label">P50 · 50. percentyl</div>
-      <div class="stat-value" id="p50date">—</div>
-      <div class="stat-sub" id="p50sub">…</div>
-    </div>
-    <div class="stat-card p85">
-      <div class="stat-label">P85 · zalecane do zobowiązań</div>
-      <div class="stat-value" id="p85date">—</div>
-      <div class="stat-sub" id="p85sub">…</div>
-    </div>
-    <div class="stat-card p95">
-      <div class="stat-label">P95 · bardzo ostrożny</div>
-      <div class="stat-value" id="p95date">—</div>
-      <div class="stat-sub" id="p95sub">…</div>
-    </div>
+  <div class="tabs">
+    <button class="tab-btn active" id="tab1" onclick="switchTab(1)">41 PBI</button>
+    <button class="tab-btn" id="tab2" onclick="switchTab(2)">62 PBI</button>
   </div>
 
-  <div class="charts-grid">
-    <div class="chart-panel">
-      <div class="chart-panel-title">Rozkład dat ukończenia</div>
-      <div class="chart-panel-sub">Histogram · 10 000 symulacji · grupowanie co 7 dni</div>
-      <div class="chart-wrap"><canvas id="histChart"></canvas></div>
-      <div class="legend">
-        <div class="legend-item"><div class="leg-swatch" style="background:#16a34a"></div>P50</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#2563eb"></div>P85</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#dc2626"></div>P95</div>
+  <div class="panel active" id="panel1">
+    <div class="metric-grid">
+      <div class="metric-card p50">
+        <div class="label">50. percentyl</div>
+        <div class="weeks" id="a50w">—</div>
+        <div class="date" id="a50d">—</div>
+      </div>
+      <div class="metric-card p85">
+        <div class="label">85. percentyl</div>
+        <div class="weeks" id="a85w">—</div>
+        <div class="date" id="a85d">—</div>
+      </div>
+      <div class="metric-card p95">
+        <div class="label">95. percentyl</div>
+        <div class="weeks" id="a95w">—</div>
+        <div class="date" id="a95d">—</div>
       </div>
     </div>
-    <div class="chart-panel">
-      <div class="chart-panel-title">Skumulowany rozkład (CDF)</div>
-      <div class="chart-panel-sub">Prawdopodobieństwo skumulowane</div>
-      <div class="chart-wrap"><canvas id="cdfChart"></canvas></div>
+
+    <div class="chart-card">
+      <div class="chart-title">Rozkład prawdopodobieństwa daty ukończenia – 41 PBI</div>
       <div class="legend">
-        <div class="legend-item"><div class="leg-swatch" style="background:#374151"></div>CDF</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#16a34a"></div>P50 = 50%</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#2563eb"></div>P85 = 85%</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#dc2626"></div>P95 = 95%</div>
+        <span><span class="legend-dot" style="background:#378ADD;"></span>do P50</span>
+        <span><span class="legend-dot" style="background:#1D9E75;"></span>P50–P85</span>
+        <span><span class="legend-dot" style="background:#D85A30;"></span>P85–P95+</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartA" role="img" aria-label="Histogram dat ukończenia dla 41 PBI">Histogram Monte Carlo – 41 PBI.</canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Skumulowane prawdopodobieństwo ukończenia (CDF) – 41 PBI</div>
+      <div class="chart-wrap cdf">
+        <canvas id="chartACDF" role="img" aria-label="CDF dla 41 PBI">CDF Monte Carlo – 41 PBI.</canvas>
       </div>
     </div>
   </div>
 
-  <div class="note">
-    <strong>Jak czytać:</strong> Histogram — wysokość słupka = % symulacji kończących się w danym tygodniu.
-    CDF — odczytaj datę dla wybranego prawdopodobieństwa.
-    <strong>Do komunikacji z interesariuszami rekomendowane: P85</strong> — w 85% scenariuszy skończymy przed tą datą.
-  </div>
-</div>
-
-<!-- TAB 2 -->
-<div id="tab-scope" class="tab-content">
-  <div class="stats-row">
-    <div class="stat-card p50">
-      <div class="stat-label">P50 · mediana</div>
-      <div class="stat-value" id="scope-p50">—</div>
-      <div class="stat-sub">PBI ukończone do 20.06</div>
-    </div>
-    <div class="stat-card p85">
-      <div class="stat-label">P85 · ostrożny — w 85% ≥ tej wartości</div>
-      <div class="stat-value" id="scope-p85">—</div>
-      <div class="stat-sub">PBI ukończone do 20.06</div>
-    </div>
-    <div class="stat-card p95">
-      <div class="stat-label">P95 · pesymistyczny — w 95% ≥</div>
-      <div class="stat-value" id="scope-p95">—</div>
-      <div class="stat-sub">PBI ukończone do 20.06</div>
-    </div>
-  </div>
-
-  <div class="charts-grid">
-    <div class="chart-panel">
-      <div class="chart-panel-title">Rozkład liczby PBI do 20.06.2026</div>
-      <div class="chart-panel-sub">Histogram · 10 000 symulacji · <span id="weeks-label">—</span> tygodni od startu</div>
-      <div class="chart-wrap"><canvas id="scopeHistChart"></canvas></div>
-      <div class="legend">
-        <div class="legend-item"><div class="leg-swatch" style="background:#16a34a"></div>P50</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#2563eb"></div>P85</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#dc2626"></div>P95</div>
+  <div class="panel" id="panel2">
+    <div class="metric-grid">
+      <div class="metric-card p50">
+        <div class="label">50. percentyl</div>
+        <div class="weeks" id="b50w">—</div>
+        <div class="date" id="b50d">—</div>
+      </div>
+      <div class="metric-card p85">
+        <div class="label">85. percentyl</div>
+        <div class="weeks" id="b85w">—</div>
+        <div class="date" id="b85d">—</div>
+      </div>
+      <div class="metric-card p95">
+        <div class="label">95. percentyl</div>
+        <div class="weeks" id="b95w">—</div>
+        <div class="date" id="b95d">—</div>
       </div>
     </div>
-    <div class="chart-panel">
-      <div class="chart-panel-title">Skumulowany rozkład (CDF)</div>
-      <div class="chart-panel-sub">P(ukończono ≥ N PBI) do 20.06</div>
-      <div class="chart-wrap"><canvas id="scopeCdfChart"></canvas></div>
+
+    <div class="chart-card">
+      <div class="chart-title">Rozkład prawdopodobieństwa daty ukończenia – 62 PBI</div>
       <div class="legend">
-        <div class="legend-item"><div class="leg-swatch" style="background:#374151"></div>CDF</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#16a34a"></div>50%</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#2563eb"></div>85%</div>
-        <div class="legend-item"><div class="leg-swatch" style="background:#dc2626"></div>95%</div>
+        <span><span class="legend-dot" style="background:#378ADD;"></span>do P50</span>
+        <span><span class="legend-dot" style="background:#1D9E75;"></span>P50–P85</span>
+        <span><span class="legend-dot" style="background:#D85A30;"></span>P85–P95+</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chartB" role="img" aria-label="Histogram dat ukończenia dla 62 PBI">Histogram Monte Carlo – 62 PBI.</canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Skumulowane prawdopodobieństwo ukończenia (CDF) – 62 PBI</div>
+      <div class="chart-wrap cdf">
+        <canvas id="chartBCDF" role="img" aria-label="CDF dla 62 PBI">CDF Monte Carlo – 62 PBI.</canvas>
       </div>
     </div>
   </div>
 
-  <div class="note">
-    <strong>Jak czytać:</strong> P50 = mediana liczby PBI. P85 = w 85% symulacji ukończymy <em>co najmniej</em> tyle elementów —
-    bezpieczna obietnica dla stakeholderów. Do 20.06 mamy <strong id="weeks-note">—</strong> tygodni roboczych od dziś.
-  </div>
+  <footer>
+    Dane throughput: 15.02–10.05.2026 (13 tygodni). Symulacja losuje tygodnie ze zwracaniem aż do zebrania wymaganej liczby PBI. Daty = koniec tygodnia od daty startu.
+  </footer>
+
 </div>
 
 <script>
-// ─── DATA ────────────────────────────────────────────────────────────────────
-const throughput = [6,7,7,8,8,8,8,9,9,10]; // konserwatywne: mediana 8 PBI/tydzień, wariancja ±2
-const TARGET = 46;
-const START    = new Date(2026, 4, 5);
-const DEADLINE = new Date(2026, 5, 20);
-const N = 10000;
-const MONO = "'DM Mono', monospace";
-const FONT = "'DM Sans', sans-serif";
+  const THROUGHPUT = [13, 18, 14, 15, 13, 26, 8, 9, 13, 15, 15, 9, 2];
+  const SIMS = 10000;
+  const START = new Date();
+  START.setHours(0, 0, 0, 0);
 
-function weeksUntil(a, b) { return Math.round((b-a)/(7*86400*1000)); }
-const wDeadline = weeksUntil(START, DEADLINE);
-document.getElementById('weeks-label').textContent = wDeadline;
-document.getElementById('weeks-note').textContent  = wDeadline;
+  document.getElementById('subtitle').textContent =
+    'Start: ' + START.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' }) +
+    '  |  10 000 symulacji  |  Throughput: dane tygodniowe (lut–maj 2026)';
 
-function rnd() { return throughput[Math.floor(Math.random()*throughput.length)]; }
-function addDays(d, n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
-function fmt(d)  { return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'}); }
-function fmts(d) { return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit'}); }
-function pct(arr, p) {
-  const s=[...arr].sort((a,b)=>a-b);
-  return s[Math.ceil(p/100*s.length)-1];
-}
-
-// ─── SIM 1 ───────────────────────────────────────────────────────────────────
-const sim1=[];
-for(let i=0;i<N;i++){let d=0,w=0;while(d<TARGET){d+=rnd();w++;}sim1.push(w);}
-const p50w=pct(sim1,50), p85w=pct(sim1,85), p95w=pct(sim1,95);
-const we = w => addDays(START, w*7);
-
-document.getElementById('p50date').textContent=fmt(we(p50w));
-document.getElementById('p85date').textContent=fmt(we(p85w));
-document.getElementById('p95date').textContent=fmt(we(p95w));
-document.getElementById('p50sub').textContent=`za ${p50w} tyg. od startu`;
-document.getElementById('p85sub').textContent=`za ${p85w} tyg. od startu`;
-document.getElementById('p95sub').textContent=`za ${p95w} tyg. od startu`;
-
-const minW=Math.min(...sim1), maxW=Math.max(...sim1);
-const h1={}; for(let w=minW;w<=maxW;w++) h1[w]=0;
-sim1.forEach(w=>h1[w]++);
-const wks=Object.keys(h1).map(Number);
-const h1L=wks.map(w=>fmts(we(w)));
-const h1D=wks.map(w=>+(h1[w]/N*100).toFixed(2));
-const h1C=wks.map(w=>w<=p50w?'rgba(22,163,74,0.25)':w<=p85w?'rgba(37,99,235,0.2)':w<=p95w?'rgba(220,38,38,0.2)':'rgba(220,38,38,0.1)');
-const h1B=wks.map(w=>w===p50w?'#16a34a':w===p85w?'#2563eb':w===p95w?'#dc2626':'transparent');
-
-// CDF
-let cum=0;
-const cdfD=wks.map(w=>{cum+=h1[w]/N*100; return +cum.toFixed(2);});
-
-// ─── SIM 2 ───────────────────────────────────────────────────────────────────
-const sim2=[];
-for(let i=0;i<N;i++){let d=0;for(let w=0;w<wDeadline;w++)d+=rnd();sim2.push(d);}
-const sp50=pct(sim2,50), sp85=pct(sim2,15), sp95=pct(sim2,5);
-document.getElementById('scope-p50').textContent=sp50;
-document.getElementById('scope-p85').textContent=sp85;
-document.getElementById('scope-p95').textContent=sp95;
-
-const minS=Math.min(...sim2), maxS=Math.max(...sim2);
-const h2={}; for(let s=minS;s<=maxS;s++) h2[s]=0;
-sim2.forEach(s=>h2[s]++);
-const svals=Object.keys(h2).map(Number);
-// Bin into groups of 2 for readability
-const BIN=2;
-const bvals=[], bdata=[], bcolors=[];
-for(let i=0;i<svals.length;i+=BIN){
-  const grp=svals.slice(i,i+BIN);
-  const cnt=grp.reduce((a,s)=>a+h2[s],0);
-  const mid=grp[Math.floor(grp.length/2)];
-  bvals.push(mid);
-  bdata.push(+(cnt/N*100).toFixed(2));
-  bcolors.push(mid>=sp50?'rgba(22,163,74,0.25)':mid>=sp85?'rgba(37,99,235,0.2)':mid>=sp95?'rgba(220,38,38,0.2)':'rgba(220,38,38,0.1)');
-}
-const h2L=bvals.map(String);
-const h2D=bdata;
-const h2C=bcolors;
-
-// CDF2 (from right)
-const cum2=new Array(svals.length);
-let r2=0;
-for(let i=svals.length-1;i>=0;i--){r2+=h2[svals[i]]/N*100; cum2[i]=+r2.toFixed(2);}
-
-// ─── PLUGIN FACTORY ──────────────────────────────────────────────────────────
-function makeVline(id, markerLabels, allLabels) {
-  const colors=['#16a34a','#2563eb','#dc2626'];
-  const tags=['P50','P85','P95'];
-  return {
-    id,
-    afterDraw(chart) {
-      const {ctx,chartArea:{top,bottom},scales:{x}}=chart;
-      markerLabels.forEach((lbl,i)=>{
-        const idx=allLabels.indexOf(lbl);
-        if(idx<0) return;
-        const xp=x.getPixelForValue(idx);
-        ctx.save();
-        ctx.strokeStyle=colors[i]; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
-        ctx.beginPath(); ctx.moveTo(xp,top+22); ctx.lineTo(xp,bottom); ctx.stroke();
-        ctx.setLineDash([]);
-        const tag=tags[i];
-        ctx.font=`600 10px ${MONO}`;
-        const tw=ctx.measureText(tag).width;
-        const pad=4, ph=16, px2=xp-tw/2-pad, py=top+4;
-        ctx.fillStyle=colors[i];
-        ctx.beginPath();
-        if(ctx.roundRect) ctx.roundRect(px2,py,tw+pad*2,ph,3);
-        else ctx.rect(px2,py,tw+pad*2,ph);
-        ctx.fill();
-        ctx.fillStyle='#fff';
-        ctx.textAlign='center';
-        ctx.textBaseline='middle';
-        ctx.fillText(tag, xp, py+ph/2);
-        ctx.textBaseline='alphabetic';
-        ctx.restore();
-      });
-    }
-  };
-}
-
-function makeHline(id, pcts) {
-  return {
-    id,
-    afterDraw(chart) {
-      const {ctx,chartArea:{left,right},scales:{y}}=chart;
-      pcts.forEach(({val,color,label})=>{
-        const yp=y.getPixelForValue(val);
-        ctx.save();
-        ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.setLineDash([5,3]);
-        ctx.beginPath(); ctx.moveTo(left,yp); ctx.lineTo(right,yp); ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.font=`600 10px ${MONO}`;
-        const tw2=ctx.measureText(label).width;
-        const pad2=4, ph2=15;
-        ctx.fillStyle=color;
-        ctx.beginPath();
-        if(ctx.roundRect) ctx.roundRect(right-tw2-pad2*2-2, yp-ph2-1, tw2+pad2*2, ph2, 3);
-        else ctx.rect(right-tw2-pad2*2-2, yp-ph2-1, tw2+pad2*2, ph2);
-        ctx.fill();
-        ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText(label, right-tw2/2-pad2-2, yp-ph2/2-1);
-        ctx.textBaseline='alphabetic';
-        ctx.restore();
-      });
-    }
-  };
-}
-
-Chart.defaults.font.family=FONT;
-Chart.defaults.color='#78716c';
-
-const scalesBase = {
-  x:{ ticks:{font:{family:MONO,size:10},maxRotation:45,color:'#a8a29e'}, grid:{color:'#f3f4f6'}, border:{color:'#e5e7eb'} },
-  y:{ ticks:{font:{family:MONO,size:10},color:'#a8a29e',callback:v=>v+'%'}, grid:{color:'#f3f4f6'}, border:{color:'#e5e7eb'} }
-};
-const tooltipBase = {
-  backgroundColor:'#1c1917', titleColor:'#f5f5f4', bodyColor:'#d6d3d1',
-  padding:10, cornerRadius:6,
-  titleFont:{family:MONO,size:11}, bodyFont:{family:MONO,size:11}
-};
-
-// ─── CHARTS ──────────────────────────────────────────────────────────────────
-
-// 1. Histogram
-Chart.register(makeVline('vl1',[fmts(we(p50w)),fmts(we(p85w)),fmts(we(p95w))], h1L));
-new Chart(document.getElementById('histChart'),{
-  type:'bar',
-  data:{labels:h1L,datasets:[{data:h1D,backgroundColor:h1C,borderColor:h1B,borderWidth:1.5,borderRadius:3,borderSkipped:false}]},
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    layout:{padding:{top:28}},
-    plugins:{
-      legend:{display:false},
-      tooltip:{...tooltipBase,callbacks:{title:i=>`Tydzień: ${i[0].label}`,label:i=>`${i.raw}% symulacji`}},
-      vl1:{}
-    },
-    scales:{...scalesBase, y:{...scalesBase.y,title:{display:true,text:'% symulacji',font:{family:MONO,size:10},color:'#a8a29e'}}}
+  function addWeeks(date, w) {
+    const d = new Date(date);
+    d.setDate(d.getDate() + w * 7);
+    return d;
   }
-});
 
-// 2. CDF
-Chart.register(makeHline('hl1',[
-  {val:50,color:'#16a34a',label:'P50 50%'},
-  {val:85,color:'#2563eb',label:'P85 85%'},
-  {val:95,color:'#dc2626',label:'P95 95%'}
-]));
-new Chart(document.getElementById('cdfChart'),{
-  type:'line',
-  data:{labels:h1L,datasets:[{data:cdfD,borderColor:'#374151',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,65,81,0.05)'},tension:0.35}]},
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    layout:{padding:{top:28}},
-    plugins:{
-      legend:{display:false},
-      tooltip:{...tooltipBase,callbacks:{title:i=>`Do ${i[0].label}`,label:i=>`${(+i.raw).toFixed(1)}% symulacji`}},
-      hl1:{}
-    },
-    scales:{
-      ...scalesBase,
-      y:{...scalesBase.y,min:0,max:100,title:{display:true,text:'CDF (%)',font:{family:MONO,size:10},color:'#a8a29e'}}
-    }
+  function fmtLong(d) {
+    return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
   }
-});
 
-// 3. Scope histogram
-const vl2markers=[sp50,sp85,sp95].map(v=>{const b=bvals.reduce((a,c)=>Math.abs(c-v)<Math.abs(a-v)?c:a);return String(b);});
-Chart.register(makeVline('vl2',vl2markers,h2L));
-new Chart(document.getElementById('scopeHistChart'),{
-  type:'bar',
-  data:{labels:h2L,datasets:[{data:h2D,backgroundColor:h2C,borderRadius:3,borderWidth:0}]},
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    layout:{padding:{top:28}},
-    plugins:{
-      legend:{display:false},
-      tooltip:{...tooltipBase,callbacks:{title:i=>`${i[0].label} PBI`,label:i=>`${i.raw}% symulacji`}},
-      vl2:{}
-    },
-    scales:{
-      ...scalesBase,
-      x:{...scalesBase.x,title:{display:true,text:'Liczba PBI',font:{family:MONO,size:10},color:'#a8a29e'}},
-      y:{...scalesBase.y,title:{display:true,text:'% symulacji',font:{family:MONO,size:10},color:'#a8a29e'}}
+  function fmtShort(d) {
+    return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+  }
+
+  function runMC(target) {
+    const results = [];
+    for (let i = 0; i < SIMS; i++) {
+      let done = 0, weeks = 0;
+      while (done < target) {
+        done += THROUGHPUT[Math.floor(Math.random() * THROUGHPUT.length)];
+        weeks++;
+      }
+      results.push(weeks);
+    }
+    return results.sort((a, b) => a - b);
+  }
+
+  function pct(sorted, p) {
+    return sorted[Math.max(0, Math.ceil(p / 100 * sorted.length) - 1)];
+  }
+
+  function buildHist(sorted) {
+    const freq = {};
+    sorted.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    const weeks = Object.keys(freq).map(Number).sort((a, b) => a - b);
+    return {
+      weeks,
+      labels: weeks.map(w => fmtShort(addWeeks(START, w))),
+      counts: weeks.map(w => freq[w])
+    };
+  }
+
+  function buildCDF(sorted) {
+    const freq = {};
+    sorted.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    const weeks = Object.keys(freq).map(Number).sort((a, b) => a - b);
+    let cum = 0;
+    const values = weeks.map(w => { cum += freq[w]; return Math.round(cum / SIMS * 100); });
+    return { weeks, labels: weeks.map(w => fmtShort(addWeeks(START, w))), values };
+  }
+
+  function makeHist(canvasId, sorted, p50w, p85w) {
+    const { weeks, labels, counts } = buildHist(sorted);
+    const colors = weeks.map(w => {
+      if (w <= p50w) return '#378ADD';
+      if (w <= p85w) return '#1D9E75';
+      return '#D85A30';
+    });
+    new Chart(document.getElementById(canvasId), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{ label: 'Symulacje', data: counts, backgroundColor: colors, borderWidth: 0, borderRadius: 2 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: ctx => ctx[0].label,
+              label: ctx => ctx.parsed.y + ' symulacji (' + Math.round(ctx.parsed.y / SIMS * 100) + '%)'
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Data ukończenia (koniec tygodnia)', font: { size: 12 }, color: '#888780' },
+            ticks: { autoSkip: true, maxRotation: 45, color: '#888780', font: { size: 11 } },
+            grid: { display: false }
+          },
+          y: {
+            title: { display: true, text: 'Liczba symulacji', font: { size: 12 }, color: '#888780' },
+            ticks: { color: '#888780' },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          }
+        }
+      }
+    });
+  }
+
+  function makeCDF(canvasId, sorted, p50w, p85w, p95w) {
+    const { weeks, labels, values } = buildCDF(sorted);
+    const p50i = weeks.indexOf(p50w);
+    const p85i = weeks.indexOf(p85w);
+    const p95i = weeks.indexOf(p95w);
+
+    new Chart(document.getElementById(canvasId), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'CDF (%)',
+            data: values,
+            borderColor: '#185FA5',
+            backgroundColor: 'rgba(55,138,221,0.07)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2
+          },
+          {
+            label: 'P50',
+            data: weeks.map((w, i) => i === p50i ? values[i] : null),
+            pointRadius: 7, pointBackgroundColor: '#378ADD',
+            pointBorderColor: '#fff', pointBorderWidth: 2,
+            showLine: false, borderWidth: 0
+          },
+          {
+            label: 'P85',
+            data: weeks.map((w, i) => i === p85i ? values[i] : null),
+            pointRadius: 7, pointBackgroundColor: '#1D9E75',
+            pointBorderColor: '#fff', pointBorderWidth: 2,
+            showLine: false, borderWidth: 0
+          },
+          {
+            label: 'P95',
+            data: weeks.map((w, i) => i === p95i ? values[i] : null),
+            pointRadius: 7, pointBackgroundColor: '#D85A30',
+            pointBorderColor: '#fff', pointBorderWidth: 2,
+            showLine: false, borderWidth: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            filter: item => item.datasetIndex === 0,
+            callbacks: {
+              title: ctx => ctx[0].label,
+              label: ctx => 'Prawdopodobieństwo: ' + ctx.parsed.y + '%'
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Data ukończenia', font: { size: 12 }, color: '#888780' },
+            ticks: { autoSkip: true, maxRotation: 45, color: '#888780', font: { size: 11 } },
+            grid: { display: false }
+          },
+          y: {
+            min: 0, max: 100,
+            title: { display: true, text: 'Prawdopodobieństwo (%)', font: { size: 12 }, color: '#888780' },
+            ticks: { callback: v => v + '%', color: '#888780' },
+            grid: { color: 'rgba(0,0,0,0.06)' }
+          }
+        }
+      }
+    });
+  }
+
+  function fillCards(prefix, sorted) {
+    const p50w = pct(sorted, 50);
+    const p85w = pct(sorted, 85);
+    const p95w = pct(sorted, 95);
+    document.getElementById(prefix + '50w').textContent = p50w + ' tyg.';
+    document.getElementById(prefix + '85w').textContent = p85w + ' tyg.';
+    document.getElementById(prefix + '95w').textContent = p95w + ' tyg.';
+    document.getElementById(prefix + '50d').textContent = fmtLong(addWeeks(START, p50w));
+    document.getElementById(prefix + '85d').textContent = fmtLong(addWeeks(START, p85w));
+    document.getElementById(prefix + '95d').textContent = fmtLong(addWeeks(START, p95w));
+    return { p50w, p85w, p95w };
+  }
+
+  const resA = runMC(41);
+  const { p50w: a50w, p85w: a85w, p95w: a95w } = fillCards('a', resA);
+  makeHist('chartA', resA, a50w, a85w);
+  makeCDF('chartACDF', resA, a50w, a85w, a95w);
+
+  const resB = runMC(62);
+  const { p50w: b50w, p85w: b85w, p95w: b95w } = fillCards('b', resB);
+
+  function switchTab(n) {
+    document.getElementById('panel1').classList.toggle('active', n === 1);
+    document.getElementById('panel2').classList.toggle('active', n === 2);
+    document.getElementById('tab1').classList.toggle('active', n === 1);
+    document.getElementById('tab2').classList.toggle('active', n === 2);
+    if (n === 2 && !window._bDone) {
+      window._bDone = true;
+      makeHist('chartB', resB, b50w, b85w);
+      makeCDF('chartBCDF', resB, b50w, b85w, b95w);
     }
   }
-});
-
-// 4. Scope CDF
-Chart.register(makeHline('hl2',[
-  {val:50,color:'#16a34a',label:'50%'},
-  {val:85,color:'#2563eb',label:'85%'},
-  {val:95,color:'#dc2626',label:'95%'}
-]));
-new Chart(document.getElementById('scopeCdfChart'),{
-  type:'line',
-  data:{labels:h2L,datasets:[{data:cum2,borderColor:'#374151',borderWidth:2,pointRadius:0,fill:{target:'origin',above:'rgba(55,65,81,0.05)'},tension:0.35}]},
-  options:{
-    responsive:true, maintainAspectRatio:false,
-    layout:{padding:{top:28}},
-    plugins:{
-      legend:{display:false},
-      tooltip:{...tooltipBase,callbacks:{title:i=>`≥ ${i[0].label} PBI`,label:i=>`prawdopodob.: ${(+i.raw).toFixed(1)}%`}},
-      hl2:{}
-    },
-    scales:{
-      ...scalesBase,
-      x:{...scalesBase.x,title:{display:true,text:'Liczba PBI',font:{family:MONO,size:10},color:'#a8a29e'}},
-      y:{...scalesBase.y,min:0,max:100,title:{display:true,text:'P(≥N PBI) %',font:{family:MONO,size:10},color:'#a8a29e'}}
-    }
-  }
-});
-
-// TABS
-function switchTab(id,btn){
-  document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
-}
 </script>
 </body>
 </html>
