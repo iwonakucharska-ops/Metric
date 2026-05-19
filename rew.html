@@ -267,6 +267,48 @@
     .cards-grid { grid-template-columns: 1fr; }
     .tab-btn { padding: 10px 14px; font-size: 13px; }
   }
+
+  .deadline-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .deadline-date-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+
+  .deadline-date-val {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+  }
+
+  .deadline-workdays {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 4px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .pd-p5::before { background: var(--coral-mid) !important; }
+  .pd-p50::before { background: var(--blue-mid) !important; }
+  .pd-p85::before { background: var(--teal-mid) !important; }
+  .cards-grid-deadline .pct-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
 </style>
 </head>
 <body>
@@ -284,6 +326,9 @@
     </button>
     <button class="tab-btn" onclick="switchTab('tab46', this)">
       Ograniczony zakres <span class="tab-badge">46 PBI</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('tabdeadline', this)">
+      Ile do 20 czerwca? <span class="tab-badge">deadline</span>
     </button>
   </div>
 
@@ -386,9 +431,61 @@
       <strong>Różnica względem 62 PBI:</strong> Zmniejszenie zakresu o 16 PBI (–26%) skraca prognozę. Możesz porównać daty P85 między zakładkami, by ocenić, ile czasu oszczędzasz ograniczając zakres. Przydatne przy rozmowie o priorytetyzacji z Product Ownerem.
     </div>
   </div>
-</div>
+  <!-- TAB DEADLINE -->
+  <div id="tabdeadline" class="tab-panel">
+    <div class="deadline-hero">
+      <div class="deadline-date-label">Deadline</div>
+      <div class="deadline-date-val">20 czerwca 2026</div>
+      <div class="deadline-workdays" id="dl-workdays"></div>
+    </div>
 
-<script>
+    <div class="cards-grid cards-grid-deadline">
+      <div class="pct-card pd-p5">
+        <div class="pct-card::before" style="display:none"></div>
+        <div class="pct-label">P5 — pesymistycznie</div>
+        <div class="pct-date" id="dl-p5" style="color:var(--coral)">—</div>
+        <div class="pct-meta">ukończone PBI</div>
+      </div>
+      <div class="pct-card pd-p50">
+        <div class="pct-label">P50 — mediana</div>
+        <div class="pct-date" id="dl-p50" style="color:var(--blue)">—</div>
+        <div class="pct-meta">ukończone PBI</div>
+      </div>
+      <div class="pct-card pd-p85">
+        <div class="pct-label">P85 — optymistycznie</div>
+        <div class="pct-date" id="dl-p85" style="color:var(--teal)">—</div>
+        <div class="pct-meta">ukończone PBI</div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Rozkład liczby PBI ukończonych do 20.06.2026</div>
+          <div class="chart-subtitle">Każdy słupek = ile symulacji ukończyło dokładnie N zadań do deadline'u</div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:#D85A30"></span>poniżej P50</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>P50–P85</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>powyżej P85</div>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap" style="height:320px;">
+        <canvas id="chartDeadline" role="img" aria-label="Histogram liczby PBI ukończonych do 20 czerwca 2026"></canvas>
+      </div>
+      <div class="params-row">
+        <span class="param-chip">deadline: 20.06.2026</span>
+        <span class="param-chip">start: 19.05.2026</span>
+        <span class="param-chip">throughput: 1–26 PBI/tydz.</span>
+        <span class="param-chip">symulacje: 10 000</span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>Jak działa ta symulacja?</strong> Każda iteracja losuje tygodniowy throughput z historii i sumuje ukończone PBI aż do wyczerpania dostępnych dni roboczych (do 20.06). Wynik to rozkład: ile zadań prawdopodobnie uda się zamknąć. <strong>P50</strong> to mediana — połowa symulacji dała wynik wyższy, połowa niższy. <strong>P85</strong> to wynik, który osiągnięto w 85% przypadków — czyli ostrożna, ale realistyczna dolna granica oczekiwań.
+    </div>
+  </div>
+</div>
 const THROUGHPUT = [14,15,13,26,8,9,13,15,15,8,7,1];
 const CYCLE_TIMES = [31,19,23,25,67,41,79,77,76,24,36,13];
 const START = new Date(2026, 4, 19);
@@ -545,6 +642,127 @@ function switchTab(id, btn) {
 
 renderTab(62, '62');
 renderTab(46, '46');
+renderDeadline();
+
+function countWorkdays(from, to) {
+  let count = 0;
+  let d = new Date(from.getTime());
+  while (d < to) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) count++;
+  }
+  return count;
+}
+
+function renderDeadline() {
+  const DEADLINE = new Date(2026, 5, 20);
+  const workdays = countWorkdays(START, DEADLINE);
+  const weeks = Math.floor(workdays / 5);
+  const extraDays = workdays % 5;
+
+  document.getElementById('dl-workdays').textContent =
+    workdays + ' dni roboczych (' + weeks + ' tyg.' + (extraDays ? ' + ' + extraDays + ' dni' : '') + ')';
+
+  const counts = [];
+  for (let i = 0; i < N_SIM; i++) {
+    let done = 0;
+    let daysLeft = workdays;
+    while (daysLeft >= 5) {
+      done += sample(THROUGHPUT);
+      daysLeft -= 5;
+    }
+    counts.push(done);
+  }
+  counts.sort((a, b) => a - b);
+
+  function getPctVal(sorted, p) {
+    return sorted[Math.min(sorted.length - 1, Math.ceil(p / 100 * sorted.length) - 1)];
+  }
+
+  const p5val  = getPctVal(counts, 5);
+  const p50val = getPctVal(counts, 50);
+  const p85val = getPctVal(counts, 85);
+
+  document.getElementById('dl-p5').textContent  = p5val  + ' PBI';
+  document.getElementById('dl-p50').textContent = p50val + ' PBI';
+  document.getElementById('dl-p85').textContent = p85val + ' PBI';
+
+  const minV = counts[0], maxV = counts[counts.length - 1];
+  const BIN = maxV - minV + 1;
+  const bins = Array(BIN).fill(0);
+  for (const v of counts) bins[v - minV]++;
+  const labels = Array.from({length: BIN}, (_, i) => String(minV + i));
+  const barColors = bins.map((_, i) => {
+    const v = minV + i;
+    if (v < p50val) return '#D85A30';
+    if (v < p85val) return '#378ADD';
+    return '#1D9E75';
+  });
+
+  new Chart(document.getElementById('chartDeadline'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Symulacje',
+        data: bins,
+        backgroundColor: barColors,
+        borderWidth: 0,
+        borderRadius: 3,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#fff',
+          borderColor: '#E5E3DC',
+          borderWidth: 1,
+          titleColor: '#1A1916',
+          bodyColor: '#6B6A65',
+          padding: 10,
+          callbacks: {
+            title: (items) => items[0].label + ' PBI ukończonych',
+            label: (item) => 'Symulacje: ' + item.raw.toLocaleString('pl-PL')
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            autoSkip: true,
+            maxTicksLimit: 20,
+            font: { size: 11, family: 'DM Sans' },
+            color: '#A09F9A'
+          },
+          grid: { display: false },
+          border: { color: '#E5E3DC' },
+          title: {
+            display: true,
+            text: 'Liczba ukończonych PBI',
+            font: { size: 11, family: 'DM Sans' },
+            color: '#A09F9A'
+          }
+        },
+        y: {
+          ticks: { font: { size: 11, family: 'DM Sans' }, color: '#A09F9A' },
+          grid: { color: 'rgba(0,0,0,0.04)' },
+          border: { dash: [3,3], color: 'transparent' },
+          title: {
+            display: true,
+            text: 'Liczba symulacji',
+            font: { size: 11, family: 'DM Sans' },
+            color: '#A09F9A'
+          }
+        }
+      }
+    }
+  });
+}
 </script>
 </body>
 </html>
