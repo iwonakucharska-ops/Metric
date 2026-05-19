@@ -4,765 +4,400 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monte Carlo — Zespół REW</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #F8F7F4;
-    --surface: #FFFFFF;
-    --border: #E5E3DC;
-    --text-primary: #1A1916;
-    --text-secondary: #6B6A65;
-    --text-muted: #A09F9A;
-    --teal: #0F6E56;
-    --teal-light: #E1F5EE;
-    --teal-mid: #1D9E75;
-    --blue: #185FA5;
-    --blue-light: #E6F1FB;
-    --blue-mid: #378ADD;
-    --coral: #993C1D;
-    --coral-light: #FAECE7;
-    --coral-mid: #D85A30;
-    --amber: #BA7517;
-    --accent: #2C2C2A;
-  }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-    padding: 2rem;
-  }
-
-  .page-header {
-    max-width: 860px;
-    margin: 0 auto 2rem;
-  }
-
-  .page-header h1 {
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: var(--text-primary);
-    margin-bottom: 6px;
-  }
-
-  .page-header p {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-  }
-
-  .tag {
-    display: inline-block;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    background: var(--accent);
-    color: #fff;
-    padding: 3px 8px;
-    border-radius: 4px;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-
-  .container {
-    max-width: 860px;
-    margin: 0 auto;
-  }
-
-  .tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1.5px solid var(--border);
-    margin-bottom: 2rem;
-  }
-
-  .tab-btn {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    background: none;
-    border: none;
-    padding: 10px 24px;
-    cursor: pointer;
-    color: var(--text-muted);
-    border-bottom: 2px solid transparent;
-    margin-bottom: -1.5px;
-    transition: color 0.15s, border-color 0.15s;
-    position: relative;
-  }
-
-  .tab-btn:hover { color: var(--text-primary); }
-
-  .tab-btn.active {
-    color: var(--text-primary);
-    border-bottom: 2px solid var(--text-primary);
-  }
-
-  .tab-badge {
-    display: inline-block;
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 10px;
-    margin-left: 6px;
-    background: var(--bg);
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-    vertical-align: middle;
-  }
-
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 2rem;
-  }
-
-  .pct-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.2rem 1.4rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .pct-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-  }
-
-  .pct-card.p50::before { background: var(--teal-mid); }
-  .pct-card.p85::before { background: var(--blue-mid); }
-  .pct-card.p95::before { background: var(--coral-mid); }
-
-  .pct-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.3px;
-    margin-bottom: 8px;
-  }
-
-  .pct-date {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-    margin-bottom: 4px;
-  }
-
-  .pct-card.p50 .pct-date { color: var(--teal); }
-  .pct-card.p85 .pct-date { color: var(--blue); }
-  .pct-card.p95 .pct-date { color: var(--coral); }
-
-  .pct-meta {
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .chart-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .chart-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 1.2rem;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .chart-title {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 3px;
-  }
-
-  .chart-subtitle {
-    font-size: 12px;
-    color: var(--text-secondary);
-  }
-
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    align-items: center;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .legend-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .chart-canvas-wrap {
-    position: relative;
-    width: 100%;
-    height: 300px;
-  }
-
-  .params-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-  }
-
-  .param-chip {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px 10px;
-    color: var(--text-secondary);
-  }
-
-  .info-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--text-muted);
-    border-radius: 0 8px 8px 0;
-    padding: 1rem 1.2rem;
-    font-size: 13px;
-    color: var(--text-secondary);
-    line-height: 1.7;
-  }
-
-  .info-box strong {
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-
-  @media (max-width: 600px) {
-    body { padding: 1rem; }
-    .cards-grid { grid-template-columns: 1fr; }
-    .tab-btn { padding: 10px 14px; font-size: 13px; }
-  }
-
-  .deadline-hero {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.4rem 1.6rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-  }
-
-  .deadline-date-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--text-muted);
-    letter-spacing: 0.3px;
-    margin-bottom: 4px;
-  }
-
-  .deadline-date-val {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    color: var(--text-primary);
-  }
-
-  .deadline-workdays {
-    font-size: 13px;
-    color: var(--text-secondary);
-    padding: 4px 12px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .pd-p5::before { background: var(--coral-mid) !important; }
-  .pd-p50::before { background: var(--blue-mid) !important; }
-  .pd-p85::before { background: var(--teal-mid) !important; }
-  .cards-grid-deadline .pct-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#F8F7F4;--surface:#FFFFFF;--border:#E5E3DC;
+  --tp:#1A1916;--ts:#6B6A65;--tm:#A09F9A;
+  --teal:#0F6E56;--teal-m:#1D9E75;
+  --blue:#185FA5;--blue-m:#378ADD;
+  --coral:#993C1D;--coral-m:#D85A30;
+  --accent:#2C2C2A;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tp);min-height:100vh;padding:2rem;}
+.page-header{max-width:880px;margin:0 auto 2rem;}
+.page-header h1{font-size:26px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px;}
+.page-header p{font-size:14px;color:var(--ts);line-height:1.6;}
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.5px;}
+.container{max-width:880px;margin:0 auto;}
+.tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:2rem;}
+.tab-btn{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:none;border:none;padding:10px 20px;cursor:pointer;color:var(--tm);border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:color .15s;}
+.tab-btn:hover{color:var(--tp);}
+.tab-btn.active{color:var(--tp);border-bottom:2px solid var(--tp);}
+.tab-badge{font-family:'DM Mono',monospace;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:6px;background:var(--bg);color:var(--ts);border:1px solid var(--border);vertical-align:middle;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.pct-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;position:relative;overflow:hidden;}
+.pct-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.c-teal::before{background:var(--teal-m);}
+.c-blue::before{background:var(--blue-m);}
+.c-coral::before{background:var(--coral-m);}
+.pct-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--tm);letter-spacing:.3px;margin-bottom:8px;}
+.pct-val{font-size:19px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px;}
+.color-teal{color:var(--teal);}
+.color-blue{color:var(--blue);}
+.color-coral{color:var(--coral);}
+.pct-meta{font-size:12px;color:var(--tm);}
+.chart-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;}
+.chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:12px;}
+.chart-title{font-size:15px;font-weight:500;margin-bottom:3px;}
+.chart-subtitle{font-size:12px;color:var(--ts);}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ts);align-items:center;}
+.legend-item{display:flex;align-items:center;gap:6px;}
+.legend-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.chart-wrap{position:relative;width:100%;height:300px;}
+.params-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+.chip{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--ts);}
+.info-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tm);border-radius:0 8px 8px 0;padding:1rem 1.2rem;font-size:13px;color:var(--ts);line-height:1.7;}
+.info-box strong{color:var(--tp);font-weight:500;}
+.dl-hero{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.6rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
+.dl-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--tm);margin-bottom:4px;}
+.dl-date{font-size:22px;font-weight:600;letter-spacing:-.5px;}
+.dl-chip{font-size:12px;color:var(--ts);padding:4px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;}
+@media(max-width:600px){body{padding:1rem;}.cards-grid{grid-template-columns:1fr;}.tab-btn{padding:10px 12px;font-size:13px;}}
 </style>
 </head>
 <body>
 
 <div class="page-header">
-  <span class="tag">MONTE CARLO · REW</span>
+  <span class="tag">MONTE CARLO &middot; REW</span>
   <h1>Prognoza ukończenia backlogu</h1>
-  <p>Symulacja oparta na historycznym throughput i cycle time zespołu · Start: 19 maja 2026 · Tylko dni robocze · 10 000 iteracji</p>
+  <p>Symulacja oparta na historycznym throughput i cycle time zespołu &middot; Start: 19 maja 2026 &middot; Tylko dni robocze &middot; 10 000 iteracji</p>
 </div>
 
 <div class="container">
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('tab62', this)">
-      Pełny backlog <span class="tab-badge">62 PBI</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('tab46', this)">
-      Ograniczony zakres <span class="tab-badge">46 PBI</span>
-    </button>
-    <button class="tab-btn" onclick="switchTab('tabdeadline', this)">
-      Ile do 20 czerwca? <span class="tab-badge">deadline</span>
-    </button>
+    <button class="tab-btn active" onclick="switchTab('tab62',this)">Pełny backlog <span class="tab-badge">62 PBI</span></button>
+    <button class="tab-btn" onclick="switchTab('tab46',this)">Ograniczony zakres <span class="tab-badge">46 PBI</span></button>
+    <button class="tab-btn" onclick="switchTab('tabdl',this)">Ile do 20 czerwca? <span class="tab-badge">deadline</span></button>
   </div>
 
   <!-- TAB 62 -->
   <div id="tab62" class="tab-panel active">
     <div class="cards-grid">
-      <div class="pct-card p50">
-        <div class="pct-label">P50 — najbardziej prawdopodobne</div>
-        <div class="pct-date" id="d50-62">—</div>
-        <div class="pct-meta" id="w50-62"></div>
+      <div class="pct-card c-teal">
+        <div class="pct-label">P50 &mdash; najbardziej prawdopodobne</div>
+        <div class="pct-val color-teal" id="v50-62">—</div>
+        <div class="pct-meta" id="m50-62"></div>
       </div>
-      <div class="pct-card p85">
-        <div class="pct-label">P85 — realistyczny cel</div>
-        <div class="pct-date" id="d85-62">—</div>
-        <div class="pct-meta" id="w85-62"></div>
+      <div class="pct-card c-blue">
+        <div class="pct-label">P85 &mdash; realistyczny cel</div>
+        <div class="pct-val color-blue" id="v85-62">—</div>
+        <div class="pct-meta" id="m85-62"></div>
       </div>
-      <div class="pct-card p95">
-        <div class="pct-label">P95 — ostrożna prognoza</div>
-        <div class="pct-date" id="d95-62">—</div>
-        <div class="pct-meta" id="w95-62"></div>
+      <div class="pct-card c-coral">
+        <div class="pct-label">P95 &mdash; ostrożna prognoza</div>
+        <div class="pct-val color-coral" id="v95-62">—</div>
+        <div class="pct-meta" id="m95-62"></div>
       </div>
     </div>
-
     <div class="chart-section">
       <div class="chart-header">
         <div>
-          <div class="chart-title">Rozkład dat ukończenia 62 PBI</div>
-          <div class="chart-subtitle">Każdy słupek = liczba symulacji kończących się w danym przedziale czasowym</div>
+          <div class="chart-title">Rozkład dat ukończenia — 62 PBI</div>
+          <div class="chart-subtitle">Każdy słupek = liczba symulacji kończących się w danym przedziale</div>
         </div>
         <div class="legend">
-          <div class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>do P50</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>P50–P85</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#D85A30"></span>P85–P95</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#D3D1C7"></span>powyżej P95</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#1D9E75"></span>do P50</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#378ADD"></span>P50–P85</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#D85A30"></span>P85–P95</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#D3D1C7"></span>powyżej P95</div>
         </div>
       </div>
-      <div class="chart-canvas-wrap">
-        <canvas id="chart62" role="img" aria-label="Histogram rozkładu dat ukończenia 62 PBI z Monte Carlo"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="chart62"></canvas></div>
       <div class="params-row">
-        <span class="param-chip">backlog: 62 PBI</span>
-        <span class="param-chip">throughput: 1–26 PBI/tydz.</span>
-        <span class="param-chip">cycle time (med.): 23 dni</span>
-        <span class="param-chip">symulacje: 10 000</span>
-        <span class="param-chip">start: 19.05.2026</span>
+        <span class="chip">backlog: 62 PBI</span>
+        <span class="chip">throughput: 1–26 PBI/tydz.</span>
+        <span class="chip">cycle time med.: 23 dni</span>
+        <span class="chip">symulacje: 10 000</span>
+        <span class="chip">start: 19.05.2026</span>
       </div>
     </div>
-
     <div class="info-box">
-      <strong>Jak czytać ten wykres?</strong> Każda symulacja losuje weekly throughput z historii zespołu i liczy, ile tygodni potrzeba, by domknąć 62 PBI. <strong>P50</strong> oznacza, że w 50% symulacji praca kończy się <em>wcześniej</em> — to optymistyczne centrum. <strong>P85</strong> to rekomendowany cel do komunikacji z interesariuszami. <strong>P95</strong> to bufor bezpieczeństwa.
+      <strong>Jak czytać ten wykres?</strong> Każda symulacja losuje tygodniowy throughput z historii i liczy ile tygodni potrzeba by domknąć 62 PBI. <strong>P50</strong> = w 50% symulacji praca kończy się wcześniej. <strong>P85</strong> to rekomendowany cel do komunikacji z interesariuszami. <strong>P95</strong> to bufor bezpieczeństwa.
     </div>
   </div>
 
   <!-- TAB 46 -->
   <div id="tab46" class="tab-panel">
     <div class="cards-grid">
-      <div class="pct-card p50">
-        <div class="pct-label">P50 — najbardziej prawdopodobne</div>
-        <div class="pct-date" id="d50-46">—</div>
-        <div class="pct-meta" id="w50-46"></div>
+      <div class="pct-card c-teal">
+        <div class="pct-label">P50 &mdash; najbardziej prawdopodobne</div>
+        <div class="pct-val color-teal" id="v50-46">—</div>
+        <div class="pct-meta" id="m50-46"></div>
       </div>
-      <div class="pct-card p85">
-        <div class="pct-label">P85 — realistyczny cel</div>
-        <div class="pct-date" id="d85-46">—</div>
-        <div class="pct-meta" id="w85-46"></div>
+      <div class="pct-card c-blue">
+        <div class="pct-label">P85 &mdash; realistyczny cel</div>
+        <div class="pct-val color-blue" id="v85-46">—</div>
+        <div class="pct-meta" id="m85-46"></div>
       </div>
-      <div class="pct-card p95">
-        <div class="pct-label">P95 — ostrożna prognoza</div>
-        <div class="pct-date" id="d95-46">—</div>
-        <div class="pct-meta" id="w95-46"></div>
+      <div class="pct-card c-coral">
+        <div class="pct-label">P95 &mdash; ostrożna prognoza</div>
+        <div class="pct-val color-coral" id="v95-46">—</div>
+        <div class="pct-meta" id="m95-46"></div>
       </div>
     </div>
-
     <div class="chart-section">
       <div class="chart-header">
         <div>
-          <div class="chart-title">Rozkład dat ukończenia 46 PBI</div>
-          <div class="chart-subtitle">Każdy słupek = liczba symulacji kończących się w danym przedziale czasowym</div>
+          <div class="chart-title">Rozkład dat ukończenia — 46 PBI</div>
+          <div class="chart-subtitle">Każdy słupek = liczba symulacji kończących się w danym przedziale</div>
         </div>
         <div class="legend">
-          <div class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>do P50</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>P50–P85</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#D85A30"></span>P85–P95</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#D3D1C7"></span>powyżej P95</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#1D9E75"></span>do P50</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#378ADD"></span>P50–P85</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#D85A30"></span>P85–P95</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#D3D1C7"></span>powyżej P95</div>
         </div>
       </div>
-      <div class="chart-canvas-wrap">
-        <canvas id="chart46" role="img" aria-label="Histogram rozkładu dat ukończenia 46 PBI z Monte Carlo"></canvas>
-      </div>
+      <div class="chart-wrap"><canvas id="chart46"></canvas></div>
       <div class="params-row">
-        <span class="param-chip">backlog: 46 PBI</span>
-        <span class="param-chip">throughput: 1–26 PBI/tydz.</span>
-        <span class="param-chip">cycle time (med.): 23 dni</span>
-        <span class="param-chip">symulacje: 10 000</span>
-        <span class="param-chip">start: 19.05.2026</span>
+        <span class="chip">backlog: 46 PBI</span>
+        <span class="chip">throughput: 1–26 PBI/tydz.</span>
+        <span class="chip">cycle time med.: 23 dni</span>
+        <span class="chip">symulacje: 10 000</span>
+        <span class="chip">start: 19.05.2026</span>
       </div>
     </div>
-
     <div class="info-box">
-      <strong>Różnica względem 62 PBI:</strong> Zmniejszenie zakresu o 16 PBI (–26%) skraca prognozę. Możesz porównać daty P85 między zakładkami, by ocenić, ile czasu oszczędzasz ograniczając zakres. Przydatne przy rozmowie o priorytetyzacji z Product Ownerem.
+      <strong>Różnica względem 62 PBI:</strong> Zmniejszenie zakresu o 16 PBI (&minus;26%) skraca prognozę. Porównaj daty P85 między zakładkami by ocenić ile czasu oszczędzasz ograniczając zakres &mdash; przydatne przy rozmowie o priorytetyzacji z Product Ownerem.
     </div>
   </div>
+
   <!-- TAB DEADLINE -->
-  <div id="tabdeadline" class="tab-panel">
-    <div class="deadline-hero">
-      <div class="deadline-date-label">Deadline</div>
-      <div class="deadline-date-val">20 czerwca 2026</div>
-      <div class="deadline-workdays" id="dl-workdays"></div>
+  <div id="tabdl" class="tab-panel">
+    <div class="dl-hero">
+      <div>
+        <div class="dl-label">Deadline</div>
+        <div class="dl-date">20 czerwca 2026</div>
+      </div>
+      <div class="dl-chip" id="dl-days">liczenie...</div>
     </div>
-
-    <div class="cards-grid cards-grid-deadline">
-      <div class="pct-card pd-p5">
-        <div class="pct-card::before" style="display:none"></div>
-        <div class="pct-label">P5 — pesymistycznie</div>
-        <div class="pct-date" id="dl-p5" style="color:var(--coral)">—</div>
-        <div class="pct-meta">ukończone PBI</div>
+    <div class="cards-grid">
+      <div class="pct-card c-coral">
+        <div class="pct-label">P5 &mdash; pesymistycznie</div>
+        <div class="pct-val color-coral" id="dl-v5">—</div>
+        <div class="pct-meta">ukończonych PBI</div>
       </div>
-      <div class="pct-card pd-p50">
-        <div class="pct-label">P50 — mediana</div>
-        <div class="pct-date" id="dl-p50" style="color:var(--blue)">—</div>
-        <div class="pct-meta">ukończone PBI</div>
+      <div class="pct-card c-blue">
+        <div class="pct-label">P50 &mdash; mediana</div>
+        <div class="pct-val color-blue" id="dl-v50">—</div>
+        <div class="pct-meta">ukończonych PBI</div>
       </div>
-      <div class="pct-card pd-p85">
-        <div class="pct-label">P85 — optymistycznie</div>
-        <div class="pct-date" id="dl-p85" style="color:var(--teal)">—</div>
-        <div class="pct-meta">ukończone PBI</div>
+      <div class="pct-card c-teal">
+        <div class="pct-label">P85 &mdash; optymistycznie</div>
+        <div class="pct-val color-teal" id="dl-v85">—</div>
+        <div class="pct-meta">ukończonych PBI</div>
       </div>
     </div>
-
     <div class="chart-section">
       <div class="chart-header">
         <div>
-          <div class="chart-title">Rozkład liczby PBI ukończonych do 20.06.2026</div>
-          <div class="chart-subtitle">Każdy słupek = ile symulacji ukończyło dokładnie N zadań do deadline'u</div>
+          <div class="chart-title">Ile PBI ukończymy do 20.06.2026?</div>
+          <div class="chart-subtitle">Rozkład liczby zadań ukończonych w 10 000 symulacjach</div>
         </div>
         <div class="legend">
-          <div class="legend-item"><span class="legend-dot" style="background:#D85A30"></span>poniżej P50</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>P50–P85</div>
-          <div class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>powyżej P85</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#D85A30"></span>poniżej P50</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#378ADD"></span>P50–P85</div>
+          <div class="legend-item"><span class="legend-sq" style="background:#1D9E75"></span>powyżej P85</div>
         </div>
       </div>
-      <div class="chart-canvas-wrap" style="height:320px;">
-        <canvas id="chartDeadline" role="img" aria-label="Histogram liczby PBI ukończonych do 20 czerwca 2026"></canvas>
-      </div>
+      <div class="chart-wrap" style="height:320px;"><canvas id="chartDl"></canvas></div>
       <div class="params-row">
-        <span class="param-chip">deadline: 20.06.2026</span>
-        <span class="param-chip">start: 19.05.2026</span>
-        <span class="param-chip">throughput: 1–26 PBI/tydz.</span>
-        <span class="param-chip">symulacje: 10 000</span>
+        <span class="chip">deadline: 20.06.2026</span>
+        <span class="chip">start: 19.05.2026</span>
+        <span class="chip">throughput: 1–26 PBI/tydz.</span>
+        <span class="chip">symulacje: 10 000</span>
       </div>
     </div>
-
     <div class="info-box">
-      <strong>Jak działa ta symulacja?</strong> Każda iteracja losuje tygodniowy throughput z historii i sumuje ukończone PBI aż do wyczerpania dostępnych dni roboczych (do 20.06). Wynik to rozkład: ile zadań prawdopodobnie uda się zamknąć. <strong>P50</strong> to mediana — połowa symulacji dała wynik wyższy, połowa niższy. <strong>P85</strong> to wynik, który osiągnięto w 85% przypadków — czyli ostrożna, ale realistyczna dolna granica oczekiwań.
+      <strong>Jak działa ta symulacja?</strong> Każda iteracja losuje tygodniowy throughput z historii i sumuje ukończone PBI przez dostępne tygodnie robocze do 20.06. <strong>P5</strong> = w 95% symulacji uda się ukończyć co najmniej tyle. <strong>P50</strong> = mediana. <strong>P85</strong> = wynik osiągnięty w 85% przypadków &mdash; optymistyczna, ale realna prognoza górna.
     </div>
   </div>
-</div>
-const THROUGHPUT = [14,15,13,26,8,9,13,15,15,8,7,1];
-const CYCLE_TIMES = [31,19,23,25,67,41,79,77,76,24,36,13];
-const START = new Date(2026, 4, 19);
-const N_SIM = 10000;
 
-function addWorkdays(date, days) {
-  let d = new Date(date.getTime());
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) added++;
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var THROUGHPUT = [14,15,13,26,8,9,13,15,15,8,7,1];
+var CYCLE_TIMES = [31,19,23,25,67,41,79,77,76,24,36,13];
+var START = new Date(2026,4,19);
+var N = 10000;
+
+function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function addWorkdays(date,days){
+  var d = new Date(date.getTime()), added = 0;
+  while(added < days){
+    d.setDate(d.getDate()+1);
+    var w = d.getDay();
+    if(w!==0 && w!==6) added++;
   }
   return d;
 }
 
-function sample(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function runMC(backlog) {
-  const results = [];
-  for (let i = 0; i < N_SIM; i++) {
-    let done = 0, week = 0;
-    while (done < backlog && week < 500) {
-      done += sample(THROUGHPUT);
-      week++;
-    }
-    const totalWorkdays = week * 5 + sample(CYCLE_TIMES);
-    results.push(addWorkdays(START, totalWorkdays).getTime());
+function countWorkdays(from, to){
+  var d = new Date(from.getTime()), c = 0;
+  while(d < to){
+    d.setDate(d.getDate()+1);
+    var w = d.getDay();
+    if(w!==0 && w!==6) c++;
   }
-  results.sort((a, b) => a - b);
-  return results;
+  return c;
 }
 
-function getPct(sorted, p) {
-  return new Date(sorted[Math.min(sorted.length - 1, Math.ceil(p / 100 * sorted.length) - 1)]);
+function fmtDate(d){
+  return d.toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'});
 }
 
-function fmtDate(d) {
-  return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' });
+function weeksFrom(d){
+  return Math.round((d.getTime()-START.getTime())/(7*24*3600*1000));
 }
 
-function weeksBetween(a, b) {
-  return Math.round((b - a) / (7 * 24 * 3600 * 1000));
+function getPct(sorted,p){
+  return sorted[Math.min(sorted.length-1, Math.ceil(p/100*sorted.length)-1)];
 }
 
-function buildHistogram(results, p50ts, p85ts, p95ts) {
-  const minTs = results[0], maxTs = results[results.length - 1];
-  const BIN = 40;
-  const binSize = (maxTs - minTs) / BIN;
-  const bins = Array(BIN).fill(0);
-  const labels = [];
-  for (let i = 0; i < BIN; i++) {
-    const d = new Date(minTs + i * binSize + binSize / 2);
-    labels.push(d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' }));
+function runBacklogMC(backlog){
+  var res = [];
+  for(var i=0;i<N;i++){
+    var done=0, week=0;
+    while(done < backlog && week < 500){ done += sample(THROUGHPUT); week++; }
+    var wd = week*5 + sample(CYCLE_TIMES);
+    res.push(addWorkdays(START,wd).getTime());
   }
-  for (const ts of results) {
-    const idx = Math.min(BIN - 1, Math.floor((ts - minTs) / binSize));
+  res.sort(function(a,b){return a-b;});
+  return res;
+}
+
+function buildHistogram(results, p50ts, p85ts, p95ts){
+  var min=results[0], max=results[results.length-1], BINS=40;
+  var sz=(max-min)/BINS, bins=[], labels=[], colors=[];
+  for(var i=0;i<BINS;i++){ bins.push(0); }
+  for(var j=0;j<results.length;j++){
+    var idx = Math.min(BINS-1, Math.floor((results[j]-min)/sz));
     bins[idx]++;
   }
-  const colors = bins.map((_, i) => {
-    const mid = minTs + i * binSize + binSize / 2;
-    if (mid <= p50ts) return '#1D9E75';
-    if (mid <= p85ts) return '#378ADD';
-    if (mid <= p95ts) return '#D85A30';
-    return '#D3D1C7';
-  });
-  return { bins, labels, colors };
+  for(var k=0;k<BINS;k++){
+    var mid = new Date(min + k*sz + sz/2);
+    labels.push(mid.toLocaleDateString('pl-PL',{day:'numeric',month:'short'}));
+    var mts = min + k*sz + sz/2;
+    if(mts <= p50ts) colors.push('#1D9E75');
+    else if(mts <= p85ts) colors.push('#378ADD');
+    else if(mts <= p95ts) colors.push('#D85A30');
+    else colors.push('#D3D1C7');
+  }
+  return {bins:bins, labels:labels, colors:colors};
 }
 
-function renderTab(backlog, suffix) {
-  const results = runMC(backlog);
-  const p50 = getPct(results, 50);
-  const p85 = getPct(results, 85);
-  const p95 = getPct(results, 95);
-
-  document.getElementById('d50-' + suffix).textContent = fmtDate(p50);
-  document.getElementById('w50-' + suffix).textContent = '≈ ' + weeksBetween(START, p50) + ' tygodni od startu';
-  document.getElementById('d85-' + suffix).textContent = fmtDate(p85);
-  document.getElementById('w85-' + suffix).textContent = '≈ ' + weeksBetween(START, p85) + ' tygodni od startu';
-  document.getElementById('d95-' + suffix).textContent = fmtDate(p95);
-  document.getElementById('w95-' + suffix).textContent = '≈ ' + weeksBetween(START, p95) + ' tygodni od startu';
-
-  const { bins, labels, colors } = buildHistogram(results, p50.getTime(), p85.getTime(), p95.getTime());
-
-  new Chart(document.getElementById('chart' + suffix), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Symulacje',
-        data: bins,
-        backgroundColor: colors,
-        borderWidth: 0,
-        borderRadius: 3,
-        borderSkipped: false
-      }]
+function makeChart(canvasId, labels, data, colors, yTitle, xTitle){
+  var ctx = document.getElementById(canvasId).getContext('2d');
+  var scales = {
+    x:{
+      ticks:{maxRotation:45,autoSkip:true,maxTicksLimit:10,font:{size:11},color:'#A09F9A'},
+      grid:{display:false},
+      border:{color:'#E5E3DC'}
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#fff',
-          borderColor: '#E5E3DC',
-          borderWidth: 1,
-          titleColor: '#1A1916',
-          bodyColor: '#6B6A65',
-          padding: 10,
-          callbacks: {
-            label: (item) => 'Symulacje: ' + item.raw.toLocaleString('pl-PL')
+    y:{
+      ticks:{font:{size:11},color:'#A09F9A'},
+      grid:{color:'rgba(0,0,0,0.04)'},
+      border:{dash:[3,3],color:'transparent'},
+      title:{display:true,text:yTitle||'Liczba symulacji',font:{size:11},color:'#A09F9A'}
+    }
+  };
+  if(xTitle) scales.x.title = {display:true,text:xTitle,font:{size:11},color:'#A09F9A'};
+  new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:labels,
+      datasets:[{data:data,backgroundColor:colors,borderWidth:0,borderRadius:3,borderSkipped:false}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#fff',borderColor:'#E5E3DC',borderWidth:1,
+          titleColor:'#1A1916',bodyColor:'#6B6A65',padding:10,
+          callbacks:{
+            label:function(i){return 'Symulacje: '+i.raw.toLocaleString('pl-PL');}
           }
         }
       },
-      scales: {
-        x: {
-          ticks: {
-            maxRotation: 45,
-            autoSkip: true,
-            maxTicksLimit: 10,
-            font: { size: 11, family: 'DM Sans' },
-            color: '#A09F9A'
-          },
-          grid: { display: false },
-          border: { color: '#E5E3DC' }
-        },
-        y: {
-          ticks: {
-            font: { size: 11, family: 'DM Sans' },
-            color: '#A09F9A'
-          },
-          grid: { color: 'rgba(0,0,0,0.04)' },
-          border: { dash: [3, 3], color: 'transparent' },
-          title: {
-            display: true,
-            text: 'Liczba symulacji',
-            font: { size: 11, family: 'DM Sans' },
-            color: '#A09F9A'
-          }
-        }
-      }
+      scales:scales
     }
   });
 }
 
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function renderBacklog(backlog, suffix){
+  var res = runBacklogMC(backlog);
+  var p50 = new Date(getPct(res,50));
+  var p85 = new Date(getPct(res,85));
+  var p95 = new Date(getPct(res,95));
+
+  document.getElementById('v50-'+suffix).textContent = fmtDate(p50);
+  document.getElementById('m50-'+suffix).textContent = '~ '+weeksFrom(p50)+' tyg. od startu';
+  document.getElementById('v85-'+suffix).textContent = fmtDate(p85);
+  document.getElementById('m85-'+suffix).textContent = '~ '+weeksFrom(p85)+' tyg. od startu';
+  document.getElementById('v95-'+suffix).textContent = fmtDate(p95);
+  document.getElementById('m95-'+suffix).textContent = '~ '+weeksFrom(p95)+' tyg. od startu';
+
+  var h = buildHistogram(res, p50.getTime(), p85.getTime(), p95.getTime());
+  makeChart('chart'+suffix, h.labels, h.bins, h.colors);
+}
+
+function renderDeadline(){
+  var DEADLINE = new Date(2026,5,20);
+  var wd = countWorkdays(START, DEADLINE);
+  var weeks = Math.floor(wd/5), extra = wd%5;
+  document.getElementById('dl-days').textContent =
+    wd+' dni roboczych ('+weeks+' tyg.'+(extra?' + '+extra+' dni':'')+')';
+
+  var counts = [];
+  for(var i=0;i<N;i++){
+    var done=0, left=wd;
+    while(left >= 5){ done += sample(THROUGHPUT); left -= 5; }
+    counts.push(done);
+  }
+  counts.sort(function(a,b){return a-b;});
+
+  var p5val  = getPct(counts,5);
+  var p50val = getPct(counts,50);
+  var p85val = getPct(counts,85);
+
+  document.getElementById('dl-v5').textContent  = p5val+' PBI';
+  document.getElementById('dl-v50').textContent = p50val+' PBI';
+  document.getElementById('dl-v85').textContent = p85val+' PBI';
+
+  var minV = counts[0], maxV = counts[counts.length-1];
+  var span = maxV - minV + 1;
+  var bins=[], labels=[], colors=[];
+  for(var k=0;k<span;k++){ bins.push(0); labels.push(String(minV+k)); }
+  for(var j=0;j<counts.length;j++) bins[counts[j]-minV]++;
+  for(var m=0;m<span;m++){
+    var v = minV+m;
+    if(v < p50val) colors.push('#D85A30');
+    else if(v < p85val) colors.push('#378ADD');
+    else colors.push('#1D9E75');
+  }
+  makeChart('chartDl', labels, bins, colors, 'Liczba symulacji', 'Ukończone PBI');
+}
+
+function switchTab(id, btn){
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
 }
 
-renderTab(62, '62');
-renderTab(46, '46');
-renderDeadline();
-
-function countWorkdays(from, to) {
-  let count = 0;
-  let d = new Date(from.getTime());
-  while (d < to) {
-    d.setDate(d.getDate() + 1);
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) count++;
-  }
-  return count;
-}
-
-function renderDeadline() {
-  const DEADLINE = new Date(2026, 5, 20);
-  const workdays = countWorkdays(START, DEADLINE);
-  const weeks = Math.floor(workdays / 5);
-  const extraDays = workdays % 5;
-
-  document.getElementById('dl-workdays').textContent =
-    workdays + ' dni roboczych (' + weeks + ' tyg.' + (extraDays ? ' + ' + extraDays + ' dni' : '') + ')';
-
-  const counts = [];
-  for (let i = 0; i < N_SIM; i++) {
-    let done = 0;
-    let daysLeft = workdays;
-    while (daysLeft >= 5) {
-      done += sample(THROUGHPUT);
-      daysLeft -= 5;
-    }
-    counts.push(done);
-  }
-  counts.sort((a, b) => a - b);
-
-  function getPctVal(sorted, p) {
-    return sorted[Math.min(sorted.length - 1, Math.ceil(p / 100 * sorted.length) - 1)];
-  }
-
-  const p5val  = getPctVal(counts, 5);
-  const p50val = getPctVal(counts, 50);
-  const p85val = getPctVal(counts, 85);
-
-  document.getElementById('dl-p5').textContent  = p5val  + ' PBI';
-  document.getElementById('dl-p50').textContent = p50val + ' PBI';
-  document.getElementById('dl-p85').textContent = p85val + ' PBI';
-
-  const minV = counts[0], maxV = counts[counts.length - 1];
-  const BIN = maxV - minV + 1;
-  const bins = Array(BIN).fill(0);
-  for (const v of counts) bins[v - minV]++;
-  const labels = Array.from({length: BIN}, (_, i) => String(minV + i));
-  const barColors = bins.map((_, i) => {
-    const v = minV + i;
-    if (v < p50val) return '#D85A30';
-    if (v < p85val) return '#378ADD';
-    return '#1D9E75';
-  });
-
-  new Chart(document.getElementById('chartDeadline'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        label: 'Symulacje',
-        data: bins,
-        backgroundColor: barColors,
-        borderWidth: 0,
-        borderRadius: 3,
-        borderSkipped: false
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#fff',
-          borderColor: '#E5E3DC',
-          borderWidth: 1,
-          titleColor: '#1A1916',
-          bodyColor: '#6B6A65',
-          padding: 10,
-          callbacks: {
-            title: (items) => items[0].label + ' PBI ukończonych',
-            label: (item) => 'Symulacje: ' + item.raw.toLocaleString('pl-PL')
-          }
-        }
-      },
-      scales: {
-        x: {
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 20,
-            font: { size: 11, family: 'DM Sans' },
-            color: '#A09F9A'
-          },
-          grid: { display: false },
-          border: { color: '#E5E3DC' },
-          title: {
-            display: true,
-            text: 'Liczba ukończonych PBI',
-            font: { size: 11, family: 'DM Sans' },
-            color: '#A09F9A'
-          }
-        },
-        y: {
-          ticks: { font: { size: 11, family: 'DM Sans' }, color: '#A09F9A' },
-          grid: { color: 'rgba(0,0,0,0.04)' },
-          border: { dash: [3,3], color: 'transparent' },
-          title: {
-            display: true,
-            text: 'Liczba symulacji',
-            font: { size: 11, family: 'DM Sans' },
-            color: '#A09F9A'
-          }
-        }
-      }
-    }
-  });
-}
+window.onload = function(){
+  renderBacklog(62,'62');
+  renderBacklog(46,'46');
+  renderDeadline();
+};
 </script>
 </body>
 </html>
