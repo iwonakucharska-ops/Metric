@@ -564,7 +564,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-// ── DANE ──────────────────────────────────────────────────────────────
+// ── STAŁE (MUSZĄ BYĆ PRZED WSZYSTKIM INNYM) ──────────────────────────
+const TEAM_DEVS  = 3;
+const BUG_RATE   = 0.17;
+const WIP_PER_DEV = 1.5;
+
+// ── DANE HISTORYCZNE ──────────────────────────────────────────────────
 const historicalData = [
   { week:'2026-03-03', tp:4,  ct:23, note:'Przed dołączeniem juniora' },
   { week:'2026-03-10', tp:5,  ct:5,  note:'Przed dołączeniem juniora' },
@@ -578,57 +583,19 @@ const historicalData = [
   { week:'2026-05-05', tp:4,  ct:24, note:'' },
   { week:'2026-05-12', tp:4,  ct:10, note:'' },
   { week:'2026-05-19', tp:6,  ct:37, note:'Wzrost TP' },
-  { week:'2026-05-25', tp:0,  ct:49, note:'Tydzień w toku' },
+  { week:'2026-05-25', tp:0,  ct:49, note:'Tydzień w toku — pominięty z TP' },
 ];
 
-const BUG_RATE = 0.17;
-const TEAM_DEVS = 3; // 3 devs (incl junior)
-
-// pools for sampling (exclude tp=0 week)
+// Pule próbkowania
 const tpPool = historicalData.filter(d => d.tp > 0).map(d => Math.max(1, Math.round(d.tp * (1 - BUG_RATE))));
-const ctPool = historicalData.map(d => d.ct); // include all CT observations incl. last week
+const ctPool = historicalData.map(d => d.ct);
 
+// Stan globalny
 let activeModel = 'tp';
 let resTP = [], resCT = [];
 let histInst = null, cdfInst = null;
 
-// ── SIMULATION ENGINES ────────────────────────────────────────────────
-function simulateTP(target, adj, N) {
-  const pool = tpPool.map(v => Math.max(1, Math.round(v * adj)));
-  const results = [];
-  for (let i = 0; i < N; i++) {
-    let done = 0, weeks = 0;
-    while (done < target) {
-      done += pool[Math.floor(Math.random() * pool.length)];
-      weeks++;
-    }
-    results.push(weeks);
-  }
-  return results.sort((a,b) => a-b);
-}
-
-function simulateCT(target, adj, N) {
-  // Each week: sample tp AND ct
-  // Effective output = min(tp_sample, throughput implied by CT via Little's Law)
-  // Little's: TP = WIP / CT. We assume avg WIP = team_devs * 1.5 items in flight
-  // ct_cap_per_week = floor((TEAM_DEVS * 1.5 * 5) / ct_days)  — 5 working days
-  const WIP_PER_DEV = 1.5;
-  const pool = tpPool.map(v => Math.max(1, Math.round(v * adj)));
-  const results = [];
-  for (let i = 0; i < N; i++) {
-    let done = 0, weeks = 0;
-    while (done < target) {
-      const tp = pool[Math.floor(Math.random() * pool.length)];
-      const ct = ctPool[Math.floor(Math.random() * ctPool.length)];
-      const ctCap = Math.max(1, Math.floor((TEAM_DEVS * WIP_PER_DEV * 5) / ct));
-      done += Math.min(tp, ctCap);
-      weeks++;
-    }
-    results.push(weeks);
-  }
-  return results.sort((a,b) => a-b);
-}
-
+// ── NARZĘDZIA ─────────────────────────────────────────────────────────
 function pct(sorted, p) {
   return sorted[Math.min(Math.ceil(p / 100 * sorted.length) - 1, sorted.length - 1)];
 }
@@ -639,170 +606,129 @@ function addWeeks(n) {
   return d.toLocaleDateString('pl-PL', { day:'numeric', month:'short', year:'numeric' });
 }
 
-// ── RENDER CARDS ──────────────────────────────────────────────────────
+function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+// ── SYMULACJE ─────────────────────────────────────────────────────────
+function simulateTP(target, adj, N) {
+  const pool = tpPool.map(v => Math.max(1, Math.round(v * adj)));
+  const out = [];
+  for (let i = 0; i < N; i++) {
+    let done = 0, w = 0;
+    while (done < target) { done += rnd(pool); w++; }
+    out.push(w);
+  }
+  return out.sort((a,b) => a-b);
+}
+
+function simulateCT(target, adj, N) {
+  const pool = tpPool.map(v => Math.max(1, Math.round(v * adj)));
+  const out = [];
+  for (let i = 0; i < N; i++) {
+    let done = 0, w = 0;
+    while (done < target) {
+      const tp    = rnd(pool);
+      const ct    = rnd(ctPool);
+      const ctCap = Math.max(1, Math.floor((TEAM_DEVS * WIP_PER_DEV * 5) / ct));
+      done += Math.min(tp, ctCap);
+      w++;
+    }
+    out.push(w);
+  }
+  return out.sort((a,b) => a-b);
+}
+
+// ── KARTY PERCENTYLI ──────────────────────────────────────────────────
 function renderCards(primary, secondary) {
   const p50p = pct(primary,50), p85p = pct(primary,85), p95p = pct(primary,95);
   const showDelta = secondary && secondary.length > 0;
-  const p50s = showDelta ? pct(secondary,50) : null;
-  const p85s = showDelta ? pct(secondary,85) : null;
-  const p95s = showDelta ? pct(secondary,95) : null;
 
   const dBadge = (vp, vs) => {
     if (!vs) return '';
     const d = vs - vp;
-    if (d === 0) return '<span class="p-delta same">= brak różnicy</span>';
-    return `<span class="p-delta up">+${d} tyg. z CT</span>`;
+    return d === 0
+      ? '<span class="p-delta same">= brak różnicy</span>'
+      : `<span class="p-delta up">+${d} tyg. z CT</span>`;
   };
 
   document.getElementById('pCards').innerHTML = [
-    { cls:'p50', label:'Percentyl 50%', val:p50p, sec:p50s, risk:'Optymistyczny' },
-    { cls:'p85', label:'Percentyl 85%', val:p85p, sec:p85s, risk:'Zalecany' },
-    { cls:'p95', label:'Percentyl 95%', val:p95p, sec:p95s, risk:'Konserwatywny' },
+    { cls:'p50', label:'Percentyl 50%', val:p50p, sec:showDelta?pct(secondary,50):null, risk:'Optymistyczny', desc:'Mediana. Nie deklaruj jako termin.' },
+    { cls:'p85', label:'Percentyl 85%', val:p85p, sec:showDelta?pct(secondary,85):null, risk:'Zalecany',      desc:'Bezpieczny termin do komunikowania z interesariuszami.' },
+    { cls:'p95', label:'Percentyl 95%', val:p95p, sec:showDelta?pct(secondary,95):null, risk:'Konserwatywny', desc:'Twardy deadline z buforem bezpieczeństwa.' },
   ].map(c => `
     <div class="p-card ${c.cls}">
       <span class="p-badge">${c.label} · ${c.risk}</span>
       <div class="p-num">${c.val}<span class="p-unit">tyg.</span></div>
       <div class="p-date">~${addWeeks(c.val)}</div>
-      ${showDelta ? dBadge(c.val, c.sec) : ''}
-      <div class="p-desc">${c.cls==='p50'?'Mediana. Nie deklaruj jako termin.':c.cls==='p85'?'Bezpieczny termin do komunikowania z interesariuszami.':'Twardy deadline z buforem bezpieczeństwa.'}</div>
+      ${dBadge(c.val, c.sec)}
+      <div class="p-desc">${c.desc}</div>
     </div>`
   ).join('');
 }
 
-// ── COMPARISON ROWS ───────────────────────────────────────────────────
+// ── PORÓWNANIE MODELI ─────────────────────────────────────────────────
 function renderCompare(tp, ct) {
-  const pairs = [[50,'P50'],[85,'P85'],[95,'P95']];
   const maxVal = Math.max(pct(ct,95), pct(tp,95));
-  document.getElementById('compareRows').innerHTML = pairs.map(([p,lbl]) => {
+  document.getElementById('compareRows').innerHTML = [[50,'P50'],[85,'P85'],[95,'P95']].map(([p,lbl]) => {
     const vtp = pct(tp,p), vct = pct(ct,p);
-    const wTp = Math.round((vtp/maxVal)*100);
-    const wCt = Math.round((vct/maxVal)*100);
     return `<div class="compare-row">
       <div class="compare-lbl">${lbl}</div>
-      <div class="compare-segment seg-tp" style="width:${wTp}%">${vtp} tyg.</div>
-      <div class="compare-segment seg-ct" style="width:${wCt}%">${vct} tyg. (TP+CT)</div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">Δ +${vct-vtp} tyg.</div>
+      <div class="compare-segment seg-tp" style="width:${Math.round(vtp/maxVal*100)}%">${vtp} tyg.</div>
+      <div class="compare-segment seg-ct" style="width:${Math.round(vct/maxVal*100)}%">${vct} tyg. (TP+CT)</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#78716c">Δ +${vct-vtp} tyg.</div>
     </div>`;
   }).join('');
 }
 
 // ── HISTOGRAM ─────────────────────────────────────────────────────────
-function renderHistogram(results, p50, p85, p95, label) {
+function renderHistogram(results, p50, p85, p95, modelLabel) {
   const freq = {};
   for (const r of results) freq[r] = (freq[r]||0)+1;
-  const labels = Object.keys(freq).map(Number).sort((a,b)=>a-b);
-  const data   = labels.map(l => (freq[l]/results.length)*100);
-  const colors = labels.map(l =>
-    l<=p50 ? 'rgba(13,148,136,.75)' :
-    l<=p85 ? 'rgba(180,83,9,.72)'   :
-    l<=p95 ? 'rgba(185,28,28,.72)'  :
-             'rgba(196,190,175,.55)'
+  const labs  = Object.keys(freq).map(Number).sort((a,b)=>a-b);
+  const data  = labs.map(l => (freq[l]/results.length)*100);
+  const colors = labs.map(l =>
+    l<=p50 ? 'rgba(13,148,136,.8)'  :
+    l<=p85 ? 'rgba(180,83,9,.75)'   :
+    l<=p95 ? 'rgba(185,28,28,.75)'  : 'rgba(196,190,175,.6)'
   );
 
-  document.getElementById('histTitle').textContent = `Histogram — ${label} (10 000 symulacji)`;
+  document.getElementById('histTitle').textContent = `Histogram — ${modelLabel} (10 000 symulacji)`;
   const ctx = document.getElementById('histChart').getContext('2d');
-  if (histInst) histInst.destroy();
+  if (histInst) { histInst.destroy(); histInst = null; }
+
+  // Inline plugin — nie wymaga Chart.register
+  const linesPlugin = {
+    id: 'histLines',
+    afterDraw(chart) {
+      const {ctx:c, scales} = chart;
+      [[p50,'#0d9488','P50'],[p85,'#b45309','P85'],[p95,'#b91c1c','P95']].forEach(([val,col,lbl]) => {
+        const idx = labs.indexOf(val);
+        if (idx < 0) return;
+        const x = scales.x.getPixelForValue(idx);
+        c.save();
+        c.strokeStyle = col; c.lineWidth = 2; c.setLineDash([5,4]);
+        c.beginPath(); c.moveTo(x, scales.y.top); c.lineTo(x, scales.y.bottom); c.stroke();
+        c.setLineDash([]);
+        c.fillStyle = col;
+        c.font = "600 10px 'IBM Plex Mono', monospace";
+        c.fillText(lbl, x+4, scales.y.top+14);
+        c.restore();
+      });
+    }
+  };
 
   histInst = new Chart(ctx, {
-    type:'bar',
-    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:4, borderSkipped:false }] },
-    options:{
-      responsive:true, maintainAspectRatio:true,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{ title:c=>`${c[0].label} tygodni`, label:c=>`${c.raw.toFixed(1)}% symulacji` },
-          backgroundColor:'#fff', borderColor:'#dddbd4', borderWidth:1,
-          titleColor:'#1c1917', bodyColor:'#78716c',
-          titleFont:{family:'IBM Plex Mono',size:11},
-          bodyFont:{family:'IBM Plex Mono',size:11},
-        }
-      },
-      scales:{
-        x:{
-          title:{display:true,text:'Liczba tygodni',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
-          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
-          grid:{color:'#f0ede6'}
-        },
-        y:{
-          title:{display:true,text:'% symulacji',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
-          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10},callback:v=>v.toFixed(0)+'%'},
-          grid:{color:'#f0ede6'}
-        }
-      }
-    },
-    plugins:[{
-      id:'histLines',
-      afterDraw(chart) {
-        const {ctx:c,scales} = chart;
-        [[p50,'#0d9488','P50'],[p85,'#b45309','P85'],[p95,'#b91c1c','P95']].forEach(([val,col,lbl])=>{
-          const idx = labels.indexOf(val);
-          if(idx<0) return;
-          const x = scales.x.getPixelForValue(idx);
-          c.save();
-          c.strokeStyle=col; c.lineWidth=2; c.setLineDash([5,4]);
-          c.beginPath(); c.moveTo(x,scales.y.top); c.lineTo(x,scales.y.bottom); c.stroke();
-          c.fillStyle=col;
-          c.font="600 10px 'IBM Plex Mono',monospace";
-          c.fillText(lbl,x+4,scales.y.top+14);
-          c.restore();
-        });
-      }
-    }]
-  });
-}
-
-// ── CDF (always show both) ────────────────────────────────────────────
-function renderCDF(tp, ct) {
-  const minW = Math.min(tp[0], ct[0]);
-  const maxW = Math.max(tp[tp.length-1], ct[ct.length-1]);
-  const labels=[], cdfTP=[], cdfCT=[];
-  for(let w=minW;w<=maxW;w++){
-    labels.push(w);
-    cdfTP.push(tp.filter(r=>r<=w).length/tp.length*100);
-    cdfCT.push(ct.filter(r=>r<=w).length/ct.length*100);
-  }
-
-  const p50tp=pct(tp,50),p85tp=pct(tp,85),p95tp=pct(tp,95);
-
-  const ctx = document.getElementById('cdfChart').getContext('2d');
-  if(cdfInst) cdfInst.destroy();
-
-  cdfInst = new Chart(ctx,{
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        {
-          label:'Tylko TP',
-          data:cdfTP,
-          borderColor:'#1d4ed8', borderWidth:2.5,
-          pointRadius:labels.map(l=>[p50tp,pct(tp,85),pct(tp,95)].includes(l)?5:0),
-          pointBackgroundColor:'#1d4ed8',
-          fill:{target:'origin',above:'rgba(29,78,216,.05)'},
-          tension:.4,
-        },
-        {
-          label:'TP + CT',
-          data:cdfCT,
-          borderColor:getComputedStyle(document.documentElement).getPropertyValue('--orange').trim()||'#ea580c',
-          borderWidth:2.5,
-          borderDash:[6,3],
-          pointRadius:labels.map(l=>[pct(ct,50),pct(ct,85),pct(ct,95)].includes(l)?5:0),
-          pointBackgroundColor:'#ea580c',
-          fill:{target:'origin',above:'rgba(234,88,12,.04)'},
-          tension:.4,
-        }
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:true,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          callbacks:{
-            title:c=>`${c[0].label} tygodni`,
-            label:c=>`${c.dataset.label}: ${c.raw.toFixed(1)}%`,
+    type: 'bar',
+    data: { labels: labs, datasets: [{ data, backgroundColor: colors, borderRadius: 4, borderSkipped: false }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: c => `${c[0].label} tygodni`,
+            label: c => `${c.raw.toFixed(1)}% symulacji`,
           },
           backgroundColor:'#fff', borderColor:'#dddbd4', borderWidth:1,
           titleColor:'#1c1917', bodyColor:'#78716c',
@@ -810,54 +736,133 @@ function renderCDF(tp, ct) {
           bodyFont:{family:'IBM Plex Mono',size:11},
         }
       },
-      scales:{
-        x:{
+      scales: {
+        x: {
+          title:{display:true,text:'Liczba tygodni',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          grid:{color:'#f0ede6'}
+        },
+        y: {
+          title:{display:true,text:'% symulacji',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10},callback:v=>v.toFixed(0)+'%'},
+          grid:{color:'#f0ede6'}
+        }
+      }
+    },
+    plugins: [linesPlugin]
+  });
+}
+
+// ── CDF ───────────────────────────────────────────────────────────────
+function renderCDF(tp, ct) {
+  const minW = Math.min(tp[0], ct[0]);
+  const maxW = Math.max(tp[tp.length-1], ct[ct.length-1]);
+  const labs = [], cdfTP = [], cdfCT = [];
+  for (let w = minW; w <= maxW; w++) {
+    labs.push(w);
+    cdfTP.push(tp.filter(r=>r<=w).length / tp.length * 100);
+    cdfCT.push(ct.filter(r=>r<=w).length / ct.length * 100);
+  }
+
+  const ptTP = [pct(tp,50), pct(tp,85), pct(tp,95)];
+  const ptCT = [pct(ct,50), pct(ct,85), pct(ct,95)];
+
+  const cdfLinesPlugin = {
+    id: 'cdfLines',
+    afterDraw(chart) {
+      const {ctx:c, scales} = chart;
+      const activeArr  = activeModel==='ct' ? cdfCT : cdfTP;
+      const activePcts = activeModel==='ct' ? ptCT  : ptTP;
+      [[activePcts[0],'#0d9488','P50'],[activePcts[1],'#b45309','P85'],[activePcts[2],'#b91c1c','P95']].forEach(([val,col,lbl]) => {
+        const idx = labs.indexOf(val);
+        if (idx < 0) return;
+        const x = scales.x.getPixelForValue(idx);
+        const y = scales.y.getPixelForValue(activeArr[idx]);
+        c.save();
+        c.strokeStyle=col; c.lineWidth=1.5; c.setLineDash([5,4]);
+        c.beginPath(); c.moveTo(x,y); c.lineTo(x,scales.y.bottom); c.stroke();
+        c.beginPath(); c.moveTo(scales.x.left,y); c.lineTo(x,y); c.stroke();
+        c.setLineDash([]);
+        c.fillStyle=col;
+        c.font="600 10px 'IBM Plex Mono', monospace";
+        c.fillText(lbl, x+4, y-5);
+        c.restore();
+      });
+    }
+  };
+
+  const ctx = document.getElementById('cdfChart').getContext('2d');
+  if (cdfInst) { cdfInst.destroy(); cdfInst = null; }
+
+  cdfInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labs,
+      datasets: [
+        {
+          label: 'Tylko TP',
+          data: cdfTP,
+          borderColor: '#1d4ed8', borderWidth: 2.5,
+          pointRadius: labs.map(l => ptTP.includes(l) ? 5 : 0),
+          pointBackgroundColor: '#1d4ed8',
+          fill: { target:'origin', above:'rgba(29,78,216,.06)' },
+          tension: 0.4,
+        },
+        {
+          label: 'TP + CT',
+          data: cdfCT,
+          borderColor: '#ea580c', borderWidth: 2.5,
+          borderDash: [6,3],
+          pointRadius: labs.map(l => ptCT.includes(l) ? 5 : 0),
+          pointBackgroundColor: '#ea580c',
+          fill: { target:'origin', above:'rgba(234,88,12,.04)' },
+          tension: 0.4,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: c => `${c[0].label} tygodni`,
+            label: c => `${c.dataset.label}: ${c.raw.toFixed(1)}%`,
+          },
+          backgroundColor:'#fff', borderColor:'#dddbd4', borderWidth:1,
+          titleColor:'#1c1917', bodyColor:'#78716c',
+          titleFont:{family:'IBM Plex Mono',size:11},
+          bodyFont:{family:'IBM Plex Mono',size:11},
+        }
+      },
+      scales: {
+        x: {
           title:{display:true,text:'Tygodnie',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
           ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
           grid:{color:'#f0ede6'}
         },
-        y:{
-          min:0,max:100,
+        y: {
+          min:0, max:100,
           title:{display:true,text:'Skumulowane prawdopodobieństwo (%)',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
           ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10},callback:v=>v+'%'},
           grid:{color:'#f0ede6'}
         }
       }
     },
-    plugins:[{
-      id:'cdfLines',
-      afterDraw(chart){
-        const {ctx:c,scales}=chart;
-        // Draw lines for active model only
-        const active = activeModel==='ct' ? ct : tp;
-        [[pct(active,50),'#0d9488','P50'],[pct(active,85),'#b45309','P85'],[pct(active,95),'#b91c1c','P95']].forEach(([val,col,lbl])=>{
-          const idx=labels.indexOf(val);
-          if(idx<0) return;
-          const activeArr = activeModel==='ct' ? cdfCT : cdfTP;
-          const x=scales.x.getPixelForValue(idx);
-          const y=scales.y.getPixelForValue(activeArr[idx]);
-          c.save();
-          c.strokeStyle=col; c.lineWidth=1.5; c.setLineDash([5,4]);
-          c.beginPath(); c.moveTo(x,y); c.lineTo(x,scales.y.bottom); c.stroke();
-          c.beginPath(); c.moveTo(scales.x.left,y); c.lineTo(x,y); c.stroke();
-          c.fillStyle=col;
-          c.font="600 10px 'IBM Plex Mono',monospace";
-          c.fillText(lbl,x+4,y-5);
-          c.restore();
-        });
-      }
-    }]
+    plugins: [cdfLinesPlugin]
   });
 }
 
-// ── TABLE ─────────────────────────────────────────────────────────────
-function buildTable(){
-  const tbody=document.getElementById('tBody');
-  tbody.innerHTML='';
-  historicalData.forEach((d,i)=>{
-    const adjTp = d.tp>0 ? Math.max(1,Math.round(d.tp*(1-BUG_RATE))) : '—';
-    const ctCap = d.ct>0 ? Math.max(1,Math.floor((TEAM_DEVS*1.5*5)/d.ct)) : '—';
-    tbody.innerHTML+=`
+// ── TABELA ────────────────────────────────────────────────────────────
+function buildTable() {
+  const tbody = document.getElementById('tBody');
+  tbody.innerHTML = '';
+  historicalData.forEach((d, i) => {
+    const adjTp = d.tp > 0 ? Math.max(1, Math.round(d.tp*(1-BUG_RATE))) : '—';
+    const ctCap = Math.max(1, Math.floor((TEAM_DEVS*WIP_PER_DEV*5)/d.ct));
+    tbody.innerHTML += `
       <tr>
         <td class="td-n">${String(i+1).padStart(2,'0')}</td>
         <td>${d.week}</td>
@@ -870,31 +875,29 @@ function buildTable(){
   });
 }
 
-const TEAM_DEVS = 3;
-
-// ── MODEL SWITCHER ────────────────────────────────────────────────────
+// ── PRZEŁĄCZNIK MODELU ────────────────────────────────────────────────
 function setModel(m) {
   activeModel = m;
-  ['tp','ct','both'].forEach(k=>{
-    document.getElementById('btn'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('active', k===m);
+  ['Tp','Ct','Both'].forEach(k => {
+    document.getElementById('btn'+k).classList.toggle('active', k.toLowerCase()===m);
   });
   const ind = document.getElementById('modelIndicator');
-  if(m==='tp') { ind.className='model-indicator tp-only'; ind.textContent='Model: tylko Throughput'; }
-  else if(m==='ct') { ind.className='model-indicator'; ind.textContent='Model: Throughput + Cycle Time'; }
-  else { ind.className='model-indicator'; ind.textContent='Model: porównanie obu'; }
+  if (m==='tp')   { ind.className='model-indicator tp-only'; ind.textContent='Model: tylko Throughput'; }
+  else if(m==='ct'){ ind.className='model-indicator';        ind.textContent='Model: Throughput + Cycle Time'; }
+  else             { ind.className='model-indicator';        ind.textContent='Model: porównanie obu'; }
   runAll();
 }
 
-// ── RUN ───────────────────────────────────────────────────────────────
-function runAll(){
+// ── GŁÓWNA FUNKCJA ────────────────────────────────────────────────────
+function runAll() {
   const target = parseInt(document.getElementById('pbiCount').value);
-  const adj    = parseInt(document.getElementById('adjFactor').value)/100;
+  const adj    = parseInt(document.getElementById('adjFactor').value) / 100;
   const N      = 10000;
 
   resTP = simulateTP(target, adj, N);
   resCT = simulateCT(target, adj, N);
 
-  const primary = activeModel==='ct' ? resCT : resTP;
+  const primary   = activeModel==='ct' ? resCT : resTP;
   const secondary = activeModel==='both' ? resCT : null;
 
   renderCards(primary, secondary);
@@ -902,13 +905,18 @@ function runAll(){
     activeModel==='ct' ? 'TP + Cycle Time' : 'Tylko Throughput');
   renderCDF(resTP, resCT);
 
-  document.getElementById('compareSection').style.display = activeModel==='both' ? 'block' : 'none';
-  if(activeModel==='both') renderCompare(resTP, resCT);
+  const showCompare = activeModel==='both';
+  document.getElementById('compareSection').style.display = showCompare ? 'block' : 'none';
+  if (showCompare) renderCompare(resTP, resCT);
 }
 
-// ── SLIDERS ───────────────────────────────────────────────────────────
-document.getElementById('pbiCount').addEventListener('input',function(){document.getElementById('pbiVal').textContent=this.value;});
-document.getElementById('adjFactor').addEventListener('input',function(){document.getElementById('adjVal').textContent=this.value+'%';});
+// ── SUWAKI ────────────────────────────────────────────────────────────
+document.getElementById('pbiCount').addEventListener('input', function() {
+  document.getElementById('pbiVal').textContent = this.value;
+});
+document.getElementById('adjFactor').addEventListener('input', function() {
+  document.getElementById('adjVal').textContent = this.value + '%';
+});
 
 // ── INIT ──────────────────────────────────────────────────────────────
 buildTable();
