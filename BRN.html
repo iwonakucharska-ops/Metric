@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monte Carlo — 26 PBI · Product Backlog + Cycle Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #f4f3ef;
+    --bg2:       #eceae4;
+    --surface:   #ffffff;
+    --surface2:  #f9f8f5;
+    --border:    #dddbd4;
+    --border2:   #c8c5bc;
+    --accent:    #1d4ed8;
+    --accent-l:  #eff3ff;
+    --p50:       #0d9488;
+    --p50-l:     #f0fdfa;
+    --p85:       #b45309;
+    --p85-l:     #fffbeb;
+    --p95:       #b91c1c;
+    --p95-l:     #fff1f2;
+    --text:      #1c1917;
+    --text-mid:  #44403c;
+    --text-muted:#78716c;
+    --grid:      #f0ede6;
+    --shadow:    0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.05);
+    --orange:    #ea580c;
+    --orange-l:  #fff7ed;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    padding: 48px 36px;
+    max-width: 1160px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 44px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .logo-mark { display: flex; align-items: center; gap: 14px; }
+
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: var(--accent);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-icon svg { width: 26px; height: 26px; fill: #fff; }
+
+  h1 {
+    font-size: clamp(26px, 3.5vw, 42px);
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  .subtitle {
+    margin-top: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    box-shadow: var(--shadow);
+  }
+  .pill .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--p50);
+    animation: blink 2.2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .section-label {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .section-label::before { content:''; width:20px; height:2px; background:var(--accent); border-radius:2px; }
+  .section-label::after  { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* ── META GRID ───────────────────────── */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 10px;
+    margin-bottom: 36px;
+  }
+
+  .meta-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .meta-card .mc-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9.5px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px;
+  }
+  .meta-card .mc-val { font-size: 24px; font-weight: 700; color: var(--text); line-height: 1; }
+  .meta-card .mc-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+  .meta-card.warn  .mc-val { color: var(--p85); }
+  .meta-card.alert .mc-val { color: var(--p95); }
+  .meta-card.info  .mc-val { color: var(--accent); }
+  .meta-card.ct    .mc-val { color: var(--orange); }
+
+  /* ── CT EXPLANATION BOX ──────────────── */
+  .ct-box {
+    background: var(--orange-l);
+    border: 1px solid #fed7aa;
+    border-left: 4px solid var(--orange);
+    border-radius: 0 12px 12px 0;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media(max-width:640px){ .ct-box { grid-template-columns: 1fr; } }
+
+  .ct-box h3 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    color: var(--orange);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px;
+    grid-column: 1 / -1;
+  }
+  .ct-item { display: flex; flex-direction: column; gap: 3px; }
+  .ct-item .ct-key {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .ct-item .ct-num { font-size: 28px; font-weight: 700; color: var(--orange); line-height: 1; }
+  .ct-item .ct-desc { font-size: 11.5px; color: #7c2d12; line-height: 1.5; font-weight: 300; }
+
+  /* ── CONTROLS ────────────────────────── */
+  .controls {
+    display: flex; gap: 16px; margin-bottom: 32px;
+    flex-wrap: wrap; align-items: flex-end;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+  }
+  .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
+  .ctrl-group label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .ctrl-group input[type="range"] { accent-color: var(--accent); width: 150px; cursor: pointer; }
+  .ctrl-val { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 500; color: var(--accent); text-align: center; }
+
+  .model-toggle {
+    display: flex; gap: 0; align-self: flex-end; margin-bottom: 0;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .model-toggle button {
+    background: var(--surface);
+    border: none; padding: 9px 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--text-muted);
+    cursor: pointer; transition: background .15s, color .15s;
+    text-transform: uppercase; letter-spacing: .5px;
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .model-toggle button:last-child { border-right: none; }
+  .model-toggle button.active {
+    background: var(--accent); color: #fff; font-weight: 500;
+  }
+
+  .run-btn {
+    background: var(--accent); border: none; border-radius: 8px;
+    color: #fff; font-family: 'Outfit', sans-serif;
+    font-size: 13px; font-weight: 700; padding: 10px 24px;
+    cursor: pointer;
+    transition: background .15s, transform .1s, box-shadow .15s;
+    box-shadow: 0 2px 8px rgba(29,78,216,.25);
+  }
+  .run-btn:hover { background: #1e40af; }
+  .run-btn:active { transform: scale(.97); }
+
+  .n-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; color: var(--text-muted); padding-bottom: 12px;
+  }
+
+  /* ── PERCENTILE CARDS ────────────────── */
+  .p-grid {
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 36px;
+  }
+  @media(max-width:680px){ .p-grid { grid-template-columns: 1fr; } }
+
+  .p-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px 26px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .p-card::after {
+    content:''; position: absolute;
+    top:0; left:0; right:0; height:3px; border-radius: 14px 14px 0 0;
+  }
+  .p-card.p50::after { background: var(--p50); }
+  .p-card.p85::after { background: var(--p85); }
+  .p-card.p95::after { background: var(--p95); }
+
+  .p-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 500; letter-spacing: 1.5px;
+    text-transform: uppercase; border-radius: 4px;
+    padding: 3px 8px; margin-bottom: 12px;
+  }
+  .p-card.p50 .p-badge { background: var(--p50-l); color: var(--p50); }
+  .p-card.p85 .p-badge { background: var(--p85-l); color: var(--p85); }
+  .p-card.p95 .p-badge { background: var(--p95-l); color: var(--p95); }
+
+  .p-num {
+    font-size: 56px; font-weight: 800;
+    letter-spacing: -3px; line-height: 1;
+  }
+  .p-card.p50 .p-num { color: var(--p50); }
+  .p-card.p85 .p-num { color: var(--p85); }
+  .p-card.p95 .p-num { color: var(--p95); }
+
+  .p-unit { font-size: 15px; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+  .p-date { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-mid); margin-top: 6px; font-weight: 500; }
+  .p-desc { font-size: 11.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.55; font-weight: 300; }
+
+  /* delta badge comparing models */
+  .p-delta {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    border-radius: 4px; padding: 2px 7px; margin-top: 8px;
+  }
+  .p-delta.up   { background: #fff1f2; color: #b91c1c; }
+  .p-delta.same { background: var(--bg2); color: var(--text-muted); }
+
+  /* ── COMPARISON BAR ──────────────────── */
+  .compare-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 28px; box-shadow: var(--shadow);
+  }
+  .compare-bar h3 {
+    font-size: 13px; font-weight: 600; color: var(--text-mid); margin-bottom: 16px;
+  }
+  .compare-row {
+    display: grid; grid-template-columns: 80px 1fr 1fr 1fr;
+    gap: 8px; align-items: center; margin-bottom: 10px;
+  }
+  .compare-row:last-child { margin-bottom: 0; }
+  .compare-lbl {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    color: var(--text-muted); text-transform: uppercase;
+  }
+  .compare-segment {
+    height: 28px; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    font-weight: 500; transition: width .5s ease;
+    min-width: 44px; white-space: nowrap; padding: 0 8px;
+  }
+  .seg-tp  { background: #e0f2fe; color: #0369a1; }
+  .seg-ct  { background: #fff7ed; color: var(--orange); }
+
+  /* ── CHARTS ──────────────────────────── */
+  .chart-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px 28px;
+    margin-bottom: 24px; box-shadow: var(--shadow);
+  }
+  .chart-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+  }
+  .chart-head h2 { font-size: 14px; font-weight: 600; color: var(--text-mid); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted);
+  }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+  canvas { width: 100% !important; display: block; }
+
+  /* ── TABLE ───────────────────────────── */
+  .data-table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .data-table th {
+    text-align: left; padding: 9px 14px;
+    color: var(--text-muted); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 2px solid var(--border); background: var(--surface2);
+  }
+  .data-table td { padding: 9px 14px; border-bottom: 1px solid var(--grid); color: var(--text-mid); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--bg2); }
+  .td-n    { color: var(--text-muted) !important; font-size: 10px; }
+  .td-v    { color: var(--text) !important; font-weight: 500; }
+  .td-adj  { color: var(--accent) !important; }
+  .td-ct   { color: var(--orange) !important; }
+  .td-eff  { color: var(--p50) !important; font-weight: 500; }
+
+  /* ── ASSUMPTIONS ─────────────────────── */
+  .assumptions {
+    background: var(--accent-l); border: 1px solid #bfdbfe;
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px; margin-bottom: 36px;
+  }
+  .assumptions h3 {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .assumptions ul { list-style: none; display: grid; gap: 7px; }
+  .assumptions li { font-size: 12.5px; color: #1e3a8a; display: flex; gap: 10px; line-height: 1.55; font-weight: 300; }
+  .assumptions li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+
+  footer {
+    margin-top: 36px; padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted);
+  }
+
+  /* active model indicator */
+  .model-indicator {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    padding: 4px 10px; border-radius: 20px;
+    background: var(--orange-l); color: var(--orange);
+    border: 1px solid #fed7aa;
+    align-self: flex-end; margin-bottom: 10px;
+    transition: background .2s;
+  }
+  .model-indicator.tp-only {
+    background: var(--accent-l); color: var(--accent); border-color: #bfdbfe;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo-mark">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z"/></svg>
+    </div>
+    <div>
+      <h1>Monte Carlo<br>Forecast</h1>
+      <div class="subtitle">Product Backlog · 26 PBI · Throughput + Cycle Time</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="pill"><span class="dot"></span>10 000 symulacji</span>
+    <span class="pill">Dane: 2026-03-03 – 2026-05-25</span>
+    <span class="pill">Work Item: Product Backlog</span>
+  </div>
+</header>
+
+<!-- META CARDS -->
+<div class="section-label">Dane wejściowe z FlowViz</div>
+<div class="meta-grid">
+  <div class="meta-card info">
+    <div class="mc-label">PBI ukończone (12 tyg.)</div>
+    <div class="mc-val">57</div>
+    <div class="mc-sub">↓21% vs poprzedni okres</div>
+  </div>
+  <div class="meta-card">
+    <div class="mc-label">Avg Throughput</div>
+    <div class="mc-val">~5</div>
+    <div class="mc-sub">PBI / tydzień (raw)</div>
+  </div>
+  <div class="meta-card">
+    <div class="mc-label">Zakres Throughput</div>
+    <div class="mc-val">2 – 8</div>
+    <div class="mc-sub">PBI / tydzień</div>
+  </div>
+  <div class="meta-card ct">
+    <div class="mc-label">Avg Cycle Time</div>
+    <div class="mc-val">21 dni</div>
+    <div class="mc-sub">↓49% · zakres 5–65 dni</div>
+  </div>
+  <div class="meta-card warn">
+    <div class="mc-label">Bug Rate</div>
+    <div class="mc-val">17%</div>
+    <div class="mc-sub">redukuje capacity</div>
+  </div>
+  <div class="meta-card alert">
+    <div class="mc-label">Trend</div>
+    <div class="mc-val">↓↓</div>
+    <div class="mc-sub">Throughput ↓21% · CT zmienny</div>
+  </div>
+</div>
+
+<!-- CYCLE TIME EXPLANATION -->
+<div class="section-label">Jak Cycle Time wpływa na prognozę</div>
+<div class="ct-box">
+  <h3>Mechanizm korekty Cycle Time (Little's Law)</h3>
+  <div class="ct-item">
+    <div class="ct-key">Avg CT = 21 dni</div>
+    <div class="ct-num">3 tyg.</div>
+    <div class="ct-desc">Przeciętny item spędza 3 tygodnie w systemie. Przy CT &gt; 1 tygodnia throughput jest ograniczany przez WIP w toku, nie tylko prędkość.</div>
+  </div>
+  <div class="ct-item">
+    <div class="ct-key">CT wariancja (5–65 dni)</div>
+    <div class="ct-num">13×</div>
+    <div class="ct-desc">Najwolniejszy item trwa 13× dłużej niż najszybszy. Ta nieprzewidywalność jest kluczowym ryzykiem — model CT losuje z historycznych wartości.</div>
+  </div>
+  <div class="ct-item">
+    <div class="ct-key">Model kombinowany</div>
+    <div class="ct-num">TP×CT</div>
+    <div class="ct-desc">Każda iteracja: losujemy tygodniowy throughput <em>i</em> CT-based capacity cap. Efektywny output = min(TP, floor(WIP_capacity/CT_sample × 5dni)).</div>
+  </div>
+  <div class="ct-item">
+    <div class="ct-key">Wpływ na percentyle</div>
+    <div class="ct-num">+?</div>
+    <div class="ct-desc">Model CT wydłuża prognozy gdy CT jest wysoki (blokuje pipeline). Zobaczysz to porównując tryby poniżej.</div>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="section-label">Parametry symulacji</div>
+<div class="controls">
+  <div class="ctrl-group">
+    <label>Liczba PBI</label>
+    <input type="range" id="pbiCount" min="10" max="80" value="26" step="1">
+    <div class="ctrl-val" id="pbiVal">26</div>
+  </div>
+  <div class="ctrl-group">
+    <label>Korekta throughput (%)</label>
+    <input type="range" id="adjFactor" min="60" max="130" value="100" step="1">
+    <div class="ctrl-val" id="adjVal">100%</div>
+  </div>
+  <div class="ctrl-group">
+    <label>Model</label>
+    <div class="model-toggle">
+      <button id="btnTp" onclick="setModel('tp')" class="active">Tylko TP</button>
+      <button id="btnCt" onclick="setModel('ct')">TP + CT</button>
+      <button id="btnBoth" onclick="setModel('both')">Porównaj oba</button>
+    </div>
+  </div>
+  <button class="run-btn" onclick="runAll()">▶ Przelicz</button>
+  <div class="n-label">n = 10 000 iteracji</div>
+  <div class="model-indicator tp-only" id="modelIndicator">Model: tylko Throughput</div>
+</div>
+
+<!-- PERCENTILE CARDS -->
+<div class="section-label">Wyniki — percentyle ukończenia 26 PBI</div>
+<div class="p-grid" id="pCards"></div>
+
+<!-- COMPARISON BAR (hidden unless both) -->
+<div id="compareSection" style="display:none">
+  <div class="section-label">Porównanie modeli</div>
+  <div class="compare-bar">
+    <h3>Percentyle: Throughput vs Throughput + Cycle Time</h3>
+    <div id="compareRows"></div>
+  </div>
+</div>
+
+<!-- HISTOGRAM -->
+<div class="section-label">Rozkład tygodni do ukończenia</div>
+<div class="chart-panel">
+  <div class="chart-head">
+    <h2 id="histTitle">Histogram — liczba tygodni (10 000 symulacji)</h2>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--p50)"></div>≤ P50</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--p85)"></div>P50–P85</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--p95)"></div>P85–P95</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#d4d0c8"></div>&gt; P95</div>
+    </div>
+  </div>
+  <canvas id="histChart" height="240"></canvas>
+</div>
+
+<!-- CDF -->
+<div class="section-label">Krzywa CDF — skumulowane prawdopodobieństwo</div>
+<div class="chart-panel">
+  <div class="chart-head">
+    <h2>Prawdopodobieństwo ukończenia do N tygodni</h2>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch" style="background:#1d4ed8;border-radius:50%"></div>Tylko TP</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--orange);border-radius:50%"></div>TP + CT</div>
+    </div>
+  </div>
+  <canvas id="cdfChart" height="240"></canvas>
+</div>
+
+<!-- SOURCE TABLE -->
+<div class="section-label">Dane historyczne — tygodniowe</div>
+<div class="chart-panel">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th><th>Tydzień</th>
+        <th>Throughput (raw)</th>
+        <th>TP adj. (×0.83)</th>
+        <th>Cycle Time (dni)</th>
+        <th>CT cap/tydzień</th>
+        <th>Uwagi</th>
+      </tr>
+    </thead>
+    <tbody id="tBody"></tbody>
+  </table>
+</div>
+
+<!-- ASSUMPTIONS -->
+<div class="section-label">Założenia modelu</div>
+<div class="assumptions">
+  <h3>Założenia i decyzje modelarskie</h3>
+  <ul>
+    <li><strong>Model „Tylko TP":</strong> Bootstrap resampling tygodniowego throughput (po korekcie bug rate 17%). Każda iteracja losuje tyle tygodni, ile potrzeba do zebrania 30 items.</li>
+    <li><strong>Model „TP + CT":</strong> Każdy tydzień losujemy throughput <em>i</em> CT z próbki historycznej. Efektywny output = min(TP_sample, floor(5 dni / CT_sample × WIP_capacity_per_dev)). Gdy CT jest wysoki, pipeline się zatyka i tygodniowy output spada poniżej historycznego throughput.</li>
+    <li>Cycle Time historyczny (Product Backlog): 23, 5, 65, 32, 5, 2, 60, 28, 11, 24, 10, 37, 49 dni. Ostatni tydzień (49 — w toku) uwzględniony jako sygnał wzrostu CT.</li>
+    <li>Bug Rate 17% → mnożnik 0.83 na throughput. Bugi spowalniają pipeline, co jest częściowo już uwzględnione w historycznym throughput.</li>
+    <li>Trend throughput jest spadkowy (↓21%). Oba modele bazują na historii, nie ekstrapolują trendu — P85/P95 to minimalne bufory.</li>
+    <li>Krzywa CDF pokazuje <em>oba</em> modele jednocześnie — widzisz różnicę ryzyka między podejściami.</li>
+    <li>P50 = mediana. P85 = realistyczny termin do deklarowania. P95 = twardy deadline z buforem bezpieczeństwa.</li>
+  </ul>
+</div>
+
+<footer>
+  <span>Wygenerowano: 25 maj 2026</span>
+  <span>Model: Bootstrap Monte Carlo · n = 10 000</span>
+  <span>Dane: FlowViz · Product Backlog · 12 tyg.</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ── DANE ──────────────────────────────────────────────────────────────
+const historicalData = [
+  { week:'2026-03-03', tp:4,  ct:23, note:'Przed dołączeniem juniora' },
+  { week:'2026-03-10', tp:5,  ct:5,  note:'Przed dołączeniem juniora' },
+  { week:'2026-03-17', tp:7,  ct:65, note:'Szczyt TP / max CT' },
+  { week:'2026-03-24', tp:2,  ct:32, note:'Najniższy TP' },
+  { week:'2026-03-31', tp:4,  ct:5,  note:'Przed dołączeniem juniora' },
+  { week:'2026-04-07', tp:7,  ct:2,  note:'Junior dołączył 01.04 / min CT' },
+  { week:'2026-04-14', tp:8,  ct:60, note:'Szczyt TP / wysoki CT' },
+  { week:'2026-04-21', tp:5,  ct:28, note:'' },
+  { week:'2026-04-28', tp:5,  ct:11, note:'' },
+  { week:'2026-05-05', tp:4,  ct:24, note:'' },
+  { week:'2026-05-12', tp:4,  ct:10, note:'' },
+  { week:'2026-05-19', tp:6,  ct:37, note:'Wzrost TP' },
+  { week:'2026-05-25', tp:0,  ct:49, note:'Tydzień w toku' },
+];
+
+const BUG_RATE = 0.17;
+const TEAM_DEVS = 3; // 3 devs (incl junior)
+
+// pools for sampling (exclude tp=0 week)
+const tpPool = historicalData.filter(d => d.tp > 0).map(d => Math.max(1, Math.round(d.tp * (1 - BUG_RATE))));
+const ctPool = historicalData.map(d => d.ct); // include all CT observations incl. last week
+
+let activeModel = 'tp';
+let resTP = [], resCT = [];
+let histInst = null, cdfInst = null;
+
+// ── SIMULATION ENGINES ────────────────────────────────────────────────
+function simulateTP(target, adj, N) {
+  const pool = tpPool.map(v => Math.max(1, Math.round(v * adj)));
+  const results = [];
+  for (let i = 0; i < N; i++) {
+    let done = 0, weeks = 0;
+    while (done < target) {
+      done += pool[Math.floor(Math.random() * pool.length)];
+      weeks++;
+    }
+    results.push(weeks);
+  }
+  return results.sort((a,b) => a-b);
+}
+
+function simulateCT(target, adj, N) {
+  // Each week: sample tp AND ct
+  // Effective output = min(tp_sample, throughput implied by CT via Little's Law)
+  // Little's: TP = WIP / CT. We assume avg WIP = team_devs * 1.5 items in flight
+  // ct_cap_per_week = floor((TEAM_DEVS * 1.5 * 5) / ct_days)  — 5 working days
+  const WIP_PER_DEV = 1.5;
+  const pool = tpPool.map(v => Math.max(1, Math.round(v * adj)));
+  const results = [];
+  for (let i = 0; i < N; i++) {
+    let done = 0, weeks = 0;
+    while (done < target) {
+      const tp = pool[Math.floor(Math.random() * pool.length)];
+      const ct = ctPool[Math.floor(Math.random() * ctPool.length)];
+      const ctCap = Math.max(1, Math.floor((TEAM_DEVS * WIP_PER_DEV * 5) / ct));
+      done += Math.min(tp, ctCap);
+      weeks++;
+    }
+    results.push(weeks);
+  }
+  return results.sort((a,b) => a-b);
+}
+
+function pct(sorted, p) {
+  return sorted[Math.min(Math.ceil(p / 100 * sorted.length) - 1, sorted.length - 1)];
+}
+
+function addWeeks(n) {
+  const d = new Date('2026-05-26');
+  d.setDate(d.getDate() + n * 7);
+  return d.toLocaleDateString('pl-PL', { day:'numeric', month:'short', year:'numeric' });
+}
+
+// ── RENDER CARDS ──────────────────────────────────────────────────────
+function renderCards(primary, secondary) {
+  const p50p = pct(primary,50), p85p = pct(primary,85), p95p = pct(primary,95);
+  const showDelta = secondary && secondary.length > 0;
+  const p50s = showDelta ? pct(secondary,50) : null;
+  const p85s = showDelta ? pct(secondary,85) : null;
+  const p95s = showDelta ? pct(secondary,95) : null;
+
+  const dBadge = (vp, vs) => {
+    if (!vs) return '';
+    const d = vs - vp;
+    if (d === 0) return '<span class="p-delta same">= brak różnicy</span>';
+    return `<span class="p-delta up">+${d} tyg. z CT</span>`;
+  };
+
+  document.getElementById('pCards').innerHTML = [
+    { cls:'p50', label:'Percentyl 50%', val:p50p, sec:p50s, risk:'Optymistyczny' },
+    { cls:'p85', label:'Percentyl 85%', val:p85p, sec:p85s, risk:'Zalecany' },
+    { cls:'p95', label:'Percentyl 95%', val:p95p, sec:p95s, risk:'Konserwatywny' },
+  ].map(c => `
+    <div class="p-card ${c.cls}">
+      <span class="p-badge">${c.label} · ${c.risk}</span>
+      <div class="p-num">${c.val}<span class="p-unit">tyg.</span></div>
+      <div class="p-date">~${addWeeks(c.val)}</div>
+      ${showDelta ? dBadge(c.val, c.sec) : ''}
+      <div class="p-desc">${c.cls==='p50'?'Mediana. Nie deklaruj jako termin.':c.cls==='p85'?'Bezpieczny termin do komunikowania z interesariuszami.':'Twardy deadline z buforem bezpieczeństwa.'}</div>
+    </div>`
+  ).join('');
+}
+
+// ── COMPARISON ROWS ───────────────────────────────────────────────────
+function renderCompare(tp, ct) {
+  const pairs = [[50,'P50'],[85,'P85'],[95,'P95']];
+  const maxVal = Math.max(pct(ct,95), pct(tp,95));
+  document.getElementById('compareRows').innerHTML = pairs.map(([p,lbl]) => {
+    const vtp = pct(tp,p), vct = pct(ct,p);
+    const wTp = Math.round((vtp/maxVal)*100);
+    const wCt = Math.round((vct/maxVal)*100);
+    return `<div class="compare-row">
+      <div class="compare-lbl">${lbl}</div>
+      <div class="compare-segment seg-tp" style="width:${wTp}%">${vtp} tyg.</div>
+      <div class="compare-segment seg-ct" style="width:${wCt}%">${vct} tyg. (TP+CT)</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">Δ +${vct-vtp} tyg.</div>
+    </div>`;
+  }).join('');
+}
+
+// ── HISTOGRAM ─────────────────────────────────────────────────────────
+function renderHistogram(results, p50, p85, p95, label) {
+  const freq = {};
+  for (const r of results) freq[r] = (freq[r]||0)+1;
+  const labels = Object.keys(freq).map(Number).sort((a,b)=>a-b);
+  const data   = labels.map(l => (freq[l]/results.length)*100);
+  const colors = labels.map(l =>
+    l<=p50 ? 'rgba(13,148,136,.75)' :
+    l<=p85 ? 'rgba(180,83,9,.72)'   :
+    l<=p95 ? 'rgba(185,28,28,.72)'  :
+             'rgba(196,190,175,.55)'
+  );
+
+  document.getElementById('histTitle').textContent = `Histogram — ${label} (10 000 symulacji)`;
+  const ctx = document.getElementById('histChart').getContext('2d');
+  if (histInst) histInst.destroy();
+
+  histInst = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:4, borderSkipped:false }] },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{ title:c=>`${c[0].label} tygodni`, label:c=>`${c.raw.toFixed(1)}% symulacji` },
+          backgroundColor:'#fff', borderColor:'#dddbd4', borderWidth:1,
+          titleColor:'#1c1917', bodyColor:'#78716c',
+          titleFont:{family:'IBM Plex Mono',size:11},
+          bodyFont:{family:'IBM Plex Mono',size:11},
+        }
+      },
+      scales:{
+        x:{
+          title:{display:true,text:'Liczba tygodni',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          grid:{color:'#f0ede6'}
+        },
+        y:{
+          title:{display:true,text:'% symulacji',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10},callback:v=>v.toFixed(0)+'%'},
+          grid:{color:'#f0ede6'}
+        }
+      }
+    },
+    plugins:[{
+      id:'histLines',
+      afterDraw(chart) {
+        const {ctx:c,scales} = chart;
+        [[p50,'#0d9488','P50'],[p85,'#b45309','P85'],[p95,'#b91c1c','P95']].forEach(([val,col,lbl])=>{
+          const idx = labels.indexOf(val);
+          if(idx<0) return;
+          const x = scales.x.getPixelForValue(idx);
+          c.save();
+          c.strokeStyle=col; c.lineWidth=2; c.setLineDash([5,4]);
+          c.beginPath(); c.moveTo(x,scales.y.top); c.lineTo(x,scales.y.bottom); c.stroke();
+          c.fillStyle=col;
+          c.font="600 10px 'IBM Plex Mono',monospace";
+          c.fillText(lbl,x+4,scales.y.top+14);
+          c.restore();
+        });
+      }
+    }]
+  });
+}
+
+// ── CDF (always show both) ────────────────────────────────────────────
+function renderCDF(tp, ct) {
+  const minW = Math.min(tp[0], ct[0]);
+  const maxW = Math.max(tp[tp.length-1], ct[ct.length-1]);
+  const labels=[], cdfTP=[], cdfCT=[];
+  for(let w=minW;w<=maxW;w++){
+    labels.push(w);
+    cdfTP.push(tp.filter(r=>r<=w).length/tp.length*100);
+    cdfCT.push(ct.filter(r=>r<=w).length/ct.length*100);
+  }
+
+  const p50tp=pct(tp,50),p85tp=pct(tp,85),p95tp=pct(tp,95);
+
+  const ctx = document.getElementById('cdfChart').getContext('2d');
+  if(cdfInst) cdfInst.destroy();
+
+  cdfInst = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Tylko TP',
+          data:cdfTP,
+          borderColor:'#1d4ed8', borderWidth:2.5,
+          pointRadius:labels.map(l=>[p50tp,pct(tp,85),pct(tp,95)].includes(l)?5:0),
+          pointBackgroundColor:'#1d4ed8',
+          fill:{target:'origin',above:'rgba(29,78,216,.05)'},
+          tension:.4,
+        },
+        {
+          label:'TP + CT',
+          data:cdfCT,
+          borderColor:getComputedStyle(document.documentElement).getPropertyValue('--orange').trim()||'#ea580c',
+          borderWidth:2.5,
+          borderDash:[6,3],
+          pointRadius:labels.map(l=>[pct(ct,50),pct(ct,85),pct(ct,95)].includes(l)?5:0),
+          pointBackgroundColor:'#ea580c',
+          fill:{target:'origin',above:'rgba(234,88,12,.04)'},
+          tension:.4,
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:c=>`${c[0].label} tygodni`,
+            label:c=>`${c.dataset.label}: ${c.raw.toFixed(1)}%`,
+          },
+          backgroundColor:'#fff', borderColor:'#dddbd4', borderWidth:1,
+          titleColor:'#1c1917', bodyColor:'#78716c',
+          titleFont:{family:'IBM Plex Mono',size:11},
+          bodyFont:{family:'IBM Plex Mono',size:11},
+        }
+      },
+      scales:{
+        x:{
+          title:{display:true,text:'Tygodnie',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          grid:{color:'#f0ede6'}
+        },
+        y:{
+          min:0,max:100,
+          title:{display:true,text:'Skumulowane prawdopodobieństwo (%)',color:'#78716c',font:{family:'IBM Plex Mono',size:10}},
+          ticks:{color:'#78716c',font:{family:'IBM Plex Mono',size:10},callback:v=>v+'%'},
+          grid:{color:'#f0ede6'}
+        }
+      }
+    },
+    plugins:[{
+      id:'cdfLines',
+      afterDraw(chart){
+        const {ctx:c,scales}=chart;
+        // Draw lines for active model only
+        const active = activeModel==='ct' ? ct : tp;
+        [[pct(active,50),'#0d9488','P50'],[pct(active,85),'#b45309','P85'],[pct(active,95),'#b91c1c','P95']].forEach(([val,col,lbl])=>{
+          const idx=labels.indexOf(val);
+          if(idx<0) return;
+          const activeArr = activeModel==='ct' ? cdfCT : cdfTP;
+          const x=scales.x.getPixelForValue(idx);
+          const y=scales.y.getPixelForValue(activeArr[idx]);
+          c.save();
+          c.strokeStyle=col; c.lineWidth=1.5; c.setLineDash([5,4]);
+          c.beginPath(); c.moveTo(x,y); c.lineTo(x,scales.y.bottom); c.stroke();
+          c.beginPath(); c.moveTo(scales.x.left,y); c.lineTo(x,y); c.stroke();
+          c.fillStyle=col;
+          c.font="600 10px 'IBM Plex Mono',monospace";
+          c.fillText(lbl,x+4,y-5);
+          c.restore();
+        });
+      }
+    }]
+  });
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────
+function buildTable(){
+  const tbody=document.getElementById('tBody');
+  tbody.innerHTML='';
+  historicalData.forEach((d,i)=>{
+    const adjTp = d.tp>0 ? Math.max(1,Math.round(d.tp*(1-BUG_RATE))) : '—';
+    const ctCap = d.ct>0 ? Math.max(1,Math.floor((TEAM_DEVS*1.5*5)/d.ct)) : '—';
+    tbody.innerHTML+=`
+      <tr>
+        <td class="td-n">${String(i+1).padStart(2,'0')}</td>
+        <td>${d.week}</td>
+        <td class="td-v">${d.tp===0?'—':d.tp}</td>
+        <td class="td-adj">${adjTp}</td>
+        <td class="td-ct">${d.ct}</td>
+        <td class="td-eff">${ctCap}</td>
+        <td>${d.note}</td>
+      </tr>`;
+  });
+}
+
+const TEAM_DEVS = 3;
+
+// ── MODEL SWITCHER ────────────────────────────────────────────────────
+function setModel(m) {
+  activeModel = m;
+  ['tp','ct','both'].forEach(k=>{
+    document.getElementById('btn'+k.charAt(0).toUpperCase()+k.slice(1)).classList.toggle('active', k===m);
+  });
+  const ind = document.getElementById('modelIndicator');
+  if(m==='tp') { ind.className='model-indicator tp-only'; ind.textContent='Model: tylko Throughput'; }
+  else if(m==='ct') { ind.className='model-indicator'; ind.textContent='Model: Throughput + Cycle Time'; }
+  else { ind.className='model-indicator'; ind.textContent='Model: porównanie obu'; }
+  runAll();
+}
+
+// ── RUN ───────────────────────────────────────────────────────────────
+function runAll(){
+  const target = parseInt(document.getElementById('pbiCount').value);
+  const adj    = parseInt(document.getElementById('adjFactor').value)/100;
+  const N      = 10000;
+
+  resTP = simulateTP(target, adj, N);
+  resCT = simulateCT(target, adj, N);
+
+  const primary = activeModel==='ct' ? resCT : resTP;
+  const secondary = activeModel==='both' ? resCT : null;
+
+  renderCards(primary, secondary);
+  renderHistogram(primary, pct(primary,50), pct(primary,85), pct(primary,95),
+    activeModel==='ct' ? 'TP + Cycle Time' : 'Tylko Throughput');
+  renderCDF(resTP, resCT);
+
+  document.getElementById('compareSection').style.display = activeModel==='both' ? 'block' : 'none';
+  if(activeModel==='both') renderCompare(resTP, resCT);
+}
+
+// ── SLIDERS ───────────────────────────────────────────────────────────
+document.getElementById('pbiCount').addEventListener('input',function(){document.getElementById('pbiVal').textContent=this.value;});
+document.getElementById('adjFactor').addEventListener('input',function(){document.getElementById('adjVal').textContent=this.value+'%';});
+
+// ── INIT ──────────────────────────────────────────────────────────────
+buildTable();
+runAll();
+</script>
+</body>
+</html>
