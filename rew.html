@@ -9,18 +9,18 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0e0f11;
-    --surface: #16181c;
-    --surface2: #1e2127;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.13);
-    --text: #e8e9eb;
-    --muted: #7a7d85;
-    --accent: #5b8dee;
-    --green: #3ecf8e;
-    --amber: #f5a623;
-    --coral: #f06a50;
-    --red: #e05252;
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #eeecea;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1a1a1a;
+    --muted: #6b6e78;
+    --accent: #2563eb;
+    --green: #16a34a;
+    --amber: #b45309;
+    --coral: #c2410c;
+    --red: #dc2626;
     --mono: 'DM Mono', monospace;
     --sans: 'DM Sans', sans-serif;
   }
@@ -377,10 +377,10 @@
   <div class="chart-wrap">
     <div class="chart-title">Rozkład wyników — ile tygodni potrzeba?</div>
     <div class="legend">
-      <span class="legend-item"><span class="legend-dot" style="background:#3ecf8e"></span>≤ P50</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#5b8dee"></span>P50–P70</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#f5a623"></span>P70–P85</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#f06a50"></span>> P85</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>≤ P50</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>P50–P70</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#b45309"></span>P70–P85</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#c2410c"></span>> P85</span>
     </div>
     <div style="position:relative;height:220px;"><canvas id="chart-0" role="img" aria-label="Histogram Monte Carlo – 29 PBI"></canvas></div>
   </div>
@@ -404,10 +404,10 @@
   <div class="chart-wrap">
     <div class="chart-title">Rozkład wyników — ile tygodni potrzeba?</div>
     <div class="legend">
-      <span class="legend-item"><span class="legend-dot" style="background:#3ecf8e"></span>≤ P50</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#5b8dee"></span>P50–P70</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#f5a623"></span>P70–P85</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#f06a50"></span>> P85</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>≤ P50</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>P50–P70</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#b45309"></span>P70–P85</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#c2410c"></span>> P85</span>
     </div>
     <div style="position:relative;height:220px;"><canvas id="chart-1" role="img" aria-label="Histogram Monte Carlo – 58 PBI"></canvas></div>
   </div>
@@ -527,10 +527,10 @@ function buildChart(idx, results, ps) {
   for (let w=1; w<=maxW; w++) {
     labels.push(w+'t');
     data.push(parseFloat(((buckets[w]||0)/SIMULATIONS*100).toFixed(2)));
-    let c = '#3ecf8e';
-    if (w > ps.p85) c = '#f06a50';
-    else if (w > ps.p70) c = '#f5a623';
-    else if (w > ps.p50) c = '#5b8dee';
+    let c = '#16a34a';
+    if (w > ps.p85) c = '#c2410c';
+    else if (w > ps.p70) c = '#b45309';
+    else if (w > ps.p50) c = '#2563eb';
     colors.push(c);
   }
   new Chart(document.getElementById('chart-'+idx), {
@@ -538,10 +538,10 @@ function buildChart(idx, results, ps) {
     data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 2, borderSkipped: false }] },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1)+'% symulacji' }, backgroundColor: '#1e2127', titleColor: '#e8e9eb', bodyColor: '#7a7d85', borderColor: 'rgba(255,255,255,0.07)', borderWidth: 1 } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1)+'% symulacji' }, backgroundColor: '#ffffff', titleColor: '#1a1a1a', bodyColor: '#6b6e78', borderColor: 'rgba(0,0,0,0.1)', borderWidth: 1 } },
       scales: {
-        x: { ticks: { color: '#7a7d85', font: { family: "'DM Mono'", size: 10 }, autoSkip: true, maxTicksLimit: 20 }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.07)' } },
-        y: { ticks: { color: '#7a7d85', font: { family: "'DM Mono'", size: 10 }, callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.05)' }, border: { color: 'rgba(255,255,255,0.07)' } }
+        x: { ticks: { color: '#6b6e78', font: { family: "'DM Mono'", size: 10 }, autoSkip: true, maxTicksLimit: 20 }, grid: { display: false }, border: { color: 'rgba(0,0,0,0.08)' } },
+        y: { ticks: { color: '#6b6e78', font: { family: "'DM Mono'", size: 10 }, callback: v => v+'%' }, grid: { color: 'rgba(0,0,0,0.06)' }, border: { color: 'rgba(0,0,0,0.08)' } }
       }
     }
   });
