@@ -3,401 +3,581 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monte Carlo — Zespół REW</title>
+<title>Monte Carlo Forecast</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --bg:#F8F7F4;--surface:#FFFFFF;--border:#E5E3DC;
-  --tp:#1A1916;--ts:#6B6A65;--tm:#A09F9A;
-  --teal:#0F6E56;--teal-m:#1D9E75;
-  --blue:#185FA5;--blue-m:#378ADD;
-  --coral:#993C1D;--coral-m:#D85A30;
-  --accent:#2C2C2A;
-}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tp);min-height:100vh;padding:2rem;}
-.page-header{max-width:880px;margin:0 auto 2rem;}
-.page-header h1{font-size:26px;font-weight:600;letter-spacing:-0.5px;margin-bottom:6px;}
-.page-header p{font-size:14px;color:var(--ts);line-height:1.6;}
-.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:11px;background:var(--accent);color:#fff;padding:3px 8px;border-radius:4px;margin-bottom:12px;letter-spacing:.5px;}
-.container{max-width:880px;margin:0 auto;}
-.tabs{display:flex;border-bottom:1.5px solid var(--border);margin-bottom:2rem;}
-.tab-btn{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;background:none;border:none;padding:10px 20px;cursor:pointer;color:var(--tm);border-bottom:2px solid transparent;margin-bottom:-1.5px;transition:color .15s;}
-.tab-btn:hover{color:var(--tp);}
-.tab-btn.active{color:var(--tp);border-bottom:2px solid var(--tp);}
-.tab-badge{font-family:'DM Mono',monospace;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:6px;background:var(--bg);color:var(--ts);border:1px solid var(--border);vertical-align:middle;}
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
-.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
-.pct-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.4rem;position:relative;overflow:hidden;}
-.pct-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.c-teal::before{background:var(--teal-m);}
-.c-blue::before{background:var(--blue-m);}
-.c-coral::before{background:var(--coral-m);}
-.pct-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--tm);letter-spacing:.3px;margin-bottom:8px;}
-.pct-val{font-size:19px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px;}
-.color-teal{color:var(--teal);}
-.color-blue{color:var(--blue);}
-.color-coral{color:var(--coral);}
-.pct-meta{font-size:12px;color:var(--tm);}
-.chart-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem;}
-.chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:12px;}
-.chart-title{font-size:15px;font-weight:500;margin-bottom:3px;}
-.chart-subtitle{font-size:12px;color:var(--ts);}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ts);align-items:center;}
-.legend-item{display:flex;align-items:center;gap:6px;}
-.legend-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
-.chart-wrap{position:relative;width:100%;height:300px;}
-.params-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
-.chip{font-family:'DM Mono',monospace;font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;color:var(--ts);}
-.info-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--tm);border-radius:0 8px 8px 0;padding:1rem 1.2rem;font-size:13px;color:var(--ts);line-height:1.7;}
-.info-box strong{color:var(--tp);font-weight:500;}
-.dl-hero{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.2rem 1.6rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;}
-.dl-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--tm);margin-bottom:4px;}
-.dl-date{font-size:22px;font-weight:600;letter-spacing:-.5px;}
-.dl-chip{font-size:12px;color:var(--ts);padding:4px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-family:'DM Mono',monospace;}
-@media(max-width:600px){body{padding:1rem;}.cards-grid{grid-template-columns:1fr;}.tab-btn{padding:10px 12px;font-size:13px;}}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2127;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8e9eb;
+    --muted: #7a7d85;
+    --accent: #5b8dee;
+    --green: #3ecf8e;
+    --amber: #f5a623;
+    --coral: #f06a50;
+    --red: #e05252;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  header {
+    padding: 2rem 2.5rem 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    background: rgba(91,141,238,0.15);
+    color: var(--accent);
+    border: 1px solid rgba(91,141,238,0.3);
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+  }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  .panel {
+    display: none;
+    padding: 2rem 2.5rem;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .panel.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .panel-header {
+    margin-bottom: 1.75rem;
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.4rem;
+  }
+
+  .panel-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .panel-desc span {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .excluded-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--coral);
+    background: rgba(240,106,80,0.1);
+    border: 1px solid rgba(240,106,80,0.25);
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-top: 0.6rem;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+
+  .metric-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-value {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .metric-unit {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 2.5rem;
+  }
+
+  .forecast-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .forecast-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .fc-p50::before { background: var(--green); }
+  .fc-p70::before { background: var(--accent); }
+  .fc-p85::before { background: var(--amber); }
+  .fc-p95::before { background: var(--coral); }
+
+  .fc-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+
+  .fc-weeks {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+
+  .fc-p50 .fc-weeks { color: var(--green); }
+  .fc-p70 .fc-weeks { color: var(--accent); }
+  .fc-p85 .fc-weeks { color: var(--amber); }
+  .fc-p95 .fc-weeks { color: var(--coral); }
+
+  .fc-date {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .fc-conf {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    opacity: 0.7;
+  }
+
+  .chart-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .chart-title {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 0.75rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  canvas { display: block; }
+
+  .throughput-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .throughput-table th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 0.75rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .throughput-table td {
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .throughput-table tr:last-child td { border-bottom: none; }
+
+  .throughput-table td.excluded {
+    color: var(--coral);
+    text-decoration: line-through;
+    opacity: 0.6;
+  }
+
+  .throughput-table td.num { text-align: right; }
+
+  .bar-inline {
+    display: inline-block;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-left: 8px;
+    opacity: 0.5;
+  }
+
+  .bar-inline.excluded-bar { background: var(--coral); opacity: 0.3; }
+
+  footer {
+    padding: 1.5rem 2.5rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    display: flex;
+    gap: 2rem;
+  }
 </style>
 </head>
 <body>
 
-<div class="page-header">
-  <span class="tag">MONTE CARLO &middot; REW</span>
-  <h1>Prognoza ukończenia backlogu</h1>
-  <p>Symulacja oparta na historycznym throughput i cycle time zespołu &middot; Start: 19 maja 2026 &middot; Tylko dni robocze &middot; 10 000 iteracji</p>
-</div>
-
-<div class="container">
+<header>
+  <div class="header-top">
+    <h1>Monte Carlo Forecast</h1>
+    <span class="badge">10 000 symulacji</span>
+  </div>
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('tab62',this)">Pełny backlog <span class="tab-badge">62 PBI</span></button>
-    <button class="tab-btn" onclick="switchTab('tab46',this)">Ograniczony zakres <span class="tab-badge">46 PBI</span></button>
-    <button class="tab-btn" onclick="switchTab('tabdl',this)">Ile do 20 czerwca? <span class="tab-badge">deadline</span></button>
+    <button class="tab active" onclick="switchTab(0)">Zespół A — 29 PBI</button>
+    <button class="tab" onclick="switchTab(1)">Zespół B — 58 PBI</button>
   </div>
+</header>
 
-  <!-- TAB 62 -->
-  <div id="tab62" class="tab-panel active">
-    <div class="cards-grid">
-      <div class="pct-card c-teal">
-        <div class="pct-label">P50 &mdash; najbardziej prawdopodobne</div>
-        <div class="pct-val color-teal" id="v50-62">—</div>
-        <div class="pct-meta" id="m50-62"></div>
-      </div>
-      <div class="pct-card c-blue">
-        <div class="pct-label">P85 &mdash; realistyczny cel</div>
-        <div class="pct-val color-blue" id="v85-62">—</div>
-        <div class="pct-meta" id="m85-62"></div>
-      </div>
-      <div class="pct-card c-coral">
-        <div class="pct-label">P95 &mdash; ostrożna prognoza</div>
-        <div class="pct-val color-coral" id="v95-62">—</div>
-        <div class="pct-meta" id="m95-62"></div>
-      </div>
-    </div>
-    <div class="chart-section">
-      <div class="chart-header">
-        <div>
-          <div class="chart-title">Rozkład dat ukończenia — 62 PBI</div>
-          <div class="chart-subtitle">Każdy słupek = liczba symulacji kończących się w danym przedziale</div>
-        </div>
-        <div class="legend">
-          <div class="legend-item"><span class="legend-sq" style="background:#1D9E75"></span>do P50</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#378ADD"></span>P50–P85</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#D85A30"></span>P85–P95</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#D3D1C7"></span>powyżej P95</div>
-        </div>
-      </div>
-      <div class="chart-wrap"><canvas id="chart62"></canvas></div>
-      <div class="params-row">
-        <span class="chip">backlog: 62 PBI</span>
-        <span class="chip">throughput: 7–15 PBI/tydz.</span>
-        <span class="chip">cycle time med.: 23 dni</span>
-        <span class="chip">symulacje: 10 000</span>
-        <span class="chip">start: 19.05.2026</span>
-      </div>
-    </div>
-    <div class="info-box">
-      <strong>Jak czytać ten wykres?</strong> Każda symulacja losuje tygodniowy throughput z historii i liczy ile tygodni potrzeba by domknąć 62 PBI. <strong>P50</strong> = w 50% symulacji praca kończy się wcześniej. <strong>P85</strong> to rekomendowany cel do komunikacji z interesariuszami. <strong>P95</strong> to bufor bezpieczeństwa.
+<div id="panel-0" class="panel active">
+  <div class="panel-header">
+    <div class="panel-title">Symulacja 1</div>
+    <div class="panel-desc">Dane: <span>8 marca – 17 maja 2026</span> &nbsp;·&nbsp; Zakres: <span>29 PBI</span> &nbsp;·&nbsp; Cycle time avg: <span>24 dni (↓16%)</span><br>
+    Tydzień 24 maja pominięty (niekompletny).
     </div>
   </div>
-
-  <!-- TAB 46 -->
-  <div id="tab46" class="tab-panel">
-    <div class="cards-grid">
-      <div class="pct-card c-teal">
-        <div class="pct-label">P50 &mdash; najbardziej prawdopodobne</div>
-        <div class="pct-val color-teal" id="v50-46">—</div>
-        <div class="pct-meta" id="m50-46"></div>
-      </div>
-      <div class="pct-card c-blue">
-        <div class="pct-label">P85 &mdash; realistyczny cel</div>
-        <div class="pct-val color-blue" id="v85-46">—</div>
-        <div class="pct-meta" id="m85-46"></div>
-      </div>
-      <div class="pct-card c-coral">
-        <div class="pct-label">P95 &mdash; ostrożna prognoza</div>
-        <div class="pct-val color-coral" id="v95-46">—</div>
-        <div class="pct-meta" id="m95-46"></div>
-      </div>
+  <div id="metrics-0" class="metrics-grid"></div>
+  <div class="section-label">Prognoza dostarczenia</div>
+  <div id="forecast-0" class="forecast-grid"></div>
+  <div class="chart-wrap">
+    <div class="chart-title">Rozkład wyników — ile tygodni potrzeba?</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#3ecf8e"></span>≤ P50</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#5b8dee"></span>P50–P70</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#f5a623"></span>P70–P85</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#f06a50"></span>> P85</span>
     </div>
-    <div class="chart-section">
-      <div class="chart-header">
-        <div>
-          <div class="chart-title">Rozkład dat ukończenia — 46 PBI</div>
-          <div class="chart-subtitle">Każdy słupek = liczba symulacji kończących się w danym przedziale</div>
-        </div>
-        <div class="legend">
-          <div class="legend-item"><span class="legend-sq" style="background:#1D9E75"></span>do P50</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#378ADD"></span>P50–P85</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#D85A30"></span>P85–P95</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#D3D1C7"></span>powyżej P95</div>
-        </div>
-      </div>
-      <div class="chart-wrap"><canvas id="chart46"></canvas></div>
-      <div class="params-row">
-        <span class="chip">backlog: 46 PBI</span>
-        <span class="chip">throughput: 7–15 PBI/tydz.</span>
-        <span class="chip">cycle time med.: 23 dni</span>
-        <span class="chip">symulacje: 10 000</span>
-        <span class="chip">start: 19.05.2026</span>
-      </div>
-    </div>
-    <div class="info-box">
-      <strong>Różnica względem 62 PBI:</strong> Zmniejszenie zakresu o 16 PBI (&minus;26%) skraca prognozę. Porównaj daty P85 między zakładkami by ocenić ile czasu oszczędzasz ograniczając zakres &mdash; przydatne przy rozmowie o priorytetyzacji z Product Ownerem.
-    </div>
+    <div style="position:relative;height:220px;"><canvas id="chart-0" role="img" aria-label="Histogram Monte Carlo – 29 PBI"></canvas></div>
   </div>
-
-  <!-- TAB DEADLINE -->
-  <div id="tabdl" class="tab-panel">
-    <div class="dl-hero">
-      <div>
-        <div class="dl-label">Deadline</div>
-        <div class="dl-date">20 czerwca 2026</div>
-      </div>
-      <div class="dl-chip" id="dl-days">liczenie...</div>
-    </div>
-    <div class="cards-grid">
-      <div class="pct-card c-coral">
-        <div class="pct-label">P5 &mdash; pesymistycznie</div>
-        <div class="pct-val color-coral" id="dl-v5">—</div>
-        <div class="pct-meta">ukończonych PBI</div>
-      </div>
-      <div class="pct-card c-blue">
-        <div class="pct-label">P50 &mdash; mediana</div>
-        <div class="pct-val color-blue" id="dl-v50">—</div>
-        <div class="pct-meta">ukończonych PBI</div>
-      </div>
-      <div class="pct-card c-teal">
-        <div class="pct-label">P85 &mdash; optymistycznie</div>
-        <div class="pct-val color-teal" id="dl-v85">—</div>
-        <div class="pct-meta">ukończonych PBI</div>
-      </div>
-    </div>
-    <div class="chart-section">
-      <div class="chart-header">
-        <div>
-          <div class="chart-title">Ile PBI ukończymy do 20.06.2026?</div>
-          <div class="chart-subtitle">Rozkład liczby zadań ukończonych w 10 000 symulacjach</div>
-        </div>
-        <div class="legend">
-          <div class="legend-item"><span class="legend-sq" style="background:#D85A30"></span>poniżej P50</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#378ADD"></span>P50–P85</div>
-          <div class="legend-item"><span class="legend-sq" style="background:#1D9E75"></span>powyżej P85</div>
-        </div>
-      </div>
-      <div class="chart-wrap" style="height:320px;"><canvas id="chartDl"></canvas></div>
-      <div class="params-row">
-        <span class="chip">deadline: 20.06.2026</span>
-        <span class="chip">start: 19.05.2026</span>
-        <span class="chip">throughput: 7–15 PBI/tydz.</span>
-        <span class="chip">symulacje: 10 000</span>
-      </div>
-    </div>
-    <div class="info-box">
-      <strong>Jak działa ta symulacja?</strong> Każda iteracja losuje tygodniowy throughput z historii i sumuje ukończone PBI przez dostępne tygodnie robocze do 20.06. <strong>P5</strong> = w 95% symulacji uda się ukończyć co najmniej tyle. <strong>P50</strong> = mediana. <strong>P85</strong> = wynik osiągnięty w 85% przypadków &mdash; optymistyczna, ale realna prognoza górna.
-    </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Dane throughput użyte w symulacji</div>
+    <table class="throughput-table" id="table-0"></table>
   </div>
-
 </div>
+
+<div id="panel-1" class="panel">
+  <div class="panel-header">
+    <div class="panel-title">Symulacja 2</div>
+    <div class="panel-desc">Dane: <span>8 marca – 17 maja 2026</span> &nbsp;·&nbsp; Zakres: <span>58 PBI</span> &nbsp;·&nbsp; Cycle time avg: <span>24 dni</span><br>
+    Tydzień 24 maja pominięty (niekompletny).
+    </div>
+    <div class="excluded-note">⊘ Wykluczone: 41 (max) i 3 (min) — wartości odstające</div>
+  </div>
+  <div id="metrics-1" class="metrics-grid"></div>
+  <div class="section-label">Prognoza dostarczenia</div>
+  <div id="forecast-1" class="forecast-grid"></div>
+  <div class="chart-wrap">
+    <div class="chart-title">Rozkład wyników — ile tygodni potrzeba?</div>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#3ecf8e"></span>≤ P50</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#5b8dee"></span>P50–P70</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#f5a623"></span>P70–P85</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#f06a50"></span>> P85</span>
+    </div>
+    <div style="position:relative;height:220px;"><canvas id="chart-1" role="img" aria-label="Histogram Monte Carlo – 58 PBI"></canvas></div>
+  </div>
+  <div class="chart-wrap">
+    <div class="chart-title">Dane throughput użyte w symulacji</div>
+    <table class="throughput-table" id="table-1"></table>
+  </div>
+</div>
+
+<footer>
+  <span>Metoda: Monte Carlo · 10 000 iteracji</span>
+  <span>Data startu symulacji: 26 maja 2026</span>
+  <span>Cycle time: 24 dni (informacyjnie)</span>
+</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-var THROUGHPUT = [14,15,13,8,9,13,15,15,8,7];
-var CYCLE_TIMES = [31,19,23,25,67,41,79,77,76,24,36,13];
-var START = new Date(2026,4,19);
-var N = 10000;
+const SIM_START = new Date(2026, 4, 26);
+const SIMULATIONS = 10000;
 
-function sample(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-function addWorkdays(date,days){
-  var d = new Date(date.getTime()), added = 0;
-  while(added < days){
-    d.setDate(d.getDate()+1);
-    var w = d.getDay();
-    if(w!==0 && w!==6) added++;
+const datasets = [
+  {
+    items: 29,
+    throughput: [15, 13, 8, 9, 13, 15, 15, 8, 7, 9],
+    rawWeeks: [
+      {date:'8 marca, 2026', val:15, excluded:false},
+      {date:'15 marca, 2026', val:13, excluded:false},
+      {date:'22 marca, 2026', val:26, excluded:true, reason:'pominięty (outlier)'},
+      {date:'29 marca, 2026', val:8, excluded:false},
+      {date:'5 kwietnia, 2026', val:9, excluded:false},
+      {date:'12 kwietnia, 2026', val:13, excluded:false},
+      {date:'19 kwietnia, 2026', val:15, excluded:false},
+      {date:'26 kwietnia, 2026', val:15, excluded:false},
+      {date:'3 maja, 2026', val:8, excluded:false},
+      {date:'10 maja, 2026', val:7, excluded:false},
+      {date:'17 maja, 2026', val:9, excluded:false},
+      {date:'24 maja, 2026', val:1, excluded:true, reason:'niekompletny tydzień'},
+    ]
+  },
+  {
+    items: 58,
+    throughput: [24, 14, 18, 22, 28, 22, 22, 15, 22],
+    rawWeeks: [
+      {date:'8 marca, 2026', val:29, excluded:false},
+      {date:'15 marca, 2026', val:24, excluded:false},
+      {date:'22 marca, 2026', val:41, excluded:true, reason:'max — wykluczony'},
+      {date:'29 marca, 2026', val:14, excluded:false},
+      {date:'5 kwietnia, 2026', val:18, excluded:false},
+      {date:'12 kwietnia, 2026', val:22, excluded:false},
+      {date:'19 kwietnia, 2026', val:28, excluded:false},
+      {date:'26 kwietnia, 2026', val:22, excluded:false},
+      {date:'3 maja, 2026', val:22, excluded:false},
+      {date:'10 maja, 2026', val:15, excluded:false},
+      {date:'17 maja, 2026', val:22, excluded:false},
+      {date:'24 maja, 2026', val:3, excluded:true, reason:'min + niekompletny'},
+    ]
   }
-  return d;
-}
+];
 
-function countWorkdays(from, to){
-  var d = new Date(from.getTime()), c = 0;
-  while(d < to){
-    d.setDate(d.getDate()+1);
-    var w = d.getDay();
-    if(w!==0 && w!==6) c++;
+function runMC(items, hist) {
+  const results = [];
+  for (let i = 0; i < SIMULATIONS; i++) {
+    let done = 0, w = 0;
+    while (done < items) { done += hist[Math.floor(Math.random() * hist.length)]; w++; if (w > 500) break; }
+    results.push(w);
   }
-  return c;
+  return results.sort((a, b) => a - b);
 }
 
-function fmtDate(d){
-  return d.toLocaleDateString('pl-PL',{day:'numeric',month:'short',year:'numeric'});
+function pct(sorted, p) {
+  return sorted[Math.max(0, Math.ceil((p/100)*sorted.length) - 1)];
 }
 
-function weeksFrom(d){
-  return Math.round((d.getTime()-START.getTime())/(7*24*3600*1000));
+function fmtDate(w) {
+  const d = new Date(SIM_START);
+  d.setDate(d.getDate() + w * 7);
+  return d.toLocaleDateString('pl-PL', {day:'numeric', month:'long', year:'numeric'});
 }
 
-function getPct(sorted,p){
-  return sorted[Math.min(sorted.length-1, Math.ceil(p/100*sorted.length)-1)];
+function buildMetrics(idx, tp) {
+  const avg = (tp.reduce((a,b)=>a+b,0)/tp.length).toFixed(1);
+  const mn = Math.min(...tp), mx = Math.max(...tp);
+  const el = document.getElementById('metrics-'+idx);
+  el.innerHTML = `
+    <div class="metric"><div class="metric-label">Avg throughput</div><div class="metric-value">${avg}</div><div class="metric-unit">itemów / tydzień</div></div>
+    <div class="metric"><div class="metric-label">Min / Max</div><div class="metric-value">${mn} / ${mx}</div><div class="metric-unit">itemów / tydzień</div></div>
+    <div class="metric"><div class="metric-label">Próbek</div><div class="metric-value">${tp.length}</div><div class="metric-unit">tygodni w próbie</div></div>
+    <div class="metric"><div class="metric-label">PBI do dostarczenia</div><div class="metric-value">${datasets[idx].items}</div><div class="metric-unit">Monte Carlo × 10k</div></div>
+  `;
 }
 
-function runBacklogMC(backlog){
-  var res = [];
-  for(var i=0;i<N;i++){
-    var done=0, week=0;
-    while(done < backlog && week < 500){ done += sample(THROUGHPUT); week++; }
-    var wd = week*5 + sample(CYCLE_TIMES);
-    res.push(addWorkdays(START,wd).getTime());
+function buildForecast(idx, results) {
+  const p50=pct(results,50), p70=pct(results,70), p85=pct(results,85), p95=pct(results,95);
+  const el = document.getElementById('forecast-'+idx);
+  const cards = [
+    {cls:'fc-p50', label:'P50', conf:'50% szans', w:p50},
+    {cls:'fc-p70', label:'P70', conf:'70% szans', w:p70},
+    {cls:'fc-p85', label:'P85', conf:'85% szans', w:p85},
+    {cls:'fc-p95', label:'P95', conf:'95% szans', w:p95},
+  ];
+  el.innerHTML = cards.map(c => `
+    <div class="forecast-card ${c.cls}">
+      <div class="fc-label">${c.label} — ${c.conf}</div>
+      <div class="fc-weeks">${c.w} tyg.</div>
+      <div class="fc-date">${fmtDate(c.w)}</div>
+      <div class="fc-conf">${c.conf} dotrzymania</div>
+    </div>
+  `).join('');
+  return {p50,p70,p85,p95};
+}
+
+function buildChart(idx, results, ps) {
+  const buckets = {};
+  results.forEach(v => { buckets[v] = (buckets[v]||0)+1; });
+  const maxW = Math.max(...Object.keys(buckets).map(Number));
+  const labels=[], data=[], colors=[];
+  for (let w=1; w<=maxW; w++) {
+    labels.push(w+'t');
+    data.push(parseFloat(((buckets[w]||0)/SIMULATIONS*100).toFixed(2)));
+    let c = '#3ecf8e';
+    if (w > ps.p85) c = '#f06a50';
+    else if (w > ps.p70) c = '#f5a623';
+    else if (w > ps.p50) c = '#5b8dee';
+    colors.push(c);
   }
-  res.sort(function(a,b){return a-b;});
-  return res;
-}
-
-function buildHistogram(results, p50ts, p85ts, p95ts){
-  var min=results[0], max=results[results.length-1], BINS=40;
-  var sz=(max-min)/BINS, bins=[], labels=[], colors=[];
-  for(var i=0;i<BINS;i++){ bins.push(0); }
-  for(var j=0;j<results.length;j++){
-    var idx = Math.min(BINS-1, Math.floor((results[j]-min)/sz));
-    bins[idx]++;
-  }
-  for(var k=0;k<BINS;k++){
-    var mid = new Date(min + k*sz + sz/2);
-    labels.push(mid.toLocaleDateString('pl-PL',{day:'numeric',month:'short'}));
-    var mts = min + k*sz + sz/2;
-    if(mts <= p50ts) colors.push('#1D9E75');
-    else if(mts <= p85ts) colors.push('#378ADD');
-    else if(mts <= p95ts) colors.push('#D85A30');
-    else colors.push('#D3D1C7');
-  }
-  return {bins:bins, labels:labels, colors:colors};
-}
-
-function makeChart(canvasId, labels, data, colors, yTitle, xTitle){
-  var ctx = document.getElementById(canvasId).getContext('2d');
-  var scales = {
-    x:{
-      ticks:{maxRotation:45,autoSkip:true,maxTicksLimit:10,font:{size:11},color:'#A09F9A'},
-      grid:{display:false},
-      border:{color:'#E5E3DC'}
-    },
-    y:{
-      ticks:{font:{size:11},color:'#A09F9A'},
-      grid:{color:'rgba(0,0,0,0.04)'},
-      border:{dash:[3,3],color:'transparent'},
-      title:{display:true,text:yTitle||'Liczba symulacji',font:{size:11},color:'#A09F9A'}
-    }
-  };
-  if(xTitle) scales.x.title = {display:true,text:xTitle,font:{size:11},color:'#A09F9A'};
-  new Chart(ctx, {
-    type:'bar',
-    data:{
-      labels:labels,
-      datasets:[{data:data,backgroundColor:colors,borderWidth:0,borderRadius:3,borderSkipped:false}]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          backgroundColor:'#fff',borderColor:'#E5E3DC',borderWidth:1,
-          titleColor:'#1A1916',bodyColor:'#6B6A65',padding:10,
-          callbacks:{
-            label:function(i){return 'Symulacje: '+i.raw.toLocaleString('pl-PL');}
-          }
-        }
-      },
-      scales:scales
+  new Chart(document.getElementById('chart-'+idx), {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderRadius: 2, borderSkipped: false }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1)+'% symulacji' }, backgroundColor: '#1e2127', titleColor: '#e8e9eb', bodyColor: '#7a7d85', borderColor: 'rgba(255,255,255,0.07)', borderWidth: 1 } },
+      scales: {
+        x: { ticks: { color: '#7a7d85', font: { family: "'DM Mono'", size: 10 }, autoSkip: true, maxTicksLimit: 20 }, grid: { display: false }, border: { color: 'rgba(255,255,255,0.07)' } },
+        y: { ticks: { color: '#7a7d85', font: { family: "'DM Mono'", size: 10 }, callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.05)' }, border: { color: 'rgba(255,255,255,0.07)' } }
+      }
     }
   });
 }
 
-function renderBacklog(backlog, suffix){
-  var res = runBacklogMC(backlog);
-  var p50 = new Date(getPct(res,50));
-  var p85 = new Date(getPct(res,85));
-  var p95 = new Date(getPct(res,95));
-
-  document.getElementById('v50-'+suffix).textContent = fmtDate(p50);
-  document.getElementById('m50-'+suffix).textContent = '~ '+weeksFrom(p50)+' tyg. od startu';
-  document.getElementById('v85-'+suffix).textContent = fmtDate(p85);
-  document.getElementById('m85-'+suffix).textContent = '~ '+weeksFrom(p85)+' tyg. od startu';
-  document.getElementById('v95-'+suffix).textContent = fmtDate(p95);
-  document.getElementById('m95-'+suffix).textContent = '~ '+weeksFrom(p95)+' tyg. od startu';
-
-  var h = buildHistogram(res, p50.getTime(), p85.getTime(), p95.getTime());
-  makeChart('chart'+suffix, h.labels, h.bins, h.colors);
+function buildTable(idx) {
+  const rows = datasets[idx].rawWeeks;
+  const maxVal = Math.max(...rows.map(r => r.val));
+  const el = document.getElementById('table-'+idx);
+  el.innerHTML = `<thead><tr><th>Tydzień od</th><th class="num">Throughput</th><th>Status</th></tr></thead><tbody>`
+    + rows.map(r => {
+      const barW = Math.round((r.val / maxVal) * 80);
+      return `<tr>
+        <td class="${r.excluded?'excluded':''}">${r.date}</td>
+        <td class="num ${r.excluded?'excluded':''}">${r.val}
+          <span class="bar-inline ${r.excluded?'excluded-bar':''}" style="width:${barW}px"></span>
+        </td>
+        <td style="font-size:0.7rem;color:${r.excluded?'var(--coral)':'var(--muted)'}">
+          ${r.excluded ? '⊘ '+r.reason : '✓ użyty'}
+        </td>
+      </tr>`;
+    }).join('') + '</tbody>';
 }
 
-function renderDeadline(){
-  var DEADLINE = new Date(2026,5,20);
-  var wd = countWorkdays(START, DEADLINE);
-  var weeks = Math.floor(wd/5), extra = wd%5;
-  document.getElementById('dl-days').textContent =
-    wd+' dni roboczych ('+weeks+' tyg.'+(extra?' + '+extra+' dni':'')+')';
-
-  var counts = [];
-  for(var i=0;i<N;i++){
-    var done=0, left=wd;
-    while(left >= 5){ done += sample(THROUGHPUT); left -= 5; }
-    counts.push(done);
-  }
-  counts.sort(function(a,b){return a-b;});
-
-  var p5val  = getPct(counts,5);
-  var p50val = getPct(counts,50);
-  var p85val = getPct(counts,85);
-
-  document.getElementById('dl-v5').textContent  = p5val+' PBI';
-  document.getElementById('dl-v50').textContent = p50val+' PBI';
-  document.getElementById('dl-v85').textContent = p85val+' PBI';
-
-  var minV = counts[0], maxV = counts[counts.length-1];
-  var span = maxV - minV + 1;
-  var bins=[], labels=[], colors=[];
-  for(var k=0;k<span;k++){ bins.push(0); labels.push(String(minV+k)); }
-  for(var j=0;j<counts.length;j++) bins[counts[j]-minV]++;
-  for(var m=0;m<span;m++){
-    var v = minV+m;
-    if(v < p50val) colors.push('#D85A30');
-    else if(v < p85val) colors.push('#378ADD');
-    else colors.push('#1D9E75');
-  }
-  makeChart('chartDl', labels, bins, colors, 'Liczba symulacji', 'Ukończone PBI');
+function switchTab(idx) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  document.querySelectorAll('.panel').forEach((p,i) => p.classList.toggle('active', i===idx));
 }
 
-function switchTab(id, btn){
-  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-}
-
-window.onload = function(){
-  renderBacklog(62,'62');
-  renderBacklog(46,'46');
-  renderDeadline();
-};
+datasets.forEach((ds, idx) => {
+  const results = runMC(ds.items, ds.throughput);
+  buildMetrics(idx, ds.throughput);
+  const ps = buildForecast(idx, results);
+  buildChart(idx, results, ps);
+  buildTable(idx);
+});
 </script>
 </body>
 </html>
