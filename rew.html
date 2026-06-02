@@ -119,6 +119,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('base', this)">📊 Scenariusz bazowy</button>
     <button class="tab-btn vacation" onclick="switchTab('vac', this)">🏖 Z urlopem (−1 dev / 3 dni)</button>
+    <button class="tab-btn" id="tab3btn" onclick="switchTab('rev', this)">🔄 Rewizja – 45 PBI / 12 dni</button>
   </div>
 
   <!-- ══════════════════════════════════════════════════════ TAB 1: BASE -->
@@ -250,6 +251,79 @@
   </div>
 
 </div>
+
+
+  <!-- ══════════════════════════════════════════════════════ TAB 3: REVISION -->
+  <div id="tab-rev" class="tab-panel">
+    <header>
+      <div>
+        <div class="team-label" style="color:#7c3aed;">Rewizja – 45 PBI · 12 dni · urlop tydzień 1</div>
+        <h1>Czy dowieziemy 45 PBI<br>do 19 czerwca 2026?</h1>
+      </div>
+      <div class="header-meta">
+        <div class="date-label">Horizon</div>
+        <div class="date-value" style="color:#7c3aed;">12 dni</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">2,4 tyg. · tydz. 1: −2 dni jednego deva</div>
+      </div>
+    </header>
+
+    <div class="alert-banner" style="background:#f5f3ff;border-color:#ddd6fe;border-left-color:#7c3aed;color:#4c1d95;">
+      <strong>📋 Parametry symulacji:</strong> 12 dni roboczych (2 pełne tygodnie + 2 dni ×0,4). Tydzień 1: 2 dni z 2/3 devów → współczynnik ×0,933. Throughput historyczny bez zmian. Cel: <strong>45 PBI łącznie</strong>, w tym <strong>31 PBI o priorytecie 1</strong>.
+    </div>
+
+    <!-- Summary cards all 45 -->
+    <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">WSZYSTKIE 45 PBI</div>
+    <div class="cards">
+      <div class="card" style="border-top:3px solid #7c3aed;"><div class="card-label">Percentyl 50%</div><div class="card-value" style="color:#7c3aed;" id="r-p50val">—</div><div class="card-sub">W 50% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
+      <div class="card" style="border-top:3px solid #7c3aed;opacity:.85;"><div class="card-label">Percentyl 85%</div><div class="card-value" style="color:#7c3aed;" id="r-p85val">—</div><div class="card-sub">W 85% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
+      <div class="card" style="border-top:3px solid #7c3aed;opacity:.7;"><div class="card-label">Percentyl 95%</div><div class="card-value" style="color:#7c3aed;" id="r-p95val">—</div><div class="card-sub">W 95% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
+      <div class="card info"><div class="card-label">Cel łączny</div><div class="card-value">45</div><div class="card-sub">PBI · w tym 31 P1<br>12 dni roboczych</div></div>
+    </div>
+
+    <!-- Prob bars: 45 and 31 -->
+    <div class="prob-section">
+      <div class="section-title">Prawdopodobieństwo ukończenia celów</div>
+      <div class="prob-bar-row">
+        <div class="prob-bar-label" style="width:160px;">Pr(≥ 45 PBI)</div>
+        <div class="prob-bar-track"><div class="prob-bar-fill" id="r-fill45" style="width:0%"></div></div>
+        <div class="prob-bar-pct" id="r-pct45">—</div>
+      </div>
+      <div class="prob-bar-row">
+        <div class="prob-bar-label" style="width:160px;">Pr(≥ 31 PBI · P1)</div>
+        <div class="prob-bar-track"><div class="prob-bar-fill" id="r-fill31" style="width:0%;background:#f59e0b"></div></div>
+        <div class="prob-bar-pct" id="r-pct31">—</div>
+      </div>
+      <div id="r-comment" style="font-size:13px;color:var(--text-muted);margin-top:12px;"></div>
+    </div>
+
+    <!-- Priority 1 simulation cards -->
+    <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:var(--text-muted);margin:24px 0 12px;">31 PBI PRIORYTET 1 – osobna symulacja</div>
+    <div class="cards">
+      <div class="card" style="border-top:3px solid #f59e0b;"><div class="card-label">Percentyl 50%</div><div class="card-value" style="color:#d97706;" id="r-pp50val">—</div><div class="card-sub">Co najmniej tyle P1<br>w 50% symulacji</div></div>
+      <div class="card" style="border-top:3px solid #f59e0b;opacity:.85;"><div class="card-label">Percentyl 85%</div><div class="card-value" style="color:#d97706;" id="r-pp85val">—</div><div class="card-sub">Co najmniej tyle P1<br>w 85% symulacji</div></div>
+      <div class="card" style="border-top:3px solid #f59e0b;opacity:.7;"><div class="card-label">Percentyl 95%</div><div class="card-value" style="color:#d97706;" id="r-pp95val">—</div><div class="card-sub">Co najmniej tyle P1<br>w 95% symulacji</div></div>
+      <div class="card" style="border-top:3px solid #f59e0b;"><div class="card-label">Cel P1</div><div class="card-value" style="color:#d97706;">31</div><div class="card-sub">Priorytet 1<br>z 45 PBI łącznie</div></div>
+    </div>
+
+    <!-- Histogram -->
+    <div class="histogram-wrap">
+      <div class="section-title">Rozkład ukończonych PBI – 10 000 symulacji · <span style="color:#7c3aed;">■</span> wszystkie &nbsp; <span style="color:#f59e0b;">■</span> P1 (skalowane proporcjonalnie)</div>
+      <canvas id="r-histChart" height="240"></canvas>
+    </div>
+
+    <!-- Percentile comparison table -->
+    <div class="table-wrap" style="margin-bottom:24px;">
+      <div class="section-title">Rozkład percentylowy – wszystkie 45 PBI vs 31 P1</div>
+      <table>
+        <thead><tr><th>Percentyl</th><th>Wszystkie PBI</th><th>PBI Priorytet 1</th><th>Cel P1 (31)</th><th>Interpretacja</th></tr></thead>
+        <tbody id="r-percTable"></tbody>
+      </table>
+    </div>
+
+    <div class="footnote">
+      METODOLOGIA: 12 dni = 2 tygodnie + 2 dni (×0,4 tygodnia). Tydzień 1: capacity ×0,933 (2 dni × 1/3 deva ubytku). Bootstrapping z 6 tygodni historycznych. Symulacja P1: zakłada że P1 są brane pierwsze – wynik to min(wylosowany_throughput, 31). n=10 000.
+    </div>
+  </div>
 
 <script>
   const throughputHistory = [28, 22, 22, 15, 22, 23];
@@ -481,7 +555,169 @@
   setTimeout(() => {
     drawHistogram('b-histChart', baseResults, bP50, bP85, bP95, null, null);
     drawHistogram('v-histChart', vacResults,  vP50, vP85, vP95, baseResults, bP50);
+    drawRevHistogram();
   }, 80);
+
+
+  // ── TAB 3: REVISION SIM ───────────────────────────────────────────────────
+  const R_DAYS = 12;
+  const R_WEEKS = R_DAYS / 5;        // 2.4
+  const R_FULL  = Math.floor(R_WEEKS); // 2
+  const R_PART  = R_WEEKS - R_FULL;    // 0.4
+  const R_VAC   = 1 - (1/3)*(2/5);    // 0.933 — 2 days, 1 of 3 devs absent, week 1
+  const R_GOAL_ALL = 45;
+  const R_GOAL_P1  = 31;
+
+  function runRevSim() {
+    const all = new Array(N_SIMS);
+    for (let i = 0; i < N_SIMS; i++) {
+      let total = 0;
+      for (let w = 0; w < R_FULL; w++) {
+        const tp = sample(throughputHistory);
+        total += (w === 0) ? tp * R_VAC : tp;
+      }
+      total += sample(throughputHistory) * R_PART;
+      all[i] = Math.round(total);
+    }
+    return all;
+  }
+
+  const revAll = runRevSim().sort((a,b) => a-b);
+  // P1 sim: team takes P1 first, so P1 done = min(throughput, 31)
+  const revP1  = revAll.map(v => Math.min(v, R_GOAL_P1)).sort((a,b) => a-b);
+
+  const rP50  = pct(revAll, 50),  rP85  = pct(revAll, 85),  rP95  = pct(revAll, 95);
+  const rPP50 = pct(revP1,  50),  rPP85 = pct(revP1,  85),  rPP95 = pct(revP1,  95);
+
+  const rProb45 = revAll.filter(v => v >= R_GOAL_ALL).length / N_SIMS * 100;
+  const rProb31 = revP1.filter(v  => v >= R_GOAL_P1).length  / N_SIMS * 100;
+
+  document.getElementById('r-p50val').textContent  = rP50;
+  document.getElementById('r-p85val').textContent  = rP85;
+  document.getElementById('r-p95val').textContent  = rP95;
+  document.getElementById('r-pp50val').textContent = rPP50;
+  document.getElementById('r-pp85val').textContent = rPP85;
+  document.getElementById('r-pp95val').textContent = rPP95;
+
+  const f45 = document.getElementById('r-fill45');
+  f45.style.width = Math.min(rProb45,100)+'%';
+  f45.style.background = rProb45>=50?'var(--green)':rProb45>=25?'var(--p85)':'var(--p95)';
+  document.getElementById('r-pct45').textContent = rProb45.toFixed(1)+'%';
+
+  const f31 = document.getElementById('r-fill31');
+  f31.style.width = Math.min(rProb31,100)+'%';
+  f31.style.background = rProb31>=50?'var(--green)':rProb31>=25?'var(--p85)':'var(--p95)';
+  document.getElementById('r-pct31').textContent = rProb31.toFixed(1)+'%';
+
+  const rComment = document.getElementById('r-comment');
+  if (rProb31 >= 70) {
+    rComment.innerHTML = '✅ <strong>P1 (31 PBI) są bezpieczne</strong> – wysokie prawdopodobieństwo ukończenia przy obecnym tempie.';
+    rComment.style.color = 'var(--green)';
+  } else if (rProb31 >= 40) {
+    rComment.innerHTML = '⚠ <strong>P1 są zagrożone</strong> – szanse umiarkowane. Kluczowe jest utrzymanie tempa i ograniczenie przerw.';
+    rComment.style.color = 'var(--orange)';
+  } else {
+    rComment.innerHTML = '🔴 <strong>P1 trudne do dowiezienia</strong> przy obecnym tempie. Konieczna priorytetyzacja i redukcja scope.';
+    rComment.style.color = 'var(--p95)';
+  }
+
+  // Percentile table tab 3
+  const rTbody = document.getElementById('r-percTable');
+  [10,25,50,70,85,90,95].forEach(p => {
+    const aVal = pct(revAll, p);
+    const pVal = pct(revP1, p);
+    const hit  = pVal >= R_GOAL_P1;
+    const badge = p===50?'<span class="badge badge-50">P50</span>':p===85?'<span class="badge badge-85">P85</span>':p===95?'<span class="badge badge-95">P95</span>':'P'+p;
+    const interp = p===50?'Typowy':p===85?'Konserwatywny':p===95?'B. konserwatywny':p<50?'Optymistyczny':'Ostrożny';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${badge}</td><td>${aVal}</td><td style="color:${hit?'var(--green)':'var(--p95)'};font-family:var(--mono);font-weight:600;">${pVal}</td><td style="color:${hit?'var(--green)':'var(--p95)'};">${hit?'✅ cel osiągnięty':'❌ poniżej celu'}</td><td style="text-align:left;font-family:var(--sans);font-weight:400">${interp}</td>`;
+    rTbody.appendChild(tr);
+  });
+
+  function drawRevHistogram() {
+    const canvas = document.getElementById('r-histChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const minV = revAll[0], maxV = revAll[revAll.length-1];
+    const binCount = maxV - minV + 1;
+    const bins = new Array(binCount).fill(0);
+    revAll.forEach(v => bins[v-minV]++);
+    const p1bins = new Array(binCount).fill(0);
+    revP1.forEach(v => { if(v>=minV && v<=maxV) p1bins[v-minV]++; });
+    const maxCount = Math.max(...bins);
+
+    const DPR = window.devicePixelRatio || 1;
+    const W = Math.max(300, canvas.parentElement.clientWidth - 56);
+    const H = 240;
+    canvas.width = W*DPR; canvas.height = H*DPR;
+    canvas.style.width = W+'px'; canvas.style.height = H+'px';
+    ctx.scale(DPR, DPR);
+
+    const pad = {top:28, right:20, bottom:32, left:44};
+    const cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom;
+    const bW = cW/binCount;
+
+    // P1 bars (behind)
+    p1bins.forEach((count,i) => {
+      if(!count) return;
+      const x = pad.left + i*bW;
+      const bH = (count/maxCount)*cH;
+      ctx.fillStyle = 'rgba(245,158,11,0.35)';
+      ctx.fillRect(x+1, pad.top+cH-bH, bW-2, bH);
+    });
+
+    // All bars
+    bins.forEach((count,i) => {
+      const val = minV+i;
+      const x = pad.left + i*bW;
+      const bH = (count/maxCount)*cH;
+      let color = '#c4b5fd';
+      if(val >= rP95) color = '#fca5a5';
+      else if(val >= rP85) color = '#ddd6fe';
+      else if(val >= rP50) color = '#a78bfa';
+      ctx.fillStyle = color;
+      ctx.fillRect(x+1, pad.top+cH-bH, bW-2, bH);
+    });
+
+    function vLine(val, color, label, row) {
+      if(val<minV||val>maxV) return;
+      const x = pad.left+(val-minV)*bW+bW/2;
+      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,pad.top+cH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=color; ctx.font=`bold 10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText(label, x, pad.top+10+(row||0)*12);
+    }
+
+    vLine(rP50,'#7c3aed','P50='+rP50,0);
+    vLine(rP85,'#d97706','P85='+rP85,0);
+    vLine(rP95,'#dc2626','P95='+rP95,0);
+
+    // Goal lines
+    [R_GOAL_ALL, R_GOAL_P1].forEach((goal,gi) => {
+      if(goal<minV||goal>maxV) return;
+      const x = pad.left+(goal-minV)*bW+bW/2;
+      ctx.strokeStyle=gi===0?'#059669':'#f59e0b'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+      ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,pad.top+cH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle=gi===0?'#059669':'#b45309';
+      ctx.font=`bold 10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText(gi===0?'CEL=45':'P1=31', x, pad.top+(gi===0?22:34));
+    });
+
+    // X axis
+    ctx.strokeStyle='#ddd9d2'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.left,pad.top+cH); ctx.lineTo(pad.left+cW,pad.top+cH); ctx.stroke();
+    ctx.fillStyle='#706b63'; ctx.font=`11px 'IBM Plex Mono',monospace`;
+    const step = Math.max(1,Math.floor(binCount/12));
+    for(let i=0;i<binCount;i+=step){
+      ctx.textAlign='center';
+      ctx.fillText(minV+i, pad.left+i*bW+bW/2, H-10);
+    }
+    ctx.save(); ctx.translate(12,H/2); ctx.rotate(-Math.PI/2);
+    ctx.fillStyle='#706b63'; ctx.font=`10px 'IBM Plex Mono',monospace`;
+    ctx.textAlign='center'; ctx.fillText('Liczba symulacji',0,0); ctx.restore();
+  }
 
   // ── Tab switcher ───────────────────────────────────────────────────────────
   function switchTab(id, btn) {
@@ -493,6 +729,7 @@
     setTimeout(() => {
       if (id === 'base') drawHistogram('b-histChart', baseResults, bP50, bP85, bP95, null, null);
       if (id === 'vac')  drawHistogram('v-histChart', vacResults, vP50, vP85, vP95, baseResults, bP50);
+      if (id === 'rev')  drawRevHistogram();
     }, 30);
   }
 </script>
