@@ -304,6 +304,23 @@
       <div id="r-ctrl-warning" style="font-size:12px;color:var(--p95);margin-top:12px;font-family:var(--mono);display:none;">
         ⚠ Liczba P1 nie może przekraczać łącznej liczby PBI.
       </div>
+
+      <!-- Availability toggle -->
+      <div style="margin-top:20px;padding-top:18px;border-top:1px solid #ddd6fe;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+          <div id="r-toggle-track" onclick="toggleAvailability()"
+            style="width:44px;height:24px;background:#7c3aed;border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
+            <div id="r-toggle-thumb"
+              style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left 0.2s;"></div>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text);">
+            Pełna dostępność (3 dev + 3 testerów)
+          </span>
+        </label>
+        <div id="r-toggle-badge" style="font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-weight:600;">
+          URLOP TYDZIEŃ 1 aktywny · capacity ×0,933
+        </div>
+      </div>
     </div>
 
     <!-- Summary cards all -->
@@ -597,16 +614,40 @@
   // ── TAB 3: REVISION SIM (INTERACTIVE) ────────────────────────────────────
   const R_VAC = 1 - (1/3)*(2/5); // 0.933 — 2 days, 1 of 3 devs absent, week 1
 
+  let r_fullAvailability = false; // toggle state
+
+  function toggleAvailability() {
+    r_fullAvailability = !r_fullAvailability;
+    const track = document.getElementById('r-toggle-track');
+    const thumb = document.getElementById('r-toggle-thumb');
+    const badge = document.getElementById('r-toggle-badge');
+    if (r_fullAvailability) {
+      track.style.background = '#16a34a';
+      thumb.style.left = '23px';
+      badge.style.background = '#dcfce7';
+      badge.style.color = '#15803d';
+      badge.textContent = 'PEŁNA DOSTĘPNOŚĆ · brak korekty urlopowej';
+    } else {
+      track.style.background = '#7c3aed';
+      thumb.style.left = '3px';
+      badge.style.background = '#ede9fe';
+      badge.style.color = '#7c3aed';
+      badge.textContent = 'URLOP TYDZIEŃ 1 aktywny · capacity ×0,933';
+    }
+    runRevUpdate();
+  }
+
   function computeRevSims(days) {
     const weeks = days / 5;
     const fullW = Math.floor(weeks);
     const partF = weeks - fullW;
+    const vacFactor = r_fullAvailability ? 1.0 : R_VAC;
     const sims = new Array(N_SIMS);
     for (let i = 0; i < N_SIMS; i++) {
       let total = 0;
       for (let w = 0; w < fullW; w++) {
         const tp = sample(throughputHistory);
-        total += (w === 0) ? tp * R_VAC : tp;
+        total += (w === 0) ? tp * vacFactor : tp;
       }
       if (partF > 0) total += sample(throughputHistory) * partF;
       sims[i] = Math.round(total);
