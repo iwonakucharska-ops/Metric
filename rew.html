@@ -165,7 +165,7 @@
     </div>
 
     <div class="footnote">
-      METODOLOGIA: Bootstrapping z 6 tygodni historycznych (28,22,22,15,22,23 PBI/tyg.). 13 dni = 2 pełne tygodnie + 3 dni (×0,6). Każda symulacja: losuj throughput × 2 pełne tygodnie + losuj × 0,6. n=10 000.
+      METODOLOGIA: Bootstrapping z 11 tygodni historycznych (22 mar – 31 maj 2026; pominięto 7 cze jako niepełny). Scenariusz bazowy: 13 dni = 2 tygodnie + 3 dni (×0,6). n=10 000.
     </div>
   </div>
 
@@ -244,9 +244,7 @@
     </div>
 
     <div class="footnote">
-      METODOLOGIA URLOPOWA: Korekta dla tygodnia z urlopem — throughput skalowany × 0,70 (1 − 1/2 deva × 3 dni/5 dni tyg.).
-      Urlop może wypaść w dowolnym z 2,6 tygodnia — model zakłada pesymistycznie, że przypada w jednym z 2 pełnych tygodni.
-      Bootstrapping z 6 historycznych tygodni. n=10 000.
+      METODOLOGIA: Bootstrapping z 11 tygodni historycznych. Korekta urlopowa: throughput × 0,80 (1 − 1/3 × 3/5). n=10 000.
     </div>
   </div>
 
@@ -373,12 +371,12 @@
     </div>
 
     <div class="footnote">
-      METODOLOGIA: 12 dni = 2 tygodnie + 2 dni (×0,4 tygodnia). Tydzień 1: capacity ×0,933 (2 dni × 1/3 deva ubytku). Bootstrapping z 6 tygodni historycznych. Symulacja P1: zakłada że P1 są brane pierwsze – wynik to min(throughput, cel_P1). n=10 000. Suwaki przeliczają symulację na bieżąco.
+      METODOLOGIA: Bootstrapping z 11 tygodni historycznych (22 mar – 31 maj 2026; pominięto 7 cze jako niepełny tydzień). Tydzień 1 z urlopem: capacity ×0,933. Symulacja P1: min(throughput, cel_P1). n=10 000. Suwaki i przełącznik przeliczają na bieżąco.
     </div>
   </div>
 
 <script>
-  const throughputHistory = [28, 22, 22, 15, 22, 23];
+  const throughputHistory = [41, 14, 18, 22, 28, 22, 22, 15, 22, 23, 17]; // zaktualizowano 08.06.2026 — 11 tygodni historii, pominięto 7 cze (0, niepełny)
   const N_SIMS = 10000;
   const WORKING_DAYS = 13;
   const WEEKS = WORKING_DAYS / 5; // 2.6
