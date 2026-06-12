@@ -3,858 +3,647 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Symulacja Monte Carlo – Zespół REW</title>
+<title>REW · Monte Carlo · Sprint do 19.06</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #f5f4f0; --surface: #ffffff; --surface2: #f0ede8; --border: #ddd9d2;
-    --text: #1a1917; --text-muted: #706b63; --accent: #1a56db;
-    --p50: #2563eb; --p85: #d97706; --p95: #dc2626; --green: #16a34a;
-    --orange: #ea580c;
-    --mono: 'IBM Plex Mono', monospace; --sans: 'DM Sans', sans-serif;
+    --bg:        #F7F8FA;
+    --surface:   #FFFFFF;
+    --border:    #E2E6ED;
+    --text:      #1A1D23;
+    --muted:     #6B7280;
+    --accent:    #2563EB;
+    --accent-lt: #EFF4FF;
+    --green:     #059669;
+    --green-lt:  #ECFDF5;
+    --amber:     #D97706;
+    --amber-lt:  #FFFBEB;
+    --red:       #DC2626;
+    --red-lt:    #FEF2F2;
+    --mono:      'IBM Plex Mono', monospace;
+    --sans:      'DM Sans', sans-serif;
   }
-  body { background: var(--bg); font-family: var(--sans); color: var(--text); min-height: 100vh; padding: 40px 24px; }
-  .container { max-width: 980px; margin: 0 auto; }
 
-  /* TABS */
-  .tabs { display: flex; gap: 0; margin-bottom: 32px; border-bottom: 2px solid var(--text); }
-  .tab-btn {
-    padding: 12px 28px; font-family: var(--mono); font-size: 11px; font-weight: 600;
-    letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
-    border: none; background: transparent; color: var(--text-muted);
-    border-bottom: 3px solid transparent; margin-bottom: -2px;
-    transition: color 0.15s, border-color 0.15s;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 24px 64px;
   }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
-  .tab-btn.active.vacation { border-bottom-color: var(--orange); color: var(--orange); }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
 
   header {
-    padding-bottom: 20px; margin-bottom: 32px;
-    display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
+    max-width: 880px;
+    margin: 0 auto 40px;
   }
-  .team-label { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
-  .header-meta { margin-left: auto; text-align: right; }
-  .header-meta .date-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; }
-  .header-meta .date-value { font-size: 20px; font-weight: 600; color: var(--accent); font-family: var(--mono); }
 
-  .alert-banner {
-    background: #fff7ed; border: 1px solid #fed7aa; border-left: 4px solid var(--orange);
-    border-radius: 6px; padding: 14px 18px; margin-bottom: 24px;
-    font-size: 13px; color: #7c2d12; line-height: 1.5;
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
   }
-  .alert-banner strong { font-weight: 600; }
 
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; position: relative; overflow: hidden; }
-  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-  .card.p50::before { background: var(--p50); }
-  .card.p85::before { background: var(--p85); }
-  .card.p95::before { background: var(--p95); }
-  .card.info::before { background: var(--text-muted); }
-  .card.warn::before { background: var(--orange); }
-  .card-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-  .card-value { font-size: 42px; font-weight: 600; font-family: var(--mono); line-height: 1; margin-bottom: 4px; }
-  .card.p50 .card-value { color: var(--p50); }
-  .card.p85 .card-value { color: var(--p85); }
-  .card.p95 .card-value { color: var(--p95); }
-  .card-sub { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
-  .card-delta { font-size: 12px; font-family: var(--mono); font-weight: 600; margin-top: 6px; }
-  .delta-neg { color: var(--p95); }
-  .delta-pos { color: var(--green); }
+  h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -.4px;
+    margin-bottom: 6px;
+  }
 
-  .prob-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; margin-bottom: 24px; }
-  .section-title { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 20px; }
-  .histogram-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; margin-bottom: 24px; }
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .main {
+    max-width: 880px;
+    margin: 0 auto;
+    display: grid;
+    gap: 20px;
+  }
+
+  /* ── cards ─────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .card-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── context row ───────────────────────────────────── */
+  .context-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .ctx-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .ctx-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .ctx-value {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .ctx-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── probability bar ───────────────────────────────── */
+  .prob-section { margin-top: 4px; }
+
+  .prob-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .prob-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    width: 56px;
+    flex-shrink: 0;
+  }
+
+  .prob-bar-wrap {
+    flex: 1;
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .prob-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width .6s ease;
+  }
+
+  .prob-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    width: 56px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── percentile cards ──────────────────────────────── */
+  .pct-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .pct-card {
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    border: 1px solid transparent;
+  }
+
+  .pct-card.p50  { background: var(--accent-lt); border-color: #BFDBFE; }
+  .pct-card.p75  { background: var(--green-lt);  border-color: #A7F3D0; }
+  .pct-card.p85  { background: var(--amber-lt);  border-color: #FDE68A; }
+  .pct-card.p95  { background: var(--red-lt);    border-color: #FECACA; }
+
+  .pct-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .pct-card.p50 .pct-label { color: var(--accent); }
+  .pct-card.p75 .pct-label { color: var(--green);  }
+  .pct-card.p85 .pct-label { color: var(--amber);  }
+  .pct-card.p95 .pct-label { color: var(--red);    }
+
+  .pct-num {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 1;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .pct-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── histogram ─────────────────────────────────────── */
   canvas { display: block; width: 100%; }
 
-  .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); text-align: left; padding: 0 0 12px 0; border-bottom: 1px solid var(--border); }
-  td { padding: 9px 0; border-bottom: 1px solid var(--surface2); color: var(--text); font-variant-numeric: tabular-nums; }
-  td:last-child { text-align: right; font-family: var(--mono); font-weight: 600; }
-  td.highlight-vacation { color: var(--orange); }
+  /* ── verdict ───────────────────────────────────────── */
+  .verdict {
+    border-radius: 10px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
 
-  .prob-bar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
-  .prob-bar-label { font-family: var(--mono); font-size: 12px; width: 120px; flex-shrink: 0; color: var(--text-muted); }
-  .prob-bar-track { flex: 1; height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
-  .prob-bar-fill { height: 100%; border-radius: 4px; }
-  .prob-bar-pct { font-family: var(--mono); font-size: 13px; font-weight: 600; width: 44px; text-align: right; }
+  .verdict-icon {
+    font-size: 24px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
 
-  .footnote { font-size: 11px; color: var(--text-muted); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 16px; font-family: var(--mono); }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-family: var(--mono); font-weight: 600; }
-  .badge-50 { background: #dbeafe; color: var(--p50); }
-  .badge-85 { background: #fef3c7; color: var(--p85); }
-  .badge-95 { background: #fee2e2; color: var(--p95); }
+  .verdict-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
 
-  /* comparison row in vacation tab */
-  .compare-row { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; font-size: 13px; }
-  .compare-label { font-family: var(--mono); font-size: 11px; width: 80px; color: var(--text-muted); }
-  .compare-val-base { font-family: var(--mono); font-weight: 600; width: 36px; text-align: right; }
-  .compare-arrow { color: var(--text-muted); padding: 0 4px; }
-  .compare-val-vac { font-family: var(--mono); font-weight: 600; width: 36px; text-align: right; }
-  .compare-diff { font-family: var(--mono); font-size: 11px; color: var(--p95); }
+  .verdict-body {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+  }
 
-  @media (max-width: 600px) {
-    .data-grid { grid-template-columns: 1fr; }
-    h1 { font-size: 22px; }
-    .card-value { font-size: 32px; }
-    .tab-btn { padding: 10px 14px; font-size: 10px; }
+  /* ── throughput table ──────────────────────────────── */
+  .tp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .tp-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 8px 10px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .tp-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--bg);
+    color: var(--text);
+  }
+
+  .tp-table tr:last-child td { border-bottom: none; }
+
+  .bar-cell { width: 140px; }
+
+  .inline-bar {
+    height: 6px;
+    background: var(--accent);
+    border-radius: 3px;
+    opacity: .6;
+  }
+
+  .num-right { text-align: right; }
+
+  /* ── footer ────────────────────────────────────────── */
+  .footer {
+    max-width: 880px;
+    margin: 32px auto 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
   }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <div style="margin-bottom:8px;">
-    <div style="font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);">Zespół REW · Symulacja Monte Carlo · Deadline 19.06.2026</div>
-  </div>
+<header>
+  <div class="eyebrow">REW · Symulacja · Monte Carlo</div>
+  <h1>Prognoza dostawy do 19.06.2026</h1>
+  <p class="subtitle">Ile PBI zdążymy zamknąć przed deadlinem? — 10 000 iteracji, dane historyczne 13 tygodni</p>
+</header>
 
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('base', this)">📊 Scenariusz bazowy</button>
-    <button class="tab-btn vacation" onclick="switchTab('vac', this)">🏖 Z urlopem (−1 dev / 3 dni)</button>
-    <button class="tab-btn" id="tab3btn" onclick="switchTab('rev', this)">🔄 Rewizja – 45 PBI / 12 dni</button>
-  </div>
+<div class="main">
 
-  <!-- ══════════════════════════════════════════════════════ TAB 1: BASE -->
-  <div id="tab-base" class="tab-panel active">
-    <header>
-      <div>
-        <div class="team-label">Scenariusz bazowy – pełna dostępność zespołu</div>
-        <h1>Prognoza ukończenia PBI<br>do 19 czerwca 2026</h1>
+  <!-- kontekst -->
+  <div class="card">
+    <div class="card-title">Parametry symulacji</div>
+    <div class="context-grid">
+      <div class="ctx-item">
+        <div class="ctx-label">Backlog łącznie</div>
+        <div class="ctx-value">34</div>
+        <div class="ctx-sub">PBI do zrealizowania</div>
       </div>
-      <div class="header-meta">
-        <div class="date-label">Deadline</div>
-        <div class="date-value">19.06.2026</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">13 dni roboczych · 2 dev · pełna pojemność</div>
+      <div class="ctx-item">
+        <div class="ctx-label">Priorytety P1</div>
+        <div class="ctx-value">22</div>
+        <div class="ctx-sub">z 34 PBI</div>
       </div>
-    </header>
-
-    <div class="cards">
-      <div class="card p50"><div class="card-label">Percentyl 50%</div><div class="card-value" id="b-p50val">—</div><div class="card-sub">W 50% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
-      <div class="card p85"><div class="card-label">Percentyl 85%</div><div class="card-value" id="b-p85val">—</div><div class="card-sub">W 85% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
-      <div class="card p95"><div class="card-label">Percentyl 95%</div><div class="card-value" id="b-p95val">—</div><div class="card-sub">W 95% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
-      <div class="card info"><div class="card-label">Cel do dowiezienia</div><div class="card-value">48</div><div class="card-sub">PBI (w tym bugi)<br>Symulacje: 10 000</div></div>
-    </div>
-
-    <div class="prob-section">
-      <div class="section-title">Prawdopodobieństwo ukończenia całego backlogu (48 PBI)</div>
-      <div class="prob-bar-row">
-        <div class="prob-bar-label">Pr(≥ 48 PBI)</div>
-        <div class="prob-bar-track"><div class="prob-bar-fill" id="b-probFill48" style="width:0%"></div></div>
-        <div class="prob-bar-pct" id="b-prob48pct">—</div>
+      <div class="ctx-item">
+        <div class="ctx-label">Deadline</div>
+        <div class="ctx-value" style="font-size:16px;margin-top:3px">19.06.26</div>
+        <div class="ctx-sub">Piątek, koniec tygodnia</div>
       </div>
-      <div id="b-prob48comment" style="font-size:13px;color:var(--text-muted);margin-top:8px;"></div>
-    </div>
-
-    <div class="histogram-wrap">
-      <div class="section-title">Rozkład ukończonych PBI – 10 000 symulacji</div>
-      <canvas id="b-histChart" height="220"></canvas>
-    </div>
-
-    <div class="table-wrap" style="margin-bottom:24px;">
-      <div class="section-title">Rozkład percentylowy</div>
-      <table><thead><tr><th>Percentyl</th><th>Ukończone PBI</th><th>Interpretacja</th></tr></thead>
-      <tbody id="b-percTable"></tbody></table>
-    </div>
-
-    <div class="footnote">
-      METODOLOGIA: Bootstrapping z 11 tygodni historycznych (22 mar – 31 maj 2026; pominięto 7 cze jako niepełny). Scenariusz bazowy: 13 dni = 2 tygodnie + 3 dni (×0,6). n=10 000.
+      <div class="ctx-item">
+        <div class="ctx-label">Dni robocze</div>
+        <div class="ctx-value" id="workdays-val">—</div>
+        <div class="ctx-sub">od dziś (13.06) do 19.06</div>
+      </div>
+      <div class="ctx-item">
+        <div class="ctx-label">Cycle Time</div>
+        <div class="ctx-value">23</div>
+        <div class="ctx-sub">dni (średnia)</div>
+      </div>
+      <div class="ctx-item">
+        <div class="ctx-label">Iteracje MC</div>
+        <div class="ctx-value">10k</div>
+        <div class="ctx-sub">bootstrap z historii</div>
+      </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════ TAB 2: VACATION -->
-  <div id="tab-vac" class="tab-panel">
-    <header>
-      <div>
-        <div class="team-label" style="color:var(--orange);">Scenariusz z urlopem – 1 dev nieobecny przez 3 dni</div>
-        <h1>Prognoza z obniżoną<br>pojemnością zespołu</h1>
-      </div>
-      <div class="header-meta">
-        <div class="date-label">Korekta capacity</div>
-        <div class="date-value" style="color:var(--orange);">−20%</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">1/3 deva × 3/5 tyg. = −0,2 tyg. pełnej pojemności</div>
-      </div>
-    </header>
-
-    <div class="alert-banner">
-      <strong>🏖 Urlop uwzględniony w modelu:</strong> Przez 3 dni pracuje 2 z 3 deweloperów → efektywna pojemność spada o 33% przez 3/5 tygodnia.
-      Korekta: w tygodniu urlopu throughput mnożony przez <strong>0,80</strong> (1 − 1/3 × 3/5 = 0,80).
+  <!-- percentyle -->
+  <div class="card">
+    <div class="card-title">Gwarancja ukończonych PBI do deadlinu</div>
+    <div class="pct-grid" id="pct-grid">
+      <!-- filled by JS -->
     </div>
+    <p style="font-size:12px;color:var(--muted);margin-top:14px;font-family:var(--mono)">
+      P50 = z prawdopod. 50% ukończysz co najmniej tyle. P95 = konserwatywna gwarancja (95% iteracji).
+    </p>
+  </div>
 
-    <div class="cards">
-      <div class="card p50">
-        <div class="card-label">Percentyl 50%</div>
-        <div class="card-value" id="v-p50val">—</div>
-        <div class="card-sub">W 50% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div>
-        <div class="card-delta delta-neg" id="v-d50">—</div>
-      </div>
-      <div class="card p85">
-        <div class="card-label">Percentyl 85%</div>
-        <div class="card-value" id="v-p85val">—</div>
-        <div class="card-sub">W 85% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div>
-        <div class="card-delta delta-neg" id="v-d85">—</div>
-      </div>
-      <div class="card p95">
-        <div class="card-label">Percentyl 95%</div>
-        <div class="card-value" id="v-p95val">—</div>
-        <div class="card-sub">W 95% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div>
-        <div class="card-delta delta-neg" id="v-d95">—</div>
-      </div>
-      <div class="card warn">
-        <div class="card-label">Utracona pojemność</div>
-        <div class="card-value" style="font-size:32px;color:var(--orange);">−3 dni</div>
-        <div class="card-sub">≈ 0,3 tygodnia pracy<br>1 z 2 deweloperów</div>
-      </div>
+  <!-- prawdopodobieństwo ukończenia backlogu -->
+  <div class="card">
+    <div class="card-title">Prawdopodobieństwo ukończenia</div>
+    <div class="prob-section" id="prob-section">
+      <!-- filled by JS -->
     </div>
+  </div>
 
-    <div class="prob-section">
-      <div class="section-title">Porównanie: prawdopodobieństwo ukończenia 48 PBI</div>
-      <div class="prob-bar-row">
-        <div class="prob-bar-label">Bazowy</div>
-        <div class="prob-bar-track"><div class="prob-bar-fill" id="v-baseFill" style="width:0%;background:var(--green)"></div></div>
-        <div class="prob-bar-pct" id="v-basePct">—</div>
-      </div>
-      <div class="prob-bar-row">
-        <div class="prob-bar-label">Z urlopem</div>
-        <div class="prob-bar-track"><div class="prob-bar-fill" id="v-vacFill" style="width:0%;background:var(--orange)"></div></div>
-        <div class="prob-bar-pct" id="v-vacPct">—</div>
-      </div>
-      <div id="v-prob48comment" style="font-size:13px;color:var(--text-muted);margin-top:12px;"></div>
-    </div>
+  <!-- histogram -->
+  <div class="card">
+    <div class="card-title">Rozkład ukończonych PBI (10 000 symulacji)</div>
+    <canvas id="histogram" height="200"></canvas>
+  </div>
 
-    <div class="histogram-wrap">
-      <div class="section-title">Rozkład – scenariusz z urlopem (10 000 symulacji) · linia przerywana = scenariusz bazowy</div>
-      <canvas id="v-histChart" height="220"></canvas>
-    </div>
+  <!-- verdict -->
+  <div class="verdict" id="verdict">
+    <!-- filled by JS -->
+  </div>
 
-    <!-- Comparison table -->
-    <div class="table-wrap" style="margin-bottom:24px;">
-      <div class="section-title">Zestawienie percentyli: bazowy vs urlop</div>
-      <table>
-        <thead><tr><th>Percentyl</th><th>Bazowy</th><th>Z urlopem</th><th>Różnica</th><th>Interpretacja</th></tr></thead>
-        <tbody id="v-compareTable"></tbody>
-      </table>
-    </div>
-
-    <div class="footnote">
-      METODOLOGIA: Bootstrapping z 11 tygodni historycznych. Korekta urlopowa: throughput × 0,80 (1 − 1/3 × 3/5). n=10 000.
-    </div>
+  <!-- throughput table -->
+  <div class="card">
+    <div class="card-title">Historia tygodniowego throughput (źródło danych)</div>
+    <table class="tp-table" id="tp-table">
+      <thead>
+        <tr>
+          <th>Tydzień od</th>
+          <th class="num-right">PBI/tydzień</th>
+          <th class="bar-cell"></th>
+        </tr>
+      </thead>
+      <tbody id="tp-tbody"></tbody>
+    </table>
   </div>
 
 </div>
 
-
-  <!-- ══════════════════════════════════════════════════════ TAB 3: REVISION -->
-  <div id="tab-rev" class="tab-panel">
-    <header>
-      <div>
-        <div class="team-label" style="color:#7c3aed;">Rewizja – 12 dni · urlop tydzień 1 · interaktywna</div>
-        <h1>Czy dowieziemy PBI<br>do 19 czerwca 2026?</h1>
-      </div>
-      <div class="header-meta">
-        <div class="date-label">Horizon</div>
-        <div class="date-value" style="color:#7c3aed;">12 dni</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;"><span id="r-hdr-weeks">2,4</span> tyg. · tydz. 1: −2 dni jednego deva</div>
-      </div>
-    </header>
-
-    <!-- INTERACTIVE CONTROLS -->
-    <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:24px 28px;margin-bottom:28px;">
-      <div style="font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:#7c3aed;margin-bottom:18px;">⚙ Dostosuj parametry symulacji</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;">
-
-        <div>
-          <label style="font-family:var(--mono);font-size:11px;color:var(--text-muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em;">
-            Liczba PBI łącznie: <strong id="r-lbl-all" style="color:#7c3aed;">45</strong>
-          </label>
-          <input type="range" id="r-slider-all" min="10" max="80" value="45" step="1"
-            style="width:100%;accent-color:#7c3aed;cursor:pointer;">
-          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:4px;"><span>10</span><span>80</span></div>
-        </div>
-
-        <div>
-          <label style="font-family:var(--mono);font-size:11px;color:var(--text-muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em;">
-            PBI Priorytet 1: <strong id="r-lbl-p1" style="color:#d97706;">31</strong>
-          </label>
-          <input type="range" id="r-slider-p1" min="1" max="80" value="31" step="1"
-            style="width:100%;accent-color:#d97706;cursor:pointer;">
-          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:4px;"><span>1</span><span id="r-p1-max-lbl">80</span></div>
-        </div>
-
-        <div>
-          <label style="font-family:var(--mono);font-size:11px;color:var(--text-muted);display:block;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em;">
-            Dni roboczych: <strong id="r-lbl-days" style="color:#0891b2;">12</strong>
-            <span id="r-lbl-weeks" style="font-weight:400;color:var(--text-muted);"> (2,4 tyg.)</span>
-          </label>
-          <input type="range" id="r-slider-days" min="1" max="30" value="12" step="1"
-            style="width:100%;accent-color:#0891b2;cursor:pointer;">
-          <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:4px;"><span>1 dzień</span><span>30 dni</span></div>
-        </div>
-
-      </div>
-      <div id="r-ctrl-warning" style="font-size:12px;color:var(--p95);margin-top:12px;font-family:var(--mono);display:none;">
-        ⚠ Liczba P1 nie może przekraczać łącznej liczby PBI.
-      </div>
-
-      <!-- Availability toggle -->
-      <div style="margin-top:20px;padding-top:18px;border-top:1px solid #ddd6fe;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
-          <div id="r-toggle-track" onclick="toggleAvailability()"
-            style="width:44px;height:24px;background:#7c3aed;border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;">
-            <div id="r-toggle-thumb"
-              style="position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:left 0.2s;"></div>
-          </div>
-          <span style="font-family:var(--mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text);">
-            Pełna dostępność (3 dev + 3 testerów)
-          </span>
-        </label>
-        <div id="r-toggle-badge" style="font-family:var(--mono);font-size:11px;padding:3px 10px;border-radius:4px;background:#ede9fe;color:#7c3aed;font-weight:600;">
-          URLOP TYDZIEŃ 1 aktywny · capacity ×0,933
-        </div>
-      </div>
-    </div>
-
-    <!-- Summary cards all -->
-    <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">WSZYSTKIE PBI (cel: <span id="r-hdr-all">45</span>)</div>
-    <div class="cards">
-      <div class="card" style="border-top:3px solid #7c3aed;"><div class="card-label">Percentyl 50%</div><div class="card-value" style="color:#7c3aed;" id="r-p50val">—</div><div class="card-sub">W 50% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
-      <div class="card" style="border-top:3px solid #7c3aed;opacity:.85;"><div class="card-label">Percentyl 85%</div><div class="card-value" style="color:#7c3aed;" id="r-p85val">—</div><div class="card-sub">W 85% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
-      <div class="card" style="border-top:3px solid #7c3aed;opacity:.7;"><div class="card-label">Percentyl 95%</div><div class="card-value" style="color:#7c3aed;" id="r-p95val">—</div><div class="card-sub">W 95% symulacji zrobimy<br><strong>co najmniej tyle</strong> PBI</div></div>
-      <div class="card info"><div class="card-label">Cel łączny</div><div class="card-value" id="r-card-all">45</div><div class="card-sub">PBI · <span id="r-card-days">12</span> dni roboczych</div></div>
-    </div>
-
-    <!-- Prob bars -->
-    <div class="prob-section">
-      <div class="section-title">Prawdopodobieństwo ukończenia celów</div>
-      <div class="prob-bar-row">
-        <div class="prob-bar-label" style="width:180px;">Pr(≥ <span id="r-bar-lbl-all">45</span> PBI)</div>
-        <div class="prob-bar-track"><div class="prob-bar-fill" id="r-fill45" style="width:0%"></div></div>
-        <div class="prob-bar-pct" id="r-pct45">—</div>
-      </div>
-      <div class="prob-bar-row">
-        <div class="prob-bar-label" style="width:180px;">Pr(≥ <span id="r-bar-lbl-p1">31</span> PBI P1)</div>
-        <div class="prob-bar-track"><div class="prob-bar-fill" id="r-fill31" style="width:0%;background:#f59e0b"></div></div>
-        <div class="prob-bar-pct" id="r-pct31">—</div>
-      </div>
-      <div id="r-comment" style="font-size:13px;color:var(--text-muted);margin-top:12px;"></div>
-    </div>
-
-    <!-- P1 cards -->
-    <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:var(--text-muted);margin:24px 0 12px;">PBI PRIORYTET 1 (cel: <span id="r-hdr-p1">31</span>)</div>
-    <div class="cards">
-      <div class="card" style="border-top:3px solid #f59e0b;"><div class="card-label">Percentyl 50%</div><div class="card-value" style="color:#d97706;" id="r-pp50val">—</div><div class="card-sub">Co najmniej tyle P1<br>w 50% symulacji</div></div>
-      <div class="card" style="border-top:3px solid #f59e0b;opacity:.85;"><div class="card-label">Percentyl 85%</div><div class="card-value" style="color:#d97706;" id="r-pp85val">—</div><div class="card-sub">Co najmniej tyle P1<br>w 85% symulacji</div></div>
-      <div class="card" style="border-top:3px solid #f59e0b;opacity:.7;"><div class="card-label">Percentyl 95%</div><div class="card-value" style="color:#d97706;" id="r-pp95val">—</div><div class="card-sub">Co najmniej tyle P1<br>w 95% symulacji</div></div>
-      <div class="card" style="border-top:3px solid #f59e0b;"><div class="card-label">Cel P1</div><div class="card-value" style="color:#d97706;" id="r-card-p1">31</div><div class="card-sub">Priorytet 1</div></div>
-    </div>
-
-    <!-- Histogram -->
-    <div class="histogram-wrap">
-      <div class="section-title">Rozkład ukończonych PBI – 10 000 symulacji · <span style="color:#7c3aed;">■</span> wszystkie &nbsp; <span style="color:#f59e0b;">■</span> P1</div>
-      <canvas id="r-histChart" height="240"></canvas>
-    </div>
-
-    <!-- Percentile table -->
-    <div class="table-wrap" style="margin-bottom:24px;">
-      <div class="section-title">Rozkład percentylowy – wszystkie PBI vs P1</div>
-      <table>
-        <thead><tr><th>Percentyl</th><th>Wszystkie PBI</th><th>PBI Priorytet 1</th><th>Cel P1</th><th>Interpretacja</th></tr></thead>
-        <tbody id="r-percTable"></tbody>
-      </table>
-    </div>
-
-    <div class="footnote">
-      METODOLOGIA: Bootstrapping z 11 tygodni historycznych (22 mar – 31 maj 2026; pominięto 7 cze jako niepełny tydzień). Tydzień 1 z urlopem: capacity ×0,933. Symulacja P1: min(throughput, cel_P1). n=10 000. Suwaki i przełącznik przeliczają na bieżąco.
-    </div>
-  </div>
+<div class="footer">
+  <span>Symulacja: bootstrap Monte Carlo</span>
+  <span>Dane: 13 tygodni throughput</span>
+  <span>Wygenerowano: <span id="gen-date"></span></span>
+</div>
 
 <script>
-  const throughputHistory = [41, 14, 18, 22, 28, 22, 22, 15, 22, 23, 17]; // zaktualizowano 08.06.2026 — 11 tygodni historii, pominięto 7 cze (0, niepełny)
-  const N_SIMS = 10000;
-  const WORKING_DAYS = 13;
-  const WEEKS = WORKING_DAYS / 5; // 2.6
-  const FULL_WEEKS = Math.floor(WEEKS); // 2
-  const PARTIAL_FRAC = WEEKS - FULL_WEEKS; // 0.6
+// ── dane ──────────────────────────────────────────────────────────
+const throughputData = [
+  { week: "22 marca",    count: 41 },
+  { week: "29 marca",    count: 14 },
+  { week: "5 kwietnia",  count: 18 },
+  { week: "12 kwietnia", count: 22 },
+  { week: "19 kwietnia", count: 28 },
+  { week: "26 kwietnia", count: 22 },
+  { week: "3 maja",      count: 22 },
+  { week: "10 maja",     count: 15 },
+  { week: "17 maja",     count: 22 },
+  { week: "24 maja",     count: 23 },
+  { week: "31 maja",     count: 17 },
+  { week: "7 czerwca",   count: 21 },
+];
 
-  // Vacation: 1 of 3 devs absent 3 days → capacity factor = 1 - (1/3)*(3/5) = 0.80
-  const VAC_FACTOR = 1 - (1/3) * (3/5); // 0.80
+// Wyłączamy tydzień z 22 marca (outlier: 41) do symulacji — zostawiamy do wyświetlenia
+// Używamy 11 tygodni bez outlierta
+const simData = throughputData.filter(d => d.count !== 41).map(d => d.count);
 
-  function sample(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+const TOTAL_PBI = 34;
+const P1_PBI    = 22;
+const N_SIM     = 10000;
 
-  function runSim(vacWeek = null) {
-    // vacWeek: null = no vacation; 0 or 1 = which full week has vacation
-    const results = new Array(N_SIMS);
-    for (let i = 0; i < N_SIMS; i++) {
-      let total = 0;
-      for (let w = 0; w < FULL_WEEKS; w++) {
-        const tp = sample(throughputHistory);
-        total += (vacWeek === w) ? tp * VAC_FACTOR : tp;
-      }
-      total += sample(throughputHistory) * PARTIAL_FRAC;
-      results[i] = Math.round(total);
+// ── dni robocze do 19.06 ──────────────────────────────────────────
+function workdaysBetween(start, end) {
+  let count = 0;
+  const d = new Date(start);
+  d.setHours(0,0,0,0);
+  const e = new Date(end);
+  e.setHours(0,0,0,0);
+  while (d <= e) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+const today    = new Date(2026, 5, 13); // 13 czerwca 2026 (miesiąc 0-indexed)
+const deadline = new Date(2026, 5, 19);
+const workdays = workdaysBetween(today, deadline);
+const weeks    = workdays / 5;
+
+document.getElementById('workdays-val').textContent = workdays;
+document.getElementById('gen-date').textContent = today.toLocaleDateString('pl-PL');
+
+// ── Monte Carlo bootstrap ─────────────────────────────────────────
+function simulate(data, nWeeks, nSim) {
+  const results = new Int32Array(nSim);
+  for (let i = 0; i < nSim; i++) {
+    let total = 0;
+    let fullWeeks = Math.floor(nWeeks);
+    let fracWeek  = nWeeks - fullWeeks;
+    for (let w = 0; w < fullWeeks; w++) {
+      total += data[Math.floor(Math.random() * data.length)];
     }
-    return results;
+    if (fracWeek > 0) {
+      total += Math.round(data[Math.floor(Math.random() * data.length)] * fracWeek);
+    }
+    results[i] = total;
   }
+  return results;
+}
 
-  // pct(sorted, p) = "w p% symulacji zrobimy CO NAJMNIEJ tyle"
-  // → szukamy wartości od PRAWEJ strony rozkładu (odwrócony kierunek)
-  // sorted rosnąco: P50 = mediana, P85 = 15-ty percentyl z dołu (85% symulacji ≥ tej wartości)
-  function pct(sorted, p) {
-    // "ile zrobimy z pewnością p%" → (100-p)% percentyl z sortowania rosnącego
-    const idx = Math.floor(((100 - p) / 100) * sorted.length);
-    return sorted[Math.max(0, Math.min(idx, sorted.length - 1))];
-  }
+const results = simulate(simData, weeks, N_SIM);
+const sorted  = Array.from(results).sort((a,b) => a - b);
 
-  // Run both simulations
-  const baseResults = runSim(null).sort((a,b) => a-b);
-  // Vacation in worst full week (week 0 = first, pessimistic)
-  const vacResults  = runSim(0).sort((a,b) => a-b);
+function percentile(arr, p) {
+  const idx = Math.floor((1 - p/100) * arr.length);
+  return arr[Math.max(0, idx)];
+}
 
-  const bP50 = pct(baseResults, 50), bP85 = pct(baseResults, 85), bP95 = pct(baseResults, 95);
-  const vP50 = pct(vacResults,  50), vP85 = pct(vacResults,  85), vP95 = pct(vacResults,  95);
-  const bProb48 = baseResults.filter(v => v >= 48).length / N_SIMS * 100;
-  const vProb48 = vacResults.filter(v => v >= 48).length / N_SIMS * 100;
+function probAtLeast(arr, n) {
+  const count = arr.filter(v => v >= n).length;
+  return (count / arr.length * 100).toFixed(1);
+}
 
-  // ── Fill BASE tab ──────────────────────────────────────────────────────────
-  document.getElementById('b-p50val').textContent = bP50;
-  document.getElementById('b-p85val').textContent = bP85;
-  document.getElementById('b-p95val').textContent = bP95;
+const p50 = percentile(sorted, 50);
+const p75 = percentile(sorted, 75);
+const p85 = percentile(sorted, 85);
+const p95 = percentile(sorted, 95);
 
-  const bFill = document.getElementById('b-probFill48');
-  bFill.style.width = Math.min(bProb48, 100) + '%';
-  bFill.style.background = bProb48 >= 50 ? 'var(--green)' : bProb48 >= 20 ? 'var(--p85)' : 'var(--p95)';
-  document.getElementById('b-prob48pct').textContent = bProb48.toFixed(1) + '%';
+// ── percentyle cards ──────────────────────────────────────────────
+const pctGrid = document.getElementById('pct-grid');
+[
+  { cls:'p50', label:'P50', val:p50, desc:'50% pewności' },
+  { cls:'p75', label:'P75', val:p75, desc:'75% pewności' },
+  { cls:'p85', label:'P85', val:p85, desc:'85% pewności' },
+  { cls:'p95', label:'P95', val:p95, desc:'95% pewności' },
+].forEach(({cls,label,val,desc}) => {
+  pctGrid.innerHTML += `
+    <div class="pct-card ${cls}">
+      <div class="pct-label">${label}</div>
+      <div class="pct-num">${val}</div>
+      <div class="pct-sub">${desc}</div>
+    </div>`;
+});
 
-  const bComment = document.getElementById('b-prob48comment');
-  if (bProb48 >= 60) { bComment.textContent = '✅ Dobre szanse na ukończenie całego backlogu przy utrzymaniu obecnego tempa.'; bComment.style.color = 'var(--green)'; }
-  else if (bProb48 >= 30) { bComment.textContent = '📊 Szanse umiarkowane. Zalecana ostrożna priorytetyzacja.'; }
-  else { bComment.textContent = '⚠ Ryzyko niedowiezienia backlogu jest wysokie. Warto przejrzeć priorytety.'; bComment.style.color = 'var(--p85)'; }
+// ── probability bars ──────────────────────────────────────────────
+const probSection = document.getElementById('prob-section');
+[
+  { label: `≥ ${TOTAL_PBI} PBI (cały backlog)`,  n: TOTAL_PBI, color: 'var(--accent)' },
+  { label: `≥ ${P1_PBI} PBI (wszystkie P1)`,     n: P1_PBI,    color: 'var(--green)'  },
+  { label: `≥ ${Math.round(P1_PBI * .5)} PBI (połowa P1)`, n: Math.round(P1_PBI*.5), color: 'var(--amber)' },
+].forEach(({label, n, color}) => {
+  const pct = probAtLeast(sorted, n);
+  probSection.innerHTML += `
+    <div class="prob-row">
+      <div class="prob-label" style="width:auto;flex:0 0 220px;font-size:12px">${label}</div>
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-fill" style="width:${pct}%;background:${color}"></div>
+      </div>
+      <div class="prob-value" style="color:${color}">${pct}%</div>
+    </div>`;
+});
 
-  const percents = [10, 25, 50, 70, 85, 90, 95];
-  const bTbody = document.getElementById('b-percTable');
-  percents.forEach(p => {
-    const val = pct(baseResults, p);
-    const tr = document.createElement('tr');
-    let badge = p===50?'<span class="badge badge-50">P50</span>':p===85?'<span class="badge badge-85">P85</span>':p===95?'<span class="badge badge-95">P95</span>':'P'+p;
-    let interp = p===50?'Typowy scenariusz (50% szans ≥ tej wartości)':p===85?'Konserwatywna (85% szans ≥ tej wartości)':p===95?'Bardzo konserwatywna (95% szans ≥)':p<50?'Optymistyczny (mniej pewny)':'Ostrożny';
-    tr.innerHTML = `<td>${badge}</td><td>${val}</td><td style="text-align:left;font-family:var(--sans);font-weight:400">${interp}</td>`;
-    bTbody.appendChild(tr);
+// ── histogram ─────────────────────────────────────────────────────
+function drawHistogram(canvas, data, p1, total) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement.clientWidth - 48;
+  const H = 200;
+  canvas.width  = W;
+  canvas.height = H;
+
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const bins = 40;
+  const binW = (max - min) / bins;
+
+  const counts = new Array(bins).fill(0);
+  data.forEach(v => {
+    const b = Math.min(Math.floor((v - min) / binW), bins - 1);
+    counts[b]++;
   });
 
-  // ── Fill VACATION tab ──────────────────────────────────────────────────────
-  document.getElementById('v-p50val').textContent = vP50;
-  document.getElementById('v-p85val').textContent = vP85;
-  document.getElementById('v-p95val').textContent = vP95;
+  const maxCount = Math.max(...counts);
+  const pad = { top:16, right:16, bottom:32, left:36 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top  - pad.bottom;
 
-  function delta(vac, base) {
-    const d = vac - base;
-    return d <= 0 ? `▼ ${Math.abs(d)} vs bazowy` : `▲ +${d} vs bazowy`;
-  }
-  function deltaClass(vac, base) { return vac < base ? 'delta-neg' : 'delta-pos'; }
+  ctx.clearRect(0,0,W,H);
 
-  ['50','85','95'].forEach(p => {
-    const el = document.getElementById(`v-d${p}`);
-    const vVal = p==='50'?vP50:p==='85'?vP85:vP95;
-    const bVal = p==='50'?bP50:p==='85'?bP85:bP95;
-    el.textContent = delta(vVal, bVal);
-    el.className = 'card-delta ' + deltaClass(vVal, bVal);
+  // bars
+  counts.forEach((c, i) => {
+    const x = pad.left + (i / bins) * chartW;
+    const bw = chartW / bins - 1;
+    const bh = (c / maxCount) * chartH;
+    const binStart = min + i * binW;
+    const binEnd   = binStart + binW;
+    const inP1   = binEnd   > p1    && binStart < p1 + binW;
+    const inTot  = binEnd   > total && binStart < total + binW;
+    ctx.fillStyle = binStart >= total ? '#BFDBFE'
+                  : binStart >= p1    ? '#BBF7D0'
+                  : '#E2E6ED';
+    ctx.fillRect(x, pad.top + chartH - bh, bw, bh);
   });
 
-  const vBaseFill = document.getElementById('v-baseFill');
-  vBaseFill.style.width = Math.min(bProb48, 100) + '%';
-  document.getElementById('v-basePct').textContent = bProb48.toFixed(1) + '%';
+  // vertical markers
+  const markerX = (v) => pad.left + ((v - min) / (max - min)) * chartW;
 
-  const vVacFill = document.getElementById('v-vacFill');
-  vVacFill.style.width = Math.min(vProb48, 100) + '%';
-  document.getElementById('v-vacPct').textContent = vProb48.toFixed(1) + '%';
-
-  const vComment = document.getElementById('v-prob48comment');
-  const diff = bProb48 - vProb48;
-  if (vProb48 >= 50) {
-    vComment.textContent = `✅ Mimo urlopu szanse na 48 PBI pozostają dobre. Urlop obniża prawdopodobieństwo o ${diff.toFixed(1)} pp.`;
-    vComment.style.color = 'var(--green)';
-  } else if (vProb48 >= 20) {
-    vComment.textContent = `⚠ Urlop wyraźnie obniża szanse (−${diff.toFixed(1)} pp). Warto zadbać o priorytetyzację backlogu.`;
-    vComment.style.color = 'var(--orange)';
-  } else {
-    vComment.textContent = `🔴 Przy urlopie ryzyko niedowiezienia jest wysokie (−${diff.toFixed(1)} pp). Rozważ negocjację zakresu.`;
-    vComment.style.color = 'var(--p95)';
-  }
-
-  // Comparison table
-  const vCmpTbody = document.getElementById('v-compareTable');
-  percents.forEach(p => {
-    const bVal = pct(baseResults, p);
-    const vVal = pct(vacResults, p);
-    const d = vVal - bVal;
-    const tr = document.createElement('tr');
-    const badge = p===50?'<span class="badge badge-50">P50</span>':p===85?'<span class="badge badge-85">P85</span>':p===95?'<span class="badge badge-95">P95</span>':'P'+p;
-    const dStr = d < 0 ? `<span style="color:var(--p95);font-family:var(--mono)">▼ ${d}</span>` : d === 0 ? `<span style="color:var(--text-muted)">—</span>` : `<span style="color:var(--green)">▲ +${d}</span>`;
-    let interp = p===50?'Typowy':p===85?'Konserwatywny':p===95?'B. konserwatywny':p<50?'Optymistyczny':'Ostrożny';
-    tr.innerHTML = `<td>${badge}</td><td>${bVal}</td><td class="${d<0?'highlight-vacation':''}">${vVal}</td><td>${dStr}</td><td style="text-align:left;font-family:var(--sans);font-weight:400">${interp}</td>`;
-    vCmpTbody.appendChild(tr);
+  [[p1,'var(--green)','P1 (21)'],[total,'var(--accent)','35 PBI']].forEach(([v, col, lbl]) => {
+    const x = markerX(v);
+    ctx.beginPath();
+    ctx.strokeStyle = col;
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([4,3]);
+    ctx.moveTo(x, pad.top);
+    ctx.lineTo(x, pad.top + chartH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col;
+    ctx.font = '10px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(lbl, x, pad.top - 4);
   });
 
-  // ── Draw histogram helper ──────────────────────────────────────────────────
-  function drawHistogram(canvasId, results, p50, p85, p95, refResults, refP50) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const minV = results[0], maxV = results[results.length - 1];
-    const binCount = maxV - minV + 1;
-    const bins = new Array(binCount).fill(0);
-    results.forEach(v => bins[v - minV]++);
-    const maxCount = Math.max(...bins);
-
-    const DPR = window.devicePixelRatio || 1;
-    const W = Math.max(300, canvas.parentElement.clientWidth - 56);
-    const H = 220;
-    canvas.width = W * DPR; canvas.height = H * DPR;
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-    ctx.scale(DPR, DPR);
-
-    const pad = { top: 24, right: 20, bottom: 32, left: 44 };
-    const chartW = W - pad.left - pad.right;
-    const chartH = H - pad.top - pad.bottom;
-    const barW = chartW / binCount;
-
-    // reference distribution ghost (base on vacation tab)
-    if (refResults) {
-      const refMin = refResults[0], refMax = refResults[refResults.length - 1];
-      const refBins = new Array(refMax - refMin + 1).fill(0);
-      refResults.forEach(v => { if (v >= minV && v <= maxV) refBins[v - refMin]++; });
-      refBins.forEach((count, i) => {
-        const val = refMin + i;
-        if (val < minV || val > maxV) return;
-        const x = pad.left + (val - minV) * barW;
-        const bH = (count / maxCount) * chartH;
-        const y = pad.top + chartH - bH;
-        ctx.fillStyle = 'rgba(37,99,235,0.12)';
-        ctx.fillRect(x + 1, y, barW - 2, bH);
-      });
-    }
-
-    // Main bars
-    bins.forEach((count, i) => {
-      const val = minV + i;
-      const x = pad.left + i * barW;
-      const bH = (count / maxCount) * chartH;
-      const y = pad.top + chartH - bH;
-      let color = '#bfdbfe';
-      if (val >= p95) color = '#fca5a5';
-      else if (val >= p85) color = '#fde68a';
-      else if (val >= p50) color = '#93c5fd';
-      ctx.fillStyle = color;
-      ctx.fillRect(x + 1, y, barW - 2, bH);
-    });
-
-    function vLine(val, color, label, labelRow) {
-      if (val < minV || val > maxV) return;
-      const x = pad.left + (val - minV) * barW + barW / 2;
-      ctx.strokeStyle = color; ctx.lineWidth = 2;
-      ctx.setLineDash([4, 3]);
-      ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + chartH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = color;
-      ctx.font = `bold 10px 'IBM Plex Mono', monospace`;
-      ctx.textAlign = 'center';
-      ctx.fillText(label, x, pad.top + 10 + (labelRow || 0) * 12);
-    }
-
-    vLine(p50, '#2563eb', 'P50='+p50, 0);
-    vLine(p85, '#d97706', 'P85='+p85, 0);
-    vLine(p95, '#dc2626', 'P95='+p95, 0);
-
-    // Goal line
-    if (48 >= minV && 48 <= maxV) {
-      const x = pad.left + (48 - minV) * barW + barW / 2;
-      ctx.strokeStyle = '#059669'; ctx.lineWidth = 2;
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + chartH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#059669';
-      ctx.font = `bold 10px 'IBM Plex Mono', monospace`;
-      ctx.textAlign = 'center';
-      ctx.fillText('CEL=48', x, pad.top + 22);
-    }
-
-    // X axis
-    ctx.strokeStyle = '#ddd9d2'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(pad.left, pad.top+chartH); ctx.lineTo(pad.left+chartW, pad.top+chartH); ctx.stroke();
-    ctx.fillStyle = '#706b63'; ctx.font = `11px 'IBM Plex Mono', monospace`;
-    const step = Math.max(1, Math.floor(binCount / 12));
-    for (let i = 0; i < binCount; i += step) {
-      ctx.textAlign = 'center';
-      ctx.fillText(minV + i, pad.left + i * barW + barW / 2, H - 10);
-    }
-
-    // Y axis label
-    ctx.save(); ctx.translate(12, H/2); ctx.rotate(-Math.PI/2);
-    ctx.fillStyle = '#706b63'; ctx.font = `10px 'IBM Plex Mono', monospace`;
-    ctx.textAlign = 'center'; ctx.fillText('Liczba symulacji', 0, 0); ctx.restore();
-  }
-
-  // Draw after layout settles
-  setTimeout(() => {
-    drawHistogram('b-histChart', baseResults, bP50, bP85, bP95, null, null);
-    drawHistogram('v-histChart', vacResults,  vP50, vP85, vP95, baseResults, bP50);
-    runRevUpdate();
-  }, 80);
-
-
-  // ── TAB 3: REVISION SIM (INTERACTIVE) ────────────────────────────────────
-  const R_VAC = 1 - (1/3)*(2/5); // 0.933 — 2 days, 1 of 3 devs absent, week 1
-
-  let r_fullAvailability = false; // toggle state
-
-  function toggleAvailability() {
-    r_fullAvailability = !r_fullAvailability;
-    const track = document.getElementById('r-toggle-track');
-    const thumb = document.getElementById('r-toggle-thumb');
-    const badge = document.getElementById('r-toggle-badge');
-    if (r_fullAvailability) {
-      track.style.background = '#16a34a';
-      thumb.style.left = '23px';
-      badge.style.background = '#dcfce7';
-      badge.style.color = '#15803d';
-      badge.textContent = 'PEŁNA DOSTĘPNOŚĆ · brak korekty urlopowej';
-    } else {
-      track.style.background = '#7c3aed';
-      thumb.style.left = '3px';
-      badge.style.background = '#ede9fe';
-      badge.style.color = '#7c3aed';
-      badge.textContent = 'URLOP TYDZIEŃ 1 aktywny · capacity ×0,933';
-    }
-    runRevUpdate();
-  }
-
-  function computeRevSims(days) {
-    const weeks = days / 5;
-    const fullW = Math.floor(weeks);
-    const partF = weeks - fullW;
-    const vacFactor = r_fullAvailability ? 1.0 : R_VAC;
-    const sims = new Array(N_SIMS);
-    for (let i = 0; i < N_SIMS; i++) {
-      let total = 0;
-      for (let w = 0; w < fullW; w++) {
-        const tp = sample(throughputHistory);
-        total += (w === 0) ? tp * vacFactor : tp;
-      }
-      if (partF > 0) total += sample(throughputHistory) * partF;
-      sims[i] = Math.round(total);
-    }
-    return sims.sort((a,b) => a-b);
-  }
-
-  function runRevUpdate() {
-    const goalAll = parseInt(document.getElementById('r-slider-all').value);
-    const goalP1  = parseInt(document.getElementById('r-slider-p1').value);
-    const days    = parseInt(document.getElementById('r-slider-days').value);
-    const safeP1  = Math.min(goalP1, goalAll);
-    const weeks   = days / 5;
-
-    // Clamp p1 slider if needed
-    if (goalP1 > goalAll) {
-      document.getElementById('r-slider-p1').value = goalAll;
-      document.getElementById('r-ctrl-warning').style.display = 'block';
-    } else {
-      document.getElementById('r-ctrl-warning').style.display = 'none';
-    }
-
-    // Update labels
-    ['r-lbl-all','r-hdr-all','r-bar-lbl-all','r-card-all'].forEach(id => {
-      const el = document.getElementById(id); if(el) el.textContent = goalAll;
-    });
-    ['r-lbl-p1','r-hdr-p1','r-bar-lbl-p1','r-card-p1'].forEach(id => {
-      const el = document.getElementById(id); if(el) el.textContent = safeP1;
-    });
-    document.getElementById('r-p1-max-lbl').textContent = goalAll;
-    document.getElementById('r-lbl-days').textContent = days;
-    document.getElementById('r-lbl-weeks').textContent = ' (' + weeks.toFixed(1) + ' tyg.)';
-    const cardDays = document.getElementById('r-card-days'); if(cardDays) cardDays.textContent = days;
-    const hdrWeeks = document.getElementById('r-hdr-weeks'); if(hdrWeeks) hdrWeeks.textContent = weeks.toFixed(1);
-
-    // Recompute sims for current days setting
-    const revRawSims  = computeRevSims(days);
-    const revP1sorted = revRawSims.map(v => Math.min(v, safeP1)).sort((a,b) => a-b);
-
-    const rP50  = pct(revRawSims, 50), rP85 = pct(revRawSims, 85), rP95 = pct(revRawSims, 95);
-    const rPP50 = pct(revP1sorted, 50), rPP85 = pct(revP1sorted, 85), rPP95 = pct(revP1sorted, 95);
-
-    const rProbAll = revRawSims.filter(v => v >= goalAll).length / N_SIMS * 100;
-    const rProbP1  = revP1sorted.filter(v => v >= safeP1).length  / N_SIMS * 100;
-
-    // Cards
-    document.getElementById('r-p50val').textContent  = rP50;
-    document.getElementById('r-p85val').textContent  = rP85;
-    document.getElementById('r-p95val').textContent  = rP95;
-    document.getElementById('r-pp50val').textContent = rPP50;
-    document.getElementById('r-pp85val').textContent = rPP85;
-    document.getElementById('r-pp95val').textContent = rPP95;
-
-    // Prob bars
-    const f45 = document.getElementById('r-fill45');
-    f45.style.width = Math.min(rProbAll,100)+'%';
-    f45.style.background = rProbAll>=50?'var(--green)':rProbAll>=25?'var(--p85)':'var(--p95)';
-    document.getElementById('r-pct45').textContent = rProbAll.toFixed(1)+'%';
-
-    const f31 = document.getElementById('r-fill31');
-    f31.style.width = Math.min(rProbP1,100)+'%';
-    f31.style.background = rProbP1>=50?'var(--green)':rProbP1>=25?'var(--p85)':'var(--p95)';
-    document.getElementById('r-pct31').textContent = rProbP1.toFixed(1)+'%';
-
-    // Comment
-    const rComment = document.getElementById('r-comment');
-    if (rProbP1 >= 70) {
-      rComment.innerHTML = `✅ <strong>P1 (${safeP1} PBI) są bezpieczne</strong> – wysokie prawdopodobieństwo ukończenia przy obecnym tempie.`;
-      rComment.style.color = 'var(--green)';
-    } else if (rProbP1 >= 40) {
-      rComment.innerHTML = `⚠ <strong>P1 są zagrożone</strong> – szanse umiarkowane (${rProbP1.toFixed(0)}%). Kluczowe jest utrzymanie tempa.`;
-      rComment.style.color = 'var(--orange)';
-    } else {
-      rComment.innerHTML = `🔴 <strong>P1 trudne do dowiezienia</strong> przy obecnym tempie (${rProbP1.toFixed(0)}%). Konieczna priorytetyzacja.`;
-      rComment.style.color = 'var(--p95)';
-    }
-
-    // Percentile table – rebuild
-    const rTbody = document.getElementById('r-percTable');
-    rTbody.innerHTML = '';
-    [10,25,50,70,85,90,95].forEach(p => {
-      const aVal = pct(revRawSims, p);
-      const pVal = pct(revP1sorted, p);
-      const hit  = pVal >= safeP1;
-      const badge = p===50?'<span class="badge badge-50">P50</span>':p===85?'<span class="badge badge-85">P85</span>':p===95?'<span class="badge badge-95">P95</span>':'P'+p;
-      const interp = p===50?'Typowy':p===85?'Konserwatywny':p===95?'B. konserwatywny':p<50?'Optymistyczny':'Ostrożny';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${badge}</td><td>${aVal}</td><td style="color:${hit?'var(--green)':'var(--p95)'};font-family:var(--mono);font-weight:600;">${pVal}</td><td style="color:${hit?'var(--green)':'var(--p95)'};">${hit?'✅ cel OK':'❌ poniżej'}</td><td style="text-align:left;font-family:var(--sans);font-weight:400">${interp}</td>`;
-      rTbody.appendChild(tr);
-    });
-
-    // Histogram
-    drawRevHistogram(revRawSims, revP1sorted, rP50, rP85, rP95, goalAll, safeP1);
-  }
-
-  function drawRevHistogram(allSorted, p1sorted, rP50, rP85, rP95, goalAll, goalP1) {
-    const canvas = document.getElementById('r-histChart');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const minV = allSorted[0], maxV = allSorted[allSorted.length-1];
-    const binCount = maxV - minV + 1;
-    const bins = new Array(binCount).fill(0);
-    allSorted.forEach(v => bins[v-minV]++);
-    const p1bins = new Array(binCount).fill(0);
-    p1sorted.forEach(v => { if(v>=minV && v<=maxV) p1bins[v-minV]++; });
-    const maxCount = Math.max(...bins);
-
-    const DPR = window.devicePixelRatio || 1;
-    const W = Math.max(300, canvas.parentElement.clientWidth - 56);
-    const H = 240;
-    canvas.width = W*DPR; canvas.height = H*DPR;
-    canvas.style.width = W+'px'; canvas.style.height = H+'px';
-    ctx.scale(DPR, DPR);
-
-    const pad = {top:36, right:20, bottom:32, left:44};
-    const cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom;
-    const bW = cW/binCount;
-
-    ctx.clearRect(0,0,W,H);
-
-    // P1 bars (behind, amber)
-    p1bins.forEach((count,i) => {
-      if(!count) return;
-      const x = pad.left + i*bW;
-      const bH = (count/maxCount)*cH;
-      ctx.fillStyle = 'rgba(245,158,11,0.4)';
-      ctx.fillRect(x+1, pad.top+cH-bH, bW-2, bH);
-    });
-
-    // All bars (purple shades)
-    bins.forEach((count,i) => {
-      const val = minV+i;
-      const x = pad.left + i*bW;
-      const bH = (count/maxCount)*cH;
-      let color = '#c4b5fd';
-      if(val >= rP95) color = '#fca5a5';
-      else if(val >= rP85) color = '#ddd6fe';
-      else if(val >= rP50) color = '#a78bfa';
-      ctx.fillStyle = color;
-      ctx.fillRect(x+1, pad.top+cH-bH, bW-2, bH);
-    });
-
-    function vLine(val, color, label, row) {
-      if(val<minV||val>maxV) return;
-      const x = pad.left+(val-minV)*bW+bW/2;
-      ctx.strokeStyle=color; ctx.lineWidth=2; ctx.setLineDash([4,3]);
-      ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,pad.top+cH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle=color; ctx.font=`bold 10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
-      ctx.fillText(label, x, pad.top-2-(row||0)*12);
-    }
-
-    vLine(rP50,'#7c3aed','P50='+rP50, 2);
-    vLine(rP85,'#d97706','P85='+rP85, 1);
-    vLine(rP95,'#dc2626','P95='+rP95, 0);
-
-    function goalLine(val, color, label) {
-      if(val<minV||val>maxV) return;
-      const x = pad.left+(val-minV)*bW+bW/2;
-      ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.setLineDash([6,4]);
-      ctx.beginPath(); ctx.moveTo(x,pad.top); ctx.lineTo(x,pad.top+cH); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle=color; ctx.font=`bold 10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
-      ctx.fillText(label, x, pad.top+cH+20);
-    }
-    goalLine(goalAll, '#059669', '▲'+goalAll);
-    if(goalP1 !== goalAll) goalLine(goalP1, '#b45309', '▲P1='+goalP1);
-
-    // X axis
-    ctx.strokeStyle='#ddd9d2'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(pad.left,pad.top+cH); ctx.lineTo(pad.left+cW,pad.top+cH); ctx.stroke();
-    ctx.fillStyle='#706b63'; ctx.font=`11px 'IBM Plex Mono',monospace`;
-    const step = Math.max(1,Math.floor(binCount/12));
-    for(let i=0;i<binCount;i+=step){
-      ctx.textAlign='center';
-      ctx.fillText(minV+i, pad.left+i*bW+bW/2, H-10);
-    }
-    ctx.save(); ctx.translate(12,H/2); ctx.rotate(-Math.PI/2);
-    ctx.fillStyle='#706b63'; ctx.font=`10px 'IBM Plex Mono',monospace`;
-    ctx.textAlign='center'; ctx.fillText('Liczba symulacji',0,0); ctx.restore();
-  }
-
-  // Wire up sliders
-  document.getElementById('r-slider-all').addEventListener('input', function() {
-    const val = parseInt(this.value);
-    const p1slider = document.getElementById('r-slider-p1');
-    p1slider.max = val;
-    if(parseInt(p1slider.value) > val) p1slider.value = val;
-    runRevUpdate();
+  // x axis
+  ctx.fillStyle = '#6B7280';
+  ctx.font = '10px IBM Plex Mono, monospace';
+  ctx.textAlign = 'center';
+  [0, .25, .5, .75, 1].forEach(t => {
+    const v = Math.round(min + t * (max - min));
+    const x = pad.left + t * chartW;
+    ctx.fillText(v, x, H - 6);
+    ctx.fillStyle = '#E2E6ED';
+    ctx.fillRect(x, pad.top, 1, chartH);
+    ctx.fillStyle = '#6B7280';
   });
-  document.getElementById('r-slider-p1').addEventListener('input', runRevUpdate);
-  document.getElementById('r-slider-days').addEventListener('input', runRevUpdate);
 
-  // Initial render
-  runRevUpdate();
+  ctx.fillStyle = '#6B7280';
+  ctx.font = '10px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Liczba ukończonych PBI', W/2, H);
+}
 
-  // ── Tab switcher ───────────────────────────────────────────────────────────
-  function switchTab(id, btn) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + id).classList.add('active');
-    btn.classList.add('active');
-    // Redraw canvas after tab becomes visible
-    setTimeout(() => {
-      if (id === 'base') drawHistogram('b-histChart', baseResults, bP50, bP85, bP95, null, null);
-      if (id === 'vac')  drawHistogram('v-histChart', vacResults, vP50, vP85, vP95, baseResults, bP50);
-      if (id === 'rev')  runRevUpdate();
-    }, 30);
-  }
+drawHistogram(document.getElementById('histogram'), sorted, P1_PBI, TOTAL_PBI);
+
+// ── verdict ───────────────────────────────────────────────────────
+const probAll = parseFloat(probAtLeast(sorted, TOTAL_PBI));
+const probP1  = parseFloat(probAtLeast(sorted, P1_PBI));
+const verdict = document.getElementById('verdict');
+
+let icon, bg, border, title, body;
+
+if (probAll >= 50) {
+  icon='✅'; bg='var(--green-lt)'; border='#A7F3D0';
+  title='Realny cel';
+  body=`Ukończenie całego backlogu (35 PBI) jest realistyczne — symulacja daje <strong>${probAll}%</strong> szans. Wszystkie P1 (21 PBI) z prawdopodobieństwem <strong>${probP1}%</strong>.`;
+} else if (probP1 >= 50) {
+  icon='⚠️'; bg='var(--amber-lt)'; border='#FDE68A';
+  title='Cel częściowy — P1 w zasięgu';
+  body=`Dostarczenie całego backlogu (35 PBI) jest mało prawdopodobne (<strong>${probAll}%</strong>). Priorytet P1 (21 PBI) jest natomiast w zasięgu: <strong>${probP1}%</strong> szans. Rekomendacja: negocjuj scope poza P1.`;
+} else {
+  icon='🔴'; bg='var(--red-lt)'; border='#FECACA';
+  title='Termin zagrożony';
+  body=`Nawet ukończenie wszystkich P1 (21 PBI) jest niepewne: <strong>${probP1}%</strong>. Pozostało bardzo mało czasu — potrzebna pilna rozmowa o zakresie lub przesunięciu deadlinu.`;
+}
+
+verdict.style.background   = bg;
+verdict.style.borderColor  = border;
+verdict.innerHTML = `
+  <div class="verdict-icon">${icon}</div>
+  <div>
+    <div class="verdict-title">${title}</div>
+    <div class="verdict-body">${body}</div>
+  </div>`;
+
+// ── throughput table ──────────────────────────────────────────────
+const maxTp = Math.max(...throughputData.map(d=>d.count));
+const tbody = document.getElementById('tp-tbody');
+throughputData.forEach(({week,count}) => {
+  const w = Math.round((count/maxTp)*120);
+  const note = count === 41 ? ' <span style="color:var(--muted);font-size:10px">(outlier — exc.)</span>' : '';
+  tbody.innerHTML += `
+    <tr>
+      <td>${week}, 2026${note}</td>
+      <td class="num-right">${count}</td>
+      <td class="bar-cell"><div class="inline-bar" style="width:${w}px;opacity:${count===41?.3:.65}"></div></td>
+    </tr>`;
+});
+
+// redraw on resize
+window.addEventListener('resize', () => {
+  drawHistogram(document.getElementById('histogram'), sorted, P1_PBI, TOTAL_PBI);
+});
 </script>
 </body>
 </html>
