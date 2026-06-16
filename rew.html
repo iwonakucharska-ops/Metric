@@ -20,316 +20,116 @@
     --amber-lt:  #FFFBEB;
     --red:       #DC2626;
     --red-lt:    #FEF2F2;
-    --mono:      'IBM Plex Mono', monospace;
-    --sans:      'DM Sans', sans-serif;
+    --purple:    #7C3AED;
+    --purple-lt: #F5F3FF;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; padding: 32px 24px 64px; }
+  header { max-width: 900px; margin: 0 auto 40px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: -.4px; margin-bottom: 6px; }
+  .subtitle { font-size: 14px; color: var(--muted); }
+  .main { max-width: 900px; margin: 0 auto; display: grid; gap: 20px; }
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 32px 24px 64px;
-  }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .card-title { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 
-  header {
-    max-width: 880px;
-    margin: 0 auto 40px;
-  }
+  .section-heading { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 8px 0 4px; padding: 6px 12px; background: var(--accent-lt); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; }
 
-  .eyebrow {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 8px;
-  }
+  .context-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .ctx-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .ctx-label { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .ctx-value { font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--text); }
+  .ctx-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-  h1 {
-    font-size: 28px;
-    font-weight: 600;
-    letter-spacing: -.4px;
-    margin-bottom: 6px;
-  }
-
-  .subtitle {
-    font-size: 14px;
-    color: var(--muted);
-    font-weight: 400;
-  }
-
-  .main {
-    max-width: 880px;
-    margin: 0 auto;
-    display: grid;
-    gap: 20px;
-  }
-
-  /* ── cards ─────────────────────────────────────────── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-  }
-
-  .card-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-
-  /* ── context row ───────────────────────────────────── */
-  .context-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-  }
-
-  .ctx-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-  }
-
-  .ctx-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 4px;
-  }
-
-  .ctx-value {
-    font-family: var(--mono);
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text);
-  }
-
-  .ctx-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  /* ── probability bar ───────────────────────────────── */
-  .prob-section { margin-top: 4px; }
-
-  .prob-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-  }
-
-  .prob-label {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-    width: 56px;
-    flex-shrink: 0;
-  }
-
-  .prob-bar-wrap {
-    flex: 1;
-    height: 8px;
-    background: var(--bg);
-    border-radius: 4px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
-
-  .prob-bar-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width .6s ease;
-  }
-
-  .prob-value {
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 600;
-    width: 56px;
-    text-align: right;
-    flex-shrink: 0;
-  }
-
-  /* ── percentile cards ──────────────────────────────── */
-  .pct-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-  }
-
-  .pct-card {
-    border-radius: 10px;
-    padding: 16px;
-    text-align: center;
-    border: 1px solid transparent;
-  }
-
+  .pct-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+  .pct-card { border-radius: 10px; padding: 14px; text-align: center; border: 1px solid transparent; }
   .pct-card.p50  { background: var(--accent-lt); border-color: #BFDBFE; }
   .pct-card.p75  { background: var(--green-lt);  border-color: #A7F3D0; }
   .pct-card.p85  { background: var(--amber-lt);  border-color: #FDE68A; }
   .pct-card.p95  { background: var(--red-lt);    border-color: #FECACA; }
-
-  .pct-label {
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
+  .pct-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
   .pct-card.p50 .pct-label { color: var(--accent); }
-  .pct-card.p75 .pct-label { color: var(--green);  }
-  .pct-card.p85 .pct-label { color: var(--amber);  }
-  .pct-card.p95 .pct-label { color: var(--red);    }
+  .pct-card.p75 .pct-label { color: var(--green); }
+  .pct-card.p85 .pct-label { color: var(--amber); }
+  .pct-card.p95 .pct-label { color: var(--red); }
+  .pct-num { font-family: var(--mono); font-size: 30px; font-weight: 600; line-height: 1; margin-bottom: 4px; color: var(--text); }
+  .pct-sub { font-size: 11px; color: var(--muted); }
 
-  .pct-num {
-    font-family: var(--mono);
-    font-size: 32px;
-    font-weight: 600;
-    line-height: 1;
-    margin-bottom: 4px;
-    color: var(--text);
-  }
+  .prob-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .prob-bar-wrap { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+  .prob-bar-fill { height: 100%; border-radius: 4px; }
+  .prob-value { font-family: var(--mono); font-size: 13px; font-weight: 600; width: 52px; text-align: right; flex-shrink: 0; }
+  .prob-label-text { font-family: var(--mono); font-size: 12px; color: var(--muted); flex: 0 0 230px; }
 
-  .pct-sub {
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  /* ── histogram ─────────────────────────────────────── */
   canvas { display: block; width: 100%; }
 
-  /* ── verdict ───────────────────────────────────────── */
-  .verdict {
-    border-radius: 10px;
-    padding: 20px 24px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    border: 1px solid transparent;
-  }
+  .verdict { border-radius: 10px; padding: 18px 22px; display: flex; align-items: flex-start; gap: 14px; border: 1px solid transparent; }
+  .verdict-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+  .verdict-title { font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+  .verdict-body { font-size: 14px; line-height: 1.6; color: var(--text); }
 
-  .verdict-icon {
-    font-size: 24px;
-    line-height: 1;
-    flex-shrink: 0;
-  }
+  .date-pct-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .date-card { border-radius: 10px; padding: 14px 16px; border: 1px solid transparent; text-align: center; }
+  .date-card.dp50 { background: var(--accent-lt); border-color: #BFDBFE; }
+  .date-card.dp75 { background: var(--green-lt);  border-color: #A7F3D0; }
+  .date-card.dp85 { background: var(--amber-lt);  border-color: #FDE68A; }
+  .date-card.dp95 { background: var(--red-lt);    border-color: #FECACA; }
+  .date-label { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+  .date-card.dp50 .date-label { color: var(--accent); }
+  .date-card.dp75 .date-label { color: var(--green); }
+  .date-card.dp85 .date-label { color: var(--amber); }
+  .date-card.dp95 .date-label { color: var(--red); }
+  .date-val { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .date-sub { font-size: 11px; color: var(--muted); }
 
-  .verdict-title {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-  }
-
-  .verdict-body {
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text);
-  }
-
-  /* ── throughput table ──────────────────────────────── */
-  .tp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--mono);
-    font-size: 12px;
-  }
-
-  .tp-table th {
-    text-align: left;
-    font-size: 10px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 0 8px 10px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 500;
-  }
-
-  .tp-table td {
-    padding: 7px 8px;
-    border-bottom: 1px solid var(--bg);
-    color: var(--text);
-  }
-
+  .tp-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .tp-table th { text-align: left; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 8px 10px; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .tp-table td { padding: 7px 8px; border-bottom: 1px solid var(--bg); color: var(--text); }
   .tp-table tr:last-child td { border-bottom: none; }
-
-  .bar-cell { width: 140px; }
-
-  .inline-bar {
-    height: 6px;
-    background: var(--accent);
-    border-radius: 3px;
-    opacity: .6;
-  }
-
   .num-right { text-align: right; }
+  .inline-bar { height: 6px; background: var(--accent); border-radius: 3px; }
 
-  /* ── footer ────────────────────────────────────────── */
-  .footer {
-    max-width: 880px;
-    margin: 32px auto 0;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
+  .footer { max-width: 900px; margin: 32px auto 0; font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; gap: 24px; flex-wrap: wrap; }
+
+  .divider { border: none; border-top: 2px solid var(--border); margin: 4px 0; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="eyebrow">REW · Symulacja · Monte Carlo</div>
-  <h1>Prognoza dostawy do 19.06.2026</h1>
-  <p class="subtitle">Ile PBI zdążymy zamknąć przed deadlinem? — 10 000 iteracji, dane historyczne 13 tygodni</p>
+  <h1>Prognoza dostawy — aktualizacja 16.06.2026</h1>
+  <p class="subtitle">10 000 iteracji bootstrap · throughput historyczny 11 tygodni · cycle time 23 dni</p>
 </header>
 
 <div class="main">
 
-  <!-- kontekst -->
+  <!-- PARAMETRY -->
   <div class="card">
     <div class="card-title">Parametry symulacji</div>
     <div class="context-grid">
       <div class="ctx-item">
-        <div class="ctx-label">Backlog łącznie</div>
-        <div class="ctx-value">34</div>
-        <div class="ctx-sub">PBI do zrealizowania</div>
+        <div class="ctx-label">Pozostało PBI</div>
+        <div class="ctx-value">25</div>
+        <div class="ctx-sub">do zamknięcia</div>
       </div>
       <div class="ctx-item">
         <div class="ctx-label">Priorytety P1</div>
-        <div class="ctx-value">22</div>
-        <div class="ctx-sub">z 34 PBI</div>
+        <div class="ctx-value">16</div>
+        <div class="ctx-sub">z 25 PBI</div>
       </div>
       <div class="ctx-item">
         <div class="ctx-label">Deadline</div>
-        <div class="ctx-value" style="font-size:16px;margin-top:3px">19.06.26</div>
-        <div class="ctx-sub">Piątek, koniec tygodnia</div>
+        <div class="ctx-value" style="font-size:15px;margin-top:4px">19.06.26</div>
+        <div class="ctx-sub">Czwartek</div>
       </div>
       <div class="ctx-item">
         <div class="ctx-label">Dni robocze</div>
-        <div class="ctx-value" id="workdays-val">—</div>
-        <div class="ctx-sub">od dziś (13.06) do 19.06</div>
+        <div class="ctx-value">3</div>
+        <div class="ctx-sub">16–19.06 (dziś wliczony)</div>
       </div>
       <div class="ctx-item">
         <div class="ctx-label">Cycle Time</div>
@@ -339,52 +139,61 @@
       <div class="ctx-item">
         <div class="ctx-label">Iteracje MC</div>
         <div class="ctx-value">10k</div>
-        <div class="ctx-sub">bootstrap z historii</div>
+        <div class="ctx-sub">bootstrap</div>
       </div>
     </div>
   </div>
 
-  <!-- percentyle -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- WYKRES 1: ile PBI do 19.06                        -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section-heading">📊 Wykres 1 — Ile PBI zamkniemy do 19.06? (3 dni robocze)</div>
+
   <div class="card">
-    <div class="card-title">Gwarancja ukończonych PBI do deadlinu</div>
-    <div class="pct-grid" id="pct-grid">
-      <!-- filled by JS -->
-    </div>
-    <p style="font-size:12px;color:var(--muted);margin-top:14px;font-family:var(--mono)">
-      P50 = z prawdopod. 50% ukończysz co najmniej tyle. P95 = konserwatywna gwarancja (95% iteracji).
+    <div class="card-title">Gwarantowane ukończenie PBI do deadlinu</div>
+    <div class="pct-grid" id="pct-grid-1"></div>
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;font-family:var(--mono)">
+      Wyższy percentyl = wyższa pewność = niższy wynik. P95 to konserwatywna gwarancja.
     </p>
   </div>
 
-  <!-- prawdopodobieństwo ukończenia backlogu -->
   <div class="card">
-    <div class="card-title">Prawdopodobieństwo ukończenia</div>
-    <div class="prob-section" id="prob-section">
-      <!-- filled by JS -->
-    </div>
+    <div class="card-title">Prawdopodobieństwo ukończenia do 19.06</div>
+    <div id="prob-section-1"></div>
   </div>
 
-  <!-- histogram -->
   <div class="card">
-    <div class="card-title">Rozkład ukończonych PBI (10 000 symulacji)</div>
-    <canvas id="histogram" height="200"></canvas>
+    <div class="card-title">Rozkład ukończonych PBI do 19.06 (10 000 symulacji)</div>
+    <canvas id="hist1" height="200"></canvas>
   </div>
 
-  <!-- verdict -->
-  <div class="verdict" id="verdict">
-    <!-- filled by JS -->
+  <div class="verdict" id="verdict1"></div>
+
+  <!-- ══════════════════════════════════════════════════ -->
+  <!-- WYKRES 2: kiedy ukończymy wszystkie 25 PBI        -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div class="section-heading">📅 Wykres 2 — Do kiedy ukończymy wszystkie 25 PBI?</div>
+
+  <div class="card">
+    <div class="card-title">Prognozowana data ukończenia wszystkich 25 PBI</div>
+    <div class="date-pct-grid" id="date-grid"></div>
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;font-family:var(--mono)">
+      Symulacja liczy ile tygodni potrzeba by skumulowany throughput osiągnął ≥ 25 PBI.
+    </p>
   </div>
 
-  <!-- throughput table -->
+  <div class="card">
+    <div class="card-title">Rozkład dat ukończenia wszystkich 25 PBI (10 000 symulacji)</div>
+    <canvas id="hist2" height="200"></canvas>
+  </div>
+
+  <div class="verdict" id="verdict2"></div>
+
+  <!-- THROUGHPUT TABLE -->
   <div class="card">
     <div class="card-title">Historia tygodniowego throughput (źródło danych)</div>
-    <table class="tp-table" id="tp-table">
-      <thead>
-        <tr>
-          <th>Tydzień od</th>
-          <th class="num-right">PBI/tydzień</th>
-          <th class="bar-cell"></th>
-        </tr>
-      </thead>
+    <table class="tp-table">
+      <thead><tr><th>Tydzień od</th><th class="num-right">PBI/tydz.</th><th style="width:140px"></th></tr></thead>
       <tbody id="tp-tbody"></tbody>
     </table>
   </div>
@@ -392,13 +201,13 @@
 </div>
 
 <div class="footer">
-  <span>Symulacja: bootstrap Monte Carlo</span>
-  <span>Dane: 13 tygodni throughput</span>
-  <span>Wygenerowano: <span id="gen-date"></span></span>
+  <span>Monte Carlo bootstrap</span>
+  <span>Outlier 22 marca (41) wykluczony z puli symulacji</span>
+  <span>Wygenerowano: 16.06.2026</span>
 </div>
 
 <script>
-// ── dane ──────────────────────────────────────────────────────────
+// ── DANE ──────────────────────────────────────────────
 const throughputData = [
   { week: "22 marca",    count: 41 },
   { week: "29 marca",    count: 14 },
@@ -414,57 +223,64 @@ const throughputData = [
   { week: "7 czerwca",   count: 21 },
 ];
 
-// Wyłączamy tydzień z 22 marca (outlier: 41) do symulacji — zostawiamy do wyświetlenia
-// Używamy 11 tygodni bez outlierta
-const simData = throughputData.filter(d => d.count !== 41).map(d => d.count);
+const simPool  = throughputData.filter(d => d.count !== 41).map(d => d.count);
+const TOTAL    = 25;
+const P1       = 16;
+const N        = 10000;
+const WORKDAYS = 3;
+const WEEKS    = WORKDAYS / 5; // 0.6 tygodnia
 
-const TOTAL_PBI = 34;
-const P1_PBI    = 22;
-const N_SIM     = 10000;
+// Dzisiaj = 16.06.2026
+const TODAY    = new Date(2026, 5, 16);
+const DEADLINE = new Date(2026, 5, 19);
 
-// ── dni robocze do 19.06 ──────────────────────────────────────────
-function workdaysBetween(start, end) {
-  let count = 0;
-  const d = new Date(start);
-  d.setHours(0,0,0,0);
-  const e = new Date(end);
-  e.setHours(0,0,0,0);
-  while (d <= e) {
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) count++;
+function addWorkdays(date, days) {
+  const d = new Date(date);
+  let added = 0;
+  while (added < days) {
     d.setDate(d.getDate() + 1);
+    if (d.getDay() !== 0 && d.getDay() !== 6) added++;
   }
-  return count;
+  return d;
 }
 
-const today    = new Date(2026, 5, 13); // 13 czerwca 2026 (miesiąc 0-indexed)
-const deadline = new Date(2026, 5, 19);
-const workdays = workdaysBetween(today, deadline);
-const weeks    = workdays / 5;
-
-document.getElementById('workdays-val').textContent = workdays;
-document.getElementById('gen-date').textContent = today.toLocaleDateString('pl-PL');
-
-// ── Monte Carlo bootstrap ─────────────────────────────────────────
-function simulate(data, nWeeks, nSim) {
-  const results = new Int32Array(nSim);
-  for (let i = 0; i < nSim; i++) {
-    let total = 0;
-    let fullWeeks = Math.floor(nWeeks);
-    let fracWeek  = nWeeks - fullWeeks;
-    for (let w = 0; w < fullWeeks; w++) {
-      total += data[Math.floor(Math.random() * data.length)];
-    }
-    if (fracWeek > 0) {
-      total += Math.round(data[Math.floor(Math.random() * data.length)] * fracWeek);
-    }
-    results[i] = total;
-  }
-  return results;
+function addWeeksAsWorkdays(date, weeks) {
+  const days = Math.round(weeks * 5);
+  return addWorkdays(date, days);
 }
 
-const results = simulate(simData, weeks, N_SIM);
-const sorted  = Array.from(results).sort((a,b) => a - b);
+function fmtDate(d) {
+  return d.toLocaleDateString('pl-PL', { day:'numeric', month:'long', year:'numeric' });
+}
+
+function rand(pool) { return pool[Math.floor(Math.random() * pool.length)]; }
+
+// ── SYMULACJA 1: ile PBI do 19.06 (0.6 tygodnia) ─────
+const sim1 = new Int32Array(N);
+for (let i = 0; i < N; i++) {
+  sim1[i] = Math.round(rand(simPool) * WEEKS);
+}
+const sorted1 = Array.from(sim1).sort((a,b) => a-b);
+
+// ── SYMULACJA 2: ile tygodni by skończyć 25 PBI ──────
+// Liczymy w ułamkach tygodni (co 0.2 tygodnia = 1 dzień roboczy)
+const sim2weeks = new Float32Array(N); // tygodnie potrzebne
+for (let i = 0; i < N; i++) {
+  let total = 0, w = 0;
+  while (total < TOTAL) {
+    total += rand(simPool);
+    w++;
+  }
+  // dokładniej: ile proporcjonalnie tygodnia potrzeba w ostatnim
+  // uproszczenie: liczymy pełne tygodnie
+  sim2weeks[i] = w;
+}
+const sorted2 = Array.from(sim2weeks).sort((a,b) => a-b);
+
+// Konwersja tygodni → daty (od dziś, tylko dni robocze)
+function weeksToDate(w) {
+  return addWeeksAsWorkdays(TODAY, w);
+}
 
 function percentile(arr, p) {
   const idx = Math.floor((1 - p/100) * arr.length);
@@ -472,177 +288,217 @@ function percentile(arr, p) {
 }
 
 function probAtLeast(arr, n) {
-  const count = arr.filter(v => v >= n).length;
-  return (count / arr.length * 100).toFixed(1);
+  return (arr.filter(v => v >= n).length / arr.length * 100).toFixed(1);
 }
 
-const p50 = percentile(sorted, 50);
-const p75 = percentile(sorted, 75);
-const p85 = percentile(sorted, 85);
-const p95 = percentile(sorted, 95);
+// ── WYPEŁNIJ SEKCJĘ 1 ────────────────────────────────
+const p50_1 = percentile(sorted1, 50);
+const p75_1 = percentile(sorted1, 75);
+const p85_1 = percentile(sorted1, 85);
+const p95_1 = percentile(sorted1, 95);
 
-// ── percentyle cards ──────────────────────────────────────────────
-const pctGrid = document.getElementById('pct-grid');
-[
-  { cls:'p50', label:'P50', val:p50, desc:'50% pewności' },
-  { cls:'p75', label:'P75', val:p75, desc:'75% pewności' },
-  { cls:'p85', label:'P85', val:p85, desc:'85% pewności' },
-  { cls:'p95', label:'P95', val:p95, desc:'95% pewności' },
-].forEach(({cls,label,val,desc}) => {
-  pctGrid.innerHTML += `
-    <div class="pct-card ${cls}">
-      <div class="pct-label">${label}</div>
-      <div class="pct-num">${val}</div>
-      <div class="pct-sub">${desc}</div>
-    </div>`;
-});
+document.getElementById('pct-grid-1').innerHTML = [
+  { cls:'p50', label:'P50', val:p50_1, desc:'50% pewności' },
+  { cls:'p75', label:'P75', val:p75_1, desc:'75% pewności' },
+  { cls:'p85', label:'P85', val:p85_1, desc:'85% pewności' },
+  { cls:'p95', label:'P95', val:p95_1, desc:'95% pewności' },
+].map(({cls,label,val,desc}) => `
+  <div class="pct-card ${cls}">
+    <div class="pct-label">${label}</div>
+    <div class="pct-num">${val}</div>
+    <div class="pct-sub">${desc}</div>
+  </div>`).join('');
 
-// ── probability bars ──────────────────────────────────────────────
-const probSection = document.getElementById('prob-section');
-[
-  { label: `≥ ${TOTAL_PBI} PBI (cały backlog)`,  n: TOTAL_PBI, color: 'var(--accent)' },
-  { label: `≥ ${P1_PBI} PBI (wszystkie P1)`,     n: P1_PBI,    color: 'var(--green)'  },
-  { label: `≥ ${Math.round(P1_PBI * .5)} PBI (połowa P1)`, n: Math.round(P1_PBI*.5), color: 'var(--amber)' },
-].forEach(({label, n, color}) => {
-  const pct = probAtLeast(sorted, n);
-  probSection.innerHTML += `
-    <div class="prob-row">
-      <div class="prob-label" style="width:auto;flex:0 0 220px;font-size:12px">${label}</div>
-      <div class="prob-bar-wrap">
-        <div class="prob-bar-fill" style="width:${pct}%;background:${color}"></div>
-      </div>
-      <div class="prob-value" style="color:${color}">${pct}%</div>
-    </div>`;
-});
+document.getElementById('prob-section-1').innerHTML = [
+  { label:`≥ ${TOTAL} PBI (wszystkie)`, n:TOTAL, color:'var(--accent)' },
+  { label:`≥ ${P1} PBI (wszystkie P1)`, n:P1,    color:'var(--green)' },
+  { label:`≥ ${Math.round(P1*.5)} PBI (połowa P1)`, n:Math.round(P1*.5), color:'var(--amber)' },
+].map(({label,n,color}) => {
+  const pct = probAtLeast(sorted1, n);
+  return `<div class="prob-row">
+    <div class="prob-label-text">${label}</div>
+    <div class="prob-bar-wrap"><div class="prob-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div class="prob-value" style="color:${color}">${pct}%</div>
+  </div>`;
+}).join('');
 
-// ── histogram ─────────────────────────────────────────────────────
-function drawHistogram(canvas, data, p1, total) {
-  const ctx = canvas.getContext('2d');
+// verdict 1
+const pAll1 = parseFloat(probAtLeast(sorted1, TOTAL));
+const pP1_1 = parseFloat(probAtLeast(sorted1, P1));
+const v1 = document.getElementById('verdict1');
+let icon1, bg1, border1, title1, body1;
+if (pAll1 >= 50) {
+  icon1='✅'; bg1='var(--green-lt)'; border1='#A7F3D0'; title1='Cel w zasięgu';
+  body1=`Ukończenie wszystkich 25 PBI do 19.06 jest realistyczne — <strong>${pAll1}%</strong> szans. Wszystkie P1 (16 PBI) z prawdopod. <strong>${pP1_1}%</strong>.`;
+} else if (pP1_1 >= 50) {
+  icon1='⚠️'; bg1='var(--amber-lt)'; border1='#FDE68A'; title1='P1 w zasięgu, pełny scope ryzykowny';
+  body1=`Dostarczenie wszystkich 25 PBI jest mało prawdopodobne (<strong>${pAll1}%</strong>). Priorytet P1 (16 PBI) jest natomiast osiągalny: <strong>${pP1_1}%</strong> szans. Rekomendacja: skoncentruj się na P1.`;
+} else {
+  icon1='🔴'; bg1='var(--red-lt)'; border1='#FECACA'; title1='Termin zagrożony';
+  body1=`Przy 3 dniach roboczych ukończenie nawet wszystkich P1 (16 PBI) jest niepewne: <strong>${pP1_1}%</strong>. Skup się na najważniejszych P1 i rozmawiaj o zakresie.`;
+}
+v1.style.cssText = `background:${bg1};border-color:${border1};border-radius:10px;padding:18px 22px;display:flex;align-items:flex-start;gap:14px;border:1px solid`;
+v1.innerHTML = `<div class="verdict-icon">${icon1}</div><div><div class="verdict-title">${title1}</div><div class="verdict-body">${body1}</div></div>`;
+
+// ── WYPEŁNIJ SEKCJĘ 2 ────────────────────────────────
+// Percentyle dla tygodni (tu wyższy percentyl = dłużej = późniejsza data)
+function percentileAsc(arr, p) {
+  const idx = Math.floor((p/100) * arr.length);
+  return arr[Math.min(arr.length-1, idx)];
+}
+
+const w50 = percentileAsc(sorted2, 50);
+const w75 = percentileAsc(sorted2, 75);
+const w85 = percentileAsc(sorted2, 85);
+const w95 = percentileAsc(sorted2, 95);
+
+const d50 = weeksToDate(w50);
+const d75 = weeksToDate(w75);
+const d85 = weeksToDate(w85);
+const d95 = weeksToDate(w95);
+
+document.getElementById('date-grid').innerHTML = [
+  { cls:'dp50', label:'P50', date:d50, weeks:w50, desc:'scenariusz bazowy' },
+  { cls:'dp75', label:'P75', date:d75, weeks:w75, desc:'umiarkowana pewność' },
+  { cls:'dp85', label:'P85', date:d85, weeks:w85, desc:'wysoka pewność' },
+  { cls:'dp95', label:'P95', date:d95, weeks:w95, desc:'konserwatywna gwarancja' },
+].map(({cls,label,date,weeks,desc}) => `
+  <div class="date-card ${cls}">
+    <div class="date-label">${label}</div>
+    <div class="date-val">${fmtDate(date)}</div>
+    <div class="date-sub">${weeks} tyg. roboczych · ${desc}</div>
+  </div>`).join('');
+
+// verdict 2
+const v2 = document.getElementById('verdict2');
+const afterDeadline = d50 > DEADLINE;
+if (!afterDeadline) {
+  v2.style.cssText = 'background:var(--green-lt);border-color:#A7F3D0;border-radius:10px;padding:18px 22px;display:flex;align-items:flex-start;gap:14px;border:1px solid';
+  v2.innerHTML = `<div class="verdict-icon">✅</div><div><div class="verdict-title">Wszystkie PBI przed deadlinem (P50)</div><div class="verdict-body">Przy scenariuszu bazowym (P50) wszystkie 25 PBI powinny być gotowe do <strong>${fmtDate(d50)}</strong> — przed deadlinem 19.06.</div></div>`;
+} else {
+  v2.style.cssText = 'background:var(--amber-lt);border-color:#FDE68A;border-radius:10px;padding:18px 22px;display:flex;align-items:flex-start;gap:14px;border:1px solid';
+  v2.innerHTML = `<div class="verdict-icon">⚠️</div><div><div class="verdict-title">Ukończenie wszystkich PBI po 19.06</div><div class="verdict-body">Scenariusz bazowy (P50) przewiduje ukończenie wszystkich 25 PBI do <strong>${fmtDate(d50)}</strong>. Termin 19.06 jest za krótki na pełny zakres — realistyczne zakończenie to tydzień <strong>${fmtDate(d75)}</strong> (P75).</div></div>`;
+}
+
+// ── HISTOGRAMY ────────────────────────────────────────
+function drawHist1(canvasId, data, markers) {
+  const canvas = document.getElementById(canvasId);
   const W = canvas.parentElement.clientWidth - 48;
   const H = 200;
-  canvas.width  = W;
-  canvas.height = H;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
 
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const bins = 40;
+  const min = 0, max = Math.max(...data) + 1;
+  const bins = Math.min(max - min, 30);
   const binW = (max - min) / bins;
-
   const counts = new Array(bins).fill(0);
   data.forEach(v => {
     const b = Math.min(Math.floor((v - min) / binW), bins - 1);
     counts[b]++;
   });
-
-  const maxCount = Math.max(...counts);
-  const pad = { top:16, right:16, bottom:32, left:36 };
-  const chartW = W - pad.left - pad.right;
-  const chartH = H - pad.top  - pad.bottom;
+  const maxC = Math.max(...counts);
+  const pad = {top:20, right:16, bottom:32, left:36};
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
 
   ctx.clearRect(0,0,W,H);
-
-  // bars
   counts.forEach((c, i) => {
-    const x = pad.left + (i / bins) * chartW;
-    const bw = chartW / bins - 1;
-    const bh = (c / maxCount) * chartH;
-    const binStart = min + i * binW;
-    const binEnd   = binStart + binW;
-    const inP1   = binEnd   > p1    && binStart < p1 + binW;
-    const inTot  = binEnd   > total && binStart < total + binW;
-    ctx.fillStyle = binStart >= total ? '#BFDBFE'
-                  : binStart >= p1    ? '#BBF7D0'
-                  : '#E2E6ED';
-    ctx.fillRect(x, pad.top + chartH - bh, bw, bh);
+    const x = pad.left + (i/bins)*cW;
+    const bw = cW/bins - 1;
+    const bh = (c/maxC)*cH;
+    const bs = min + i*binW;
+    ctx.fillStyle = bs >= TOTAL ? '#BFDBFE' : bs >= P1 ? '#BBF7D0' : '#E2E6ED';
+    ctx.fillRect(x, pad.top + cH - bh, bw, bh);
   });
 
-  // vertical markers
-  const markerX = (v) => pad.left + ((v - min) / (max - min)) * chartW;
-
-  [[p1,'var(--green)','P1 (21)'],[total,'var(--accent)','35 PBI']].forEach(([v, col, lbl]) => {
-    const x = markerX(v);
-    ctx.beginPath();
-    ctx.strokeStyle = col;
-    ctx.lineWidth   = 1.5;
-    ctx.setLineDash([4,3]);
-    ctx.moveTo(x, pad.top);
-    ctx.lineTo(x, pad.top + chartH);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = col;
-    ctx.font = '10px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(lbl, x, pad.top - 4);
+  markers.forEach(([v, col, lbl]) => {
+    const x = pad.left + ((v - min)/(max - min))*cW;
+    ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,3]); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top+cH); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = col; ctx.font = '10px IBM Plex Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText(lbl, x, pad.top - 6);
   });
 
-  // x axis
-  ctx.fillStyle = '#6B7280';
-  ctx.font = '10px IBM Plex Mono, monospace';
-  ctx.textAlign = 'center';
-  [0, .25, .5, .75, 1].forEach(t => {
-    const v = Math.round(min + t * (max - min));
-    const x = pad.left + t * chartW;
-    ctx.fillText(v, x, H - 6);
-    ctx.fillStyle = '#E2E6ED';
-    ctx.fillRect(x, pad.top, 1, chartH);
-    ctx.fillStyle = '#6B7280';
+  ctx.fillStyle = '#6B7280'; ctx.font = '10px IBM Plex Mono, monospace'; ctx.textAlign = 'center';
+  [0,.25,.5,.75,1].forEach(t => {
+    const v = Math.round(min + t*(max-min));
+    const x = pad.left + t*cW;
+    ctx.fillText(v, x, H-6);
   });
-
-  ctx.fillStyle = '#6B7280';
-  ctx.font = '10px DM Sans, sans-serif';
-  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6B7280'; ctx.font = '10px DM Sans, sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('Liczba ukończonych PBI', W/2, H);
 }
 
-drawHistogram(document.getElementById('histogram'), sorted, P1_PBI, TOTAL_PBI);
+function drawHist2(canvasId, data) {
+  const canvas = document.getElementById(canvasId);
+  const W = canvas.parentElement.clientWidth - 48;
+  const H = 200;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
 
-// ── verdict ───────────────────────────────────────────────────────
-const probAll = parseFloat(probAtLeast(sorted, TOTAL_PBI));
-const probP1  = parseFloat(probAtLeast(sorted, P1_PBI));
-const verdict = document.getElementById('verdict');
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const bins = max - min + 1;
+  const counts = new Array(bins).fill(0);
+  data.forEach(v => { counts[v - min]++; });
+  const maxC = Math.max(...counts);
+  const pad = {top:20, right:16, bottom:42, left:36};
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
 
-let icon, bg, border, title, body;
+  ctx.clearRect(0,0,W,H);
+  counts.forEach((c, i) => {
+    const weekNum = min + i;
+    const bw = cW/bins - 1;
+    const x = pad.left + (i/bins)*cW;
+    const bh = (c/maxC)*cH;
+    // Kolor: zielony jeśli przed deadlinem (3 tygodnie), amber, czerwony
+    ctx.fillStyle = weekNum <= 1 ? '#BBF7D0' : weekNum <= 2 ? '#FDE68A' : '#FECACA';
+    ctx.fillRect(x, pad.top + cH - bh, bw, bh);
+  });
 
-if (probAll >= 50) {
-  icon='✅'; bg='var(--green-lt)'; border='#A7F3D0';
-  title='Realny cel';
-  body=`Ukończenie całego backlogu (35 PBI) jest realistyczne — symulacja daje <strong>${probAll}%</strong> szans. Wszystkie P1 (21 PBI) z prawdopodobieństwem <strong>${probP1}%</strong>.`;
-} else if (probP1 >= 50) {
-  icon='⚠️'; bg='var(--amber-lt)'; border='#FDE68A';
-  title='Cel częściowy — P1 w zasięgu';
-  body=`Dostarczenie całego backlogu (35 PBI) jest mało prawdopodobne (<strong>${probAll}%</strong>). Priorytet P1 (21 PBI) jest natomiast w zasięgu: <strong>${probP1}%</strong> szans. Rekomendacja: negocjuj scope poza P1.`;
-} else {
-  icon='🔴'; bg='var(--red-lt)'; border='#FECACA';
-  title='Termin zagrożony';
-  body=`Nawet ukończenie wszystkich P1 (21 PBI) jest niepewne: <strong>${probP1}%</strong>. Pozostało bardzo mało czasu — potrzebna pilna rozmowa o zakresie lub przesunięciu deadlinu.`;
+  // oś X — daty
+  ctx.fillStyle = '#6B7280'; ctx.font = '9px IBM Plex Mono, monospace'; ctx.textAlign = 'center';
+  for (let i = 0; i < bins; i++) {
+    const weekNum = min + i;
+    const x = pad.left + ((i + 0.5)/bins)*cW;
+    const d = weeksToDate(weekNum);
+    const lbl = d.toLocaleDateString('pl-PL',{day:'numeric',month:'numeric'});
+    ctx.save(); ctx.translate(x, H - 6); ctx.rotate(-Math.PI/4); ctx.fillText(lbl, 0, 0); ctx.restore();
+  }
+
+  // marker deadline
+  const deadlineWeeks = 1; // ~3 dni robocze = mniej niż 1 tydzień
+  const xDead = pad.left + ((deadlineWeeks - min)/bins)*cW;
+  if (xDead > pad.left && xDead < pad.left+cW) {
+    ctx.beginPath(); ctx.strokeStyle = 'var(--accent)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,3]); ctx.moveTo(xDead, pad.top); ctx.lineTo(xDead, pad.top+cH); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = 'var(--accent)'; ctx.font = '10px IBM Plex Mono, monospace'; ctx.textAlign = 'center';
+    ctx.fillText('19.06 ↓', xDead, pad.top - 6);
+  }
+
+  ctx.fillStyle = '#6B7280'; ctx.font = '10px DM Sans, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('Liczba tygodni roboczych do ukończenia wszystkich 25 PBI', W/2, H);
 }
 
-verdict.style.background   = bg;
-verdict.style.borderColor  = border;
-verdict.innerHTML = `
-  <div class="verdict-icon">${icon}</div>
-  <div>
-    <div class="verdict-title">${title}</div>
-    <div class="verdict-body">${body}</div>
-  </div>`;
+drawHist1('hist1', sorted1, [[P1,'var(--green)','16 P1'],[TOTAL,'var(--accent)','25 PBI']]);
+drawHist2('hist2', sorted2);
 
-// ── throughput table ──────────────────────────────────────────────
+// ── THROUGHPUT TABLE ──────────────────────────────────
 const maxTp = Math.max(...throughputData.map(d=>d.count));
-const tbody = document.getElementById('tp-tbody');
-throughputData.forEach(({week,count}) => {
+document.getElementById('tp-tbody').innerHTML = throughputData.map(({week, count}) => {
   const w = Math.round((count/maxTp)*120);
   const note = count === 41 ? ' <span style="color:var(--muted);font-size:10px">(outlier — exc.)</span>' : '';
-  tbody.innerHTML += `
-    <tr>
-      <td>${week}, 2026${note}</td>
-      <td class="num-right">${count}</td>
-      <td class="bar-cell"><div class="inline-bar" style="width:${w}px;opacity:${count===41?.3:.65}"></div></td>
-    </tr>`;
-});
+  return `<tr>
+    <td>${week}, 2026${note}</td>
+    <td class="num-right">${count}</td>
+    <td><div class="inline-bar" style="width:${w}px;opacity:${count===41?.25:.65}"></div></td>
+  </tr>`;
+}).join('');
 
-// redraw on resize
 window.addEventListener('resize', () => {
-  drawHistogram(document.getElementById('histogram'), sorted, P1_PBI, TOTAL_PBI);
+  drawHist1('hist1', sorted1, [[P1,'var(--green)','16 P1'],[TOTAL,'var(--accent)','25 PBI']]);
+  drawHist2('hist2', sorted2);
 });
 </script>
 </body>
