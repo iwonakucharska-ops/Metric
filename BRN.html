@@ -2,426 +2,267 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prognoza Monte Carlo — ile PBI zrobimy w 2 miesiące</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<title>Monte Carlo BRN — Prognoza Delivery (Troy Magennis / Bootstrapping)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg: #f2f4f8;
-    --surface: #ffffff;
-    --surface2: #f8f9fb;
-    --border: #e2e6ef;
-    --text: #1a1e2a;
-    --muted: #6b7280;
-    --accent: #2563eb;
-
-    --p50-c: #d97706;
-    --p85-c: #dc2626;
-    --p95-c: #7c3aed;
-    --ct-c: #0891b2;
+  :root{
+    --bg:#0f1420; --panel:#161d2e; --panel2:#1b2338; --border:#2a3550;
+    --text:#e8ecf6; --muted:#93a0bf; --accent:#5b8dee; --accent2:#4fd1c5;
+    --warn:#f0a35a; --good:#4fd18a; --bad:#e2607a;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    padding: 40px 32px 80px;
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(160deg,#0f1420,#141b2c 60%,#0f1420);
+    color:var(--text); padding:24px 16px 60px;
   }
-
-  .wrap { max-width: 1080px; margin: 0 auto; }
-
-  /* HEADER */
-  .page-header {
-    display: flex; flex-direction: column; gap: 8px;
-    margin-bottom: 40px;
-    padding-bottom: 28px;
-    border-bottom: 1px solid var(--border);
+  .wrap{max-width:1180px; margin:0 auto;}
+  h1{font-size:1.5rem; margin:0 0 4px;}
+  .sub{color:var(--muted); margin:0 0 24px; font-size:.92rem;}
+  .grid{display:grid; grid-template-columns: 340px 1fr; gap:20px;}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    padding:20px; margin-bottom:20px;
   }
-  .eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px; letter-spacing: 0.16em;
-    text-transform: uppercase; color: var(--accent);
+  .card h2{font-size:1rem; margin:0 0 14px; color:var(--accent2); text-transform:uppercase; letter-spacing:.04em;}
+  label{display:block; font-size:.82rem; color:var(--muted); margin:14px 0 5px;}
+  label:first-child{margin-top:0;}
+  input, textarea{
+    width:100%; background:var(--panel2); border:1px solid var(--border); color:var(--text);
+    padding:9px 10px; border-radius:8px; font-size:.92rem; font-family:inherit;
   }
-  h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 34px; font-weight: 800;
-    letter-spacing: -0.01em;
+  textarea{resize:vertical; min-height:56px;}
+  .hint{font-size:.74rem; color:var(--muted); margin-top:4px;}
+  button{
+    margin-top:18px; width:100%; padding:12px; border:none; border-radius:9px;
+    background:linear-gradient(90deg,var(--accent),#7aa6ff); color:#0b0f18; font-weight:700;
+    font-size:.95rem; cursor:pointer;
   }
-  .subtitle {
-    color: var(--muted); font-size: 14.5px; max-width: 720px; line-height: 1.5;
+  button:hover{filter:brightness(1.08);}
+  .variant-title{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .badge{background:var(--panel2); border:1px solid var(--border); border-radius:6px; padding:2px 8px; font-size:.72rem; color:var(--accent2);}
+  .weather{
+    background:var(--panel2); border-left:3px solid var(--accent2); border-radius:8px;
+    padding:14px 16px; margin:12px 0 18px; font-size:.94rem; line-height:1.55;
   }
-
-  /* STATS GRID */
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-    margin-bottom: 36px;
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px;}
+  .stat{background:var(--panel2); border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center;}
+  .stat .p{font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .stat .v{font-size:1.25rem; font-weight:700; margin:4px 0 2px;}
+  .stat .d{font-size:.78rem; color:var(--muted);}
+  .p50 .v{color:var(--good);}
+  .p85 .v{color:var(--warn);}
+  .p95 .v{color:var(--bad);}
+  canvas{max-height:220px;}
+  .warn-box{
+    background:rgba(240,163,90,.12); border:1px solid var(--warn); border-radius:10px;
+    padding:12px 14px; font-size:.85rem; margin-bottom:16px; color:#ffd9a8;
   }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 14px;
-  }
-  .stat-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 8px;
-  }
-  .stat-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 24px; font-weight: 800; line-height: 1;
-  }
-  .stat-unit { font-size: 12px; color: var(--muted); font-weight: 500; margin-left: 3px; }
-
-  /* SECTIONS */
-  section { margin-bottom: 40px; }
-  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 6px; }
-  h2 {
-    font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700;
-  }
-  .section-note { font-size: 13px; color: var(--muted); }
-
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
-  }
-
-  .chart-box { height: 280px; position: relative; }
-
-  /* METHOD CALLOUT */
-  .method-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: 10px;
-    padding: 18px 20px;
-    font-size: 13.5px;
-    line-height: 1.65;
-    color: #374151;
-  }
-  .method-box strong { color: var(--text); }
-  .method-box ul { margin: 8px 0 0 18px; }
-  .method-box li { margin-bottom: 4px; }
-
-  /* PERCENTILE RESULT CARDS */
-  .pct-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-  }
-  .pct-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px;
-    position: relative;
-    overflow: hidden;
-  }
-  .pct-card::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 4px;
-  }
-  .pct-card.p50::before { background: var(--p50-c); }
-  .pct-card.p85::before { background: var(--p85-c); }
-  .pct-card.p95::before { background: var(--p95-c); }
-
-  .pct-tag {
-    font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.08em;
-    text-transform: uppercase; margin-bottom: 12px; font-weight: 500;
-  }
-  .pct-card.p50 .pct-tag { color: var(--p50-c); }
-  .pct-card.p85 .pct-tag { color: var(--p85-c); }
-  .pct-card.p95 .pct-tag { color: var(--p95-c); }
-
-  .pct-number {
-    font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; line-height: 1;
-    margin-bottom: 6px;
-  }
-  .pct-sub { font-size: 13px; color: var(--muted); line-height: 1.5; }
-
-  /* FOOTNOTES */
-  .footnotes {
-    font-size: 12.5px; color: var(--muted); line-height: 1.7;
-    border-top: 1px solid var(--border); padding-top: 20px;
-  }
-  .footnotes b { color: var(--text); }
-  .footnotes ul { margin: 8px 0 0 18px; }
-  .footnotes li { margin-bottom: 4px; }
-
-  @media (max-width: 800px) {
-    .stats-grid { grid-template-columns: repeat(3, 1fr); }
-    .pct-grid { grid-template-columns: 1fr; }
-  }
+  .footer-note{font-size:.76rem; color:var(--muted); margin-top:26px; line-height:1.5;}
+  .src-tag{display:inline-block; font-size:.68rem; color:var(--muted); background:var(--panel2); padding:1px 6px; border-radius:5px; margin-left:6px;}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <h1>🎲 Monte Carlo — Zespół BRN</h1>
+  <p class="sub">Metoda bootstrappingowa Troy'a Magennisa (próbkowanie bezpośrednio z historycznego throughput, 10 000 iteracji) · Księgowość Uproszczona</p>
 
-  <div class="page-header">
-    <div class="eyebrow">Prognoza dostaw · Symulacja Monte Carlo</div>
-    <h1>Ile PBI zrobimy w 2 miesiące?</h1>
-    <div class="subtitle">
-      Symulacja oparta na 12 tygodniach historycznego throughput (12 kwietnia – 28 czerwca 2026), metodą bootstrap resampling, 10 000 iteracji. Horyzont: 60 dni (2 miesiące). Cycle time zespołu: 24 dni.
+  <div class="grid">
+    <!-- INPUT PANEL -->
+    <div class="card">
+      <h2>Dane wejściowe</h2>
+
+      <label>Throughput tygodniowy (ostatnie tygodnie, oddzielone przecinkami)</label>
+      <textarea id="throughputInput">9,8,6,5,8,8,2,10,4,8,8</textarea>
+      <div class="hint">Liczba próbek: <span id="sampleCount">11</span> · Troy rekomenduje min. 8–10 najnowszych próbek</div>
+
+      <label>Cycle time — informacyjnie (dni)</label>
+      <input type="number" id="cycleTimeInput" value="22">
+
+      <label>Data startu</label>
+      <input type="date" id="startDateInput" value="2026-07-06">
+
+      <hr style="border-color:var(--border); margin:20px 0;">
+
+      <label style="color:var(--accent2); font-weight:600;">WARIANT A — ile czasu na N PBI?</label>
+      <label>Liczba PBI do ukończenia</label>
+      <input type="number" id="backlogInput" value="39">
+
+      <label style="color:var(--accent2); font-weight:600; margin-top:20px;">WARIANT B — ile PBI do daty X?</label>
+      <label>Data docelowa</label>
+      <input type="date" id="targetDateInput" value="2026-09-11">
+
+      <label>Liczba symulacji</label>
+      <input type="number" id="iterationsInput" value="10000">
+
+      <button onclick="runSimulation()">Uruchom symulację Monte Carlo</button>
+
+      <div id="dataWarning"></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="card">
+        <div class="variant-title"><h2 style="margin:0;">Wariant A — czas do ukończenia backlogu</h2></div>
+        <div class="stats" id="statsA"></div>
+        <div class="weather" id="weatherA"></div>
+        <canvas id="histA"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="variant-title"><h2 style="margin:0;">Wariant B — zakres do daty docelowej</h2></div>
+        <div class="stats" id="statsB"></div>
+        <div class="weather" id="weatherB"></div>
+        <canvas id="histB"></canvas>
+      </div>
     </div>
   </div>
 
-  <div class="stats-grid" id="statsGrid"></div>
-
-  <section>
-    <div class="section-head">
-      <h2>Dane historyczne — throughput tygodniowy</h2>
-      <span class="section-note">12 tygodni, bez wykluczania wartości odstających</span>
-    </div>
-    <div class="panel">
-      <div class="chart-box"><canvas id="throughputChart"></canvas></div>
-    </div>
-  </section>
-
-  <section>
-    <h2 style="margin-bottom:16px;">Metodologia symulacji</h2>
-    <div class="method-box">
-      Każda z <strong>10 000 iteracji</strong> losuje (ze zwracaniem) wartości z 12 historycznych tygodni throughput, sumując wynik dla okresu <strong>60 dni</strong>:
-      <ul>
-        <li><strong>8 pełnych tygodni</strong> — każdy losowany niezależnie z historii,</li>
-        <li><strong>+ częściowy tydzień (57%)</strong> — proporcjonalna część jednego dodatkowo wylosowanego tygodnia, aby uwzględnić niepełny ostatni tydzień 60-dniowego okna.</li>
-      </ul>
-      Z rozkładu 10 000 wyników odczytywane są percentyle: <strong>P50</strong> (scenariusz typowy), <strong>P85</strong> i <strong>P95</strong> (scenariusze konserwatywne — im wyższa pewność, tym niższa gwarantowana liczba PBI).
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>Rozkład wyników symulacji</h2>
-      <span class="section-note">Liczba PBI zrobionych w 60 dni — 10 000 przebiegów</span>
-    </div>
-    <div class="panel">
-      <div class="chart-box"><canvas id="histogramChart"></canvas></div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>Ile PBI zrobimy — wynik prognozy</h2>
-    </div>
-    <div class="pct-grid" id="pctGrid"></div>
-  </section>
-
-  <div class="footnotes">
-    <b>Uwagi metodyczne:</b>
-    <ul>
-      <li>Tydzień <b>28 czerwca (0 PBI)</b> wchodzi do próbkowania jako pełnoprawna wartość historyczna. Jeśli to niepełny/jeszcze trwający tydzień (a nie realne zero), warto go wykluczyć z danych i przeliczyć — obecnie zaniża on wynik symulacji.</li>
-      <li>Symulacja opiera się wyłącznie na throughput; cycle time (24 dni) jest tu kontekstem (m.in. szacowane WIP wg prawa Little'a), a nie wejściem do symulacji liczby PBI.</li>
-      <li>Brak korekty na zmiany składu zespołu, urlopy czy planowane zmiany procesu w nadchodzących 2 miesiącach — jeśli są znane, należałoby je uwzględnić.</li>
-      <li>Wygenerowano: 29 czerwca 2026.</li>
-    </ul>
-  </div>
-
+  <p class="footer-note">
+    Metodologia: bootstrapping (próbkowanie z historycznych danych, bez dopasowywania rozkładu parametrycznego) — zgodnie z podejściem Troy'a Magennisa
+    <span class="src-tag">focusedobjective.com</span>. Percentyle P50/P85/P95 = poziomy pewności prognozy, nie gwarancje. Narzędzie samodzielne — działa offline po pobraniu (poza wczytaniem biblioteki Chart.js).
+  </p>
 </div>
 
 <script>
-const weeklyData = [
-  { date: '12 kwi', count: 9 },
-  { date: '19 kwi', count: 9 },
-  { date: '26 kwi', count: 8 },
-  { date: '3 maj', count: 6 },
-  { date: '10 maj', count: 5 },
-  { date: '17 maj', count: 8 },
-  { date: '24 maj', count: 8 },
-  { date: '31 maj', count: 2 },
-  { date: '7 cze', count: 10 },
-  { date: '14 cze', count: 4 },
-  { date: '21 cze', count: 8 },
-  { date: '28 cze', count: 0 },
-];
+let chartA=null, chartB=null;
 
-const counts = weeklyData.map(d => d.count);
-const cycleTimeDays = 24;
-const N_ITER = 10000;
-const HORIZON_DAYS = 60;
-const FULL_WEEKS = Math.floor(HORIZON_DAYS / 7);          // 8
-const PARTIAL_FRACTION = (HORIZON_DAYS % 7) / 7;           // 0.5714...
-
-function mean(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
-function median(arr) {
-  const s = [...arr].sort((a, b) => a - b);
-  const mid = Math.floor(s.length / 2);
-  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+function parseThroughput(){
+  return document.getElementById('throughputInput').value
+    .split(',').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n) && n>=0);
 }
-function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function runSimulation() {
-  const totals = [];
-  for (let i = 0; i < N_ITER; i++) {
-    let total = 0;
-    for (let w = 0; w < FULL_WEEKS; w++) total += pickRandom(counts);
-    total += PARTIAL_FRACTION * pickRandom(counts);
-    totals.push(Math.round(total));
+document.getElementById('throughputInput').addEventListener('input', ()=>{
+  document.getElementById('sampleCount').textContent = parseThroughput().length;
+});
+
+function pctFromSortedAsc(arr,p){
+  const idx = Math.min(arr.length-1, Math.floor(arr.length*p/100));
+  return arr[idx];
+}
+function pctAtLeast(arrAsc,p){
+  // value such that p% of outcomes are >= this value
+  const idx = Math.min(arrAsc.length-1, Math.floor(arrAsc.length*(100-p)/100));
+  return arrAsc[idx];
+}
+function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+Math.round(days)); return d; }
+function fmtDate(d){ return d.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'}); }
+
+function runSimulation(){
+  const throughput = parseThroughput();
+  const N = parseInt(document.getElementById('iterationsInput').value)||10000;
+  const backlog = parseFloat(document.getElementById('backlogInput').value);
+  const startDate = new Date(document.getElementById('startDateInput').value+'T00:00:00');
+  const targetDate = new Date(document.getElementById('targetDateInput').value+'T00:00:00');
+
+  // data quality warnings
+  let warnings = [];
+  if(throughput.length < 8){
+    warnings.push(`⚠️ Tylko ${throughput.length} próbek throughput — Troy Magennis rekomenduje min. 8–10 najnowszych tygodni. Prognoza może być mniej wiarygodna.`);
   }
-  totals.sort((a, b) => a - b);
-  return totals;
-}
+  const mean = throughput.reduce((a,b)=>a+b,0)/throughput.length;
+  const variance = throughput.reduce((a,b)=>a+(b-mean)**2,0)/throughput.length;
+  const cv = Math.sqrt(variance)/mean;
+  if(cv > 0.45){
+    warnings.push(`⚠️ Wysoka wariancja throughput (odch. std / średnia = ${cv.toFixed(2)}). Rozstrzał między P50 a P95 będzie szeroki — to odzwierciedla realną niestabilność zespołu, nie błąd symulacji.`);
+  }
+  document.getElementById('dataWarning').innerHTML = warnings.length
+    ? `<div class="warn-box">${warnings.join('<br><br>')}</div>` : '';
 
-// confidence c (e.g. 0.85) -> value such that ~c of simulations are >= it
-function confidenceValue(sortedAsc, c) {
-  const idx = Math.min(Math.max(Math.floor((1 - c) * sortedAsc.length), 0), sortedAsc.length - 1);
-  return sortedAsc[idx];
-}
-
-const simResults = runSimulation();
-const p50 = confidenceValue(simResults, 0.50);
-const p85 = confidenceValue(simResults, 0.85);
-const p95 = confidenceValue(simResults, 0.95);
-
-const avgWeekly = mean(counts);
-const medWeekly = median(counts);
-const estimatedWIP = (avgWeekly / 7) * cycleTimeDays;
-
-// ---- Stats grid ----
-const statsGrid = document.getElementById('statsGrid');
-const stats = [
-  { label: 'Tygodnie danych', value: weeklyData.length, unit: '' },
-  { label: 'Śr. throughput', value: avgWeekly.toFixed(1), unit: '/tydz.' },
-  { label: 'Mediana tyg.', value: medWeekly, unit: 'PBI' },
-  { label: 'Cycle time', value: cycleTimeDays, unit: 'dni' },
-  { label: 'Szac. WIP (Little)', value: estimatedWIP.toFixed(0), unit: 'elem.' },
-  { label: 'Iteracje MC', value: '10k', unit: '' },
-];
-statsGrid.innerHTML = stats.map(s => `
-  <div class="stat-card">
-    <div class="stat-label">${s.label}</div>
-    <div class="stat-value">${s.value}<span class="stat-unit">${s.unit}</span></div>
-  </div>
-`).join('');
-
-// ---- Percentile cards ----
-const pctGrid = document.getElementById('pctGrid');
-const pctCards = [
-  { cls: 'p50', tag: 'P50 · scenariusz typowy', value: p50, sub: '50% symulacji dało co najmniej tyle PBI — wartość środkowa, bez marginesu bezpieczeństwa.' },
-  { cls: 'p85', tag: 'P85 · zalecane do planowania', value: p85, sub: 'Z 85% pewnością zrobimy co najmniej tyle PBI w ciągu 60 dni (2 miesięcy).' },
-  { cls: 'p95', tag: 'P95 · konserwatywnie', value: p95, sub: 'Z 95% pewnością zrobimy co najmniej tyle PBI — bezpieczny dolny limit na zewnętrzne zobowiązania.' },
-];
-pctGrid.innerHTML = pctCards.map(c => `
-  <div class="pct-card ${c.cls}">
-    <div class="pct-tag">${c.tag}</div>
-    <div class="pct-number">${c.value} PBI</div>
-    <div class="pct-sub">${c.sub}</div>
-  </div>
-`).join('');
-
-// ---- Throughput chart ----
-new Chart(document.getElementById('throughputChart'), {
-  type: 'bar',
-  data: {
-    labels: weeklyData.map(d => d.date),
-    datasets: [{
-      data: counts,
-      backgroundColor: counts.map(c => c === 0 ? '#fca5a5' : '#2563eb'),
-      borderRadius: 4,
-      maxBarThickness: 36,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false },
-      tooltip: { callbacks: { label: (ctx) => `${ctx.parsed.y} PBI zamkniętych` } } },
-    scales: {
-      y: { beginAtZero: true, grid: { color: '#eef0f5' }, ticks: { font: { family: 'DM Mono', size: 11 } } },
-      x: { grid: { display: false }, ticks: { font: { family: 'DM Mono', size: 10 } } }
+  // --- WARIANT A: weeks needed to reach backlog ---
+  const weeksNeeded = [];
+  for(let i=0;i<N;i++){
+    let total=0, weeks=0;
+    while(total < backlog){
+      total += throughput[Math.floor(Math.random()*throughput.length)];
+      weeks++;
+      if(weeks>500) break;
     }
+    weeksNeeded.push(weeks);
   }
-});
+  weeksNeeded.sort((a,b)=>a-b);
+  const aP50 = pctFromSortedAsc(weeksNeeded,50);
+  const aP85 = pctFromSortedAsc(weeksNeeded,85);
+  const aP95 = pctFromSortedAsc(weeksNeeded,95);
+  const dA50 = addDays(startDate, aP50*7);
+  const dA85 = addDays(startDate, aP85*7);
+  const dA95 = addDays(startDate, aP95*7);
 
-// ---- Histogram of simulation results ----
-const minV = simResults[0], maxV = simResults[simResults.length - 1];
-const binCount = 24;
-const binSize = Math.max(1, Math.ceil((maxV - minV + 1) / binCount));
-const bins = [];
-for (let v = minV; v <= maxV; v += binSize) bins.push(v);
-const binCounts = new Array(bins.length).fill(0);
-simResults.forEach(v => {
-  let idx = Math.floor((v - minV) / binSize);
-  if (idx >= binCounts.length) idx = binCounts.length - 1;
-  binCounts[idx]++;
-});
+  document.getElementById('statsA').innerHTML = `
+    <div class="stat p50"><div class="p">P50</div><div class="v">${aP50} tyg.</div><div class="d">${fmtDate(dA50)}</div></div>
+    <div class="stat p85"><div class="p">P85</div><div class="v">${aP85} tyg.</div><div class="d">${fmtDate(dA85)}</div></div>
+    <div class="stat p95"><div class="p">P95</div><div class="v">${aP95} tyg.</div><div class="d">${fmtDate(dA95)}</div></div>
+  `;
+  document.getElementById('weatherA').innerHTML =
+    `☀️ Z prawdopodobieństwem <b>50%</b> ukończymy ${backlog} PBI do <b>${fmtDate(dA50)}</b>.<br>
+     🌤️ Z prawdopodobieństwem <b>85%</b> — do <b>${fmtDate(dA85)}</b> (bezpieczny commitment).<br>
+     🌧️ Z prawdopodobieństwem <b>95%</b> — do <b>${fmtDate(dA95)}</b> (scenariusz konserwatywny).`;
 
-function nearestBinIndex(value) {
-  let best = 0, bestDist = Infinity;
-  bins.forEach((b, i) => {
-    const dist = Math.abs((b + binSize / 2) - value);
-    if (dist < bestDist) { bestDist = dist; best = i; }
+  drawHistogram('histA', weeksNeeded, 'Liczba tygodni do ukończenia backlogu', chartA, (c)=>chartA=c);
+
+  // --- WARIANT B: items completed by target date ---
+  const daysToTarget = (targetDate - startDate)/(1000*60*60*24);
+  const weeksToTarget = daysToTarget/7;
+  const fullWeeks = Math.floor(weeksToTarget);
+  const frac = weeksToTarget - fullWeeks;
+
+  const itemsCompleted = [];
+  for(let i=0;i<N;i++){
+    let total=0;
+    for(let w=0;w<fullWeeks;w++){
+      total += throughput[Math.floor(Math.random()*throughput.length)];
+    }
+    total += throughput[Math.floor(Math.random()*throughput.length)]*frac;
+    itemsCompleted.push(total);
+  }
+  itemsCompleted.sort((a,b)=>a-b);
+  const bP50 = pctAtLeast(itemsCompleted,50);
+  const bP85 = pctAtLeast(itemsCompleted,85);
+  const bP95 = pctAtLeast(itemsCompleted,95);
+
+  document.getElementById('statsB').innerHTML = `
+    <div class="stat p50"><div class="p">P50</div><div class="v">${bP50.toFixed(0)} PBI</div><div class="d">min. z tym prawdop.</div></div>
+    <div class="stat p85"><div class="p">P85</div><div class="v">${bP85.toFixed(0)} PBI</div><div class="d">min. z tym prawdop.</div></div>
+    <div class="stat p95"><div class="p">P95</div><div class="v">${bP95.toFixed(0)} PBI</div><div class="d">min. z tym prawdop.</div></div>
+  `;
+  document.getElementById('weatherB').innerHTML =
+    `☀️ Z prawdopodobieństwem <b>50%</b> ukończymy co najmniej <b>${bP50.toFixed(0)} PBI</b> do ${fmtDate(targetDate)}.<br>
+     🌤️ Z prawdopodobieństwem <b>85%</b> — co najmniej <b>${bP85.toFixed(0)} PBI</b> (bezpieczny commitment).<br>
+     🌧️ Z prawdopodobieństwem <b>95%</b> — co najmniej <b>${bP95.toFixed(0)} PBI</b> (scenariusz konserwatywny).`;
+
+  drawHistogram('histB', itemsCompleted, `Liczba PBI ukończonych do ${fmtDate(targetDate)}`, chartB, (c)=>chartB=c);
+}
+
+function drawHistogram(canvasId, data, label, existingChart, setChart){
+  if(existingChart) existingChart.destroy();
+  const min = Math.min(...data), max = Math.max(...data);
+  const binCount = Math.min(20, Math.max(5, Math.round(max-min)+1));
+  const binSize = (max-min)/binCount || 1;
+  const bins = new Array(binCount).fill(0);
+  data.forEach(v=>{
+    let idx = Math.floor((v-min)/binSize);
+    if(idx>=binCount) idx = binCount-1;
+    if(idx<0) idx = 0;
+    bins[idx]++;
   });
-  return best;
+  const labels = bins.map((_,i)=> (min+i*binSize).toFixed(1));
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const chart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label, data:bins, backgroundColor:'rgba(91,141,238,0.65)', borderRadius:3 }] },
+    options:{
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ ticks:{color:'#93a0bf', maxRotation:0, autoSkip:true}, grid:{color:'#2a3550'} },
+        y:{ ticks:{color:'#93a0bf'}, grid:{color:'#2a3550'} }
+      }
+    }
+  });
+  setChart(chart);
 }
 
-const markerLinePlugin = {
-  id: 'markerLines',
-  afterDraw(chart) {
-    const { ctx, chartArea, scales } = chart;
-    const markers = [
-      { v: p50, color: '#d97706', label: 'P50' },
-      { v: p85, color: '#dc2626', label: 'P85' },
-      { v: p95, color: '#7c3aed', label: 'P95' },
-    ];
-    markers.forEach(m => {
-      const idx = nearestBinIndex(m.v);
-      const x = scales.x.getPixelForValue(idx);
-      ctx.save();
-      ctx.beginPath();
-      ctx.strokeStyle = m.color;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([4, 3]);
-      ctx.moveTo(x, chartArea.top);
-      ctx.lineTo(x, chartArea.bottom);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = m.color;
-      ctx.font = "600 11px 'DM Mono', monospace";
-      ctx.textAlign = 'center';
-      ctx.fillText(m.label, x, chartArea.top - 6);
-      ctx.restore();
-    });
-  }
-};
-
-new Chart(document.getElementById('histogramChart'), {
-  type: 'bar',
-  data: {
-    labels: bins.map(b => `${b}`),
-    datasets: [{
-      data: binCounts,
-      backgroundColor: '#93c5fd',
-      borderRadius: 2,
-      categoryPercentage: 1.0,
-      barPercentage: 1.0,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    layout: { padding: { top: 24 } },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          title: (items) => `${bins[items[0].dataIndex]}–${bins[items[0].dataIndex] + binSize - 1} PBI`,
-          label: (ctx) => `${ctx.parsed.y} symulacji`
-        }
-      }
-    },
-    scales: {
-      y: { beginAtZero: true, grid: { color: '#eef0f5' }, ticks: { font: { family: 'DM Mono', size: 11 } }, title: { display: true, text: 'liczba symulacji', font: { family: 'DM Mono', size: 10 } } },
-      x: { grid: { display: false }, ticks: { font: { family: 'DM Mono', size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }, title: { display: true, text: 'PBI zrobionych w 60 dni', font: { family: 'DM Mono', size: 10 } } }
-    }
-  },
-  plugins: [markerLinePlugin]
-});
+runSimulation();
 </script>
 </body>
 </html>
