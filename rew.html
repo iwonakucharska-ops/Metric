@@ -3,718 +3,386 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Monte Carlo · REW Backlog</title>
+<title>Monte Carlo · REW Backlog v2</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F7F8FA;
-    --surface: #FFFFFF;
-    --border: #E4E7ED;
-    --text-primary: #1A1D23;
-    --text-secondary: #6B7280;
-    --text-muted: #9CA3AF;
-    --p50: #2563EB;
-    --p85: #D97706;
-    --p95: #DC2626;
-    --green: #059669;
-    --grid: #EEF0F4;
-    --p1: #7C3AED;
-    --p2: #D97706;
-    --vac: #0891B2;
+    --bg:#F7F8FA; --surface:#FFF; --border:#E4E7ED;
+    --text-primary:#1A1D23; --text-secondary:#6B7280; --text-muted:#9CA3AF;
+    --p50:#2563EB; --p85:#D97706; --p95:#DC2626;
+    --green:#059669; --grid:#EEF0F4;
+    --p1:#7C3AED; --p2:#D97706; --vac:#0891B2;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text-primary); min-height: 100vh; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text-primary);min-height:100vh;}
 
-  /* TABS */
-  .tab-bar { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
-  .tab-bar-inner { max-width: 1100px; margin: 0 auto; display: flex; gap: 0; padding: 0 24px; }
-  .tab-btn {
-    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
-    padding: 14px 20px; border: none; background: none; cursor: pointer;
-    color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
-    transition: color 0.15s, border-color 0.15s; white-space: nowrap;
-  }
-  .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent, #2563EB); }
-  .tab-btn:hover:not(.active) { color: var(--text-secondary); }
-  .tab-btn.p1-tab.active { border-bottom-color: var(--p1); }
-  .tab-btn.p2-tab.active { border-bottom-color: var(--p2); }
-  .tab-btn.vac-tab.active { border-bottom-color: var(--vac); }
+  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;overflow-x:auto;}
+  .tab-bar-inner{max-width:1200px;margin:0 auto;display:flex;padding:0 24px;min-width:max-content;}
+  .tab-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:13px 16px;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;white-space:nowrap;}
+  .tab-btn.active{color:var(--text-primary);border-bottom-color:#2563EB;}
+  .tab-btn.t-p1.active{border-bottom-color:var(--p1);}
+  .tab-btn.t-p2.active{border-bottom-color:var(--p2);}
+  .tab-btn.t-vac.active{border-bottom-color:var(--vac);}
+  .tab-btn:hover:not(.active){color:var(--text-secondary);}
 
-  .tab-content { display: none; padding: 32px 24px 48px; }
-  .tab-content.active { display: block; }
+  .tab-content{display:none;padding:32px 24px 48px;}
+  .tab-content.active{display:block;}
+  .page{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:28px;}
 
-  /* LAYOUT */
-  .page { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  .page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .page-header h1{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;letter-spacing:-.3px;}
+  .page-header p{font-size:13px;color:var(--text-secondary);margin-top:4px;}
+  .header-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);text-align:right;line-height:1.8;}
 
-  header.page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
-  .header-left h1 { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
-  .header-left p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
-  .header-meta { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); text-align: right; line-height: 1.8; }
+  .cards-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;}
+  .card-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+  .card-value{font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;line-height:1;}
+  .card-sub{font-size:12px;color:var(--text-secondary);margin-top:6px;}
+  .c50 .card-value{color:var(--p50);} .c85 .card-value{color:var(--p85);} .c95 .card-value{color:var(--p95);}
 
-  .cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
-  .card-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
-  .card-value { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 600; line-height: 1; }
-  .card-sub { font-size: 12px; color: var(--text-secondary); margin-top: 6px; }
-  .c50 .card-value { color: var(--p50); }
-  .c85 .card-value { color: var(--p85); }
-  .c95 .card-value { color: var(--p95); }
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px 26px 20px;}
+  .panel-title{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:4px;}
+  .panel-subtitle{font-size:12px;color:var(--text-secondary);margin-bottom:20px;}
+  canvas{width:100%!important;display:block;}
 
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px 26px 20px; }
-  .panel-title { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-  .panel-subtitle { font-size: 12px; color: var(--text-secondary); margin-bottom: 20px; }
-  canvas { width: 100% !important; display: block; }
+  .pct-row{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;}
+  .pct-chip{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:7px;border:1px solid var(--border);min-width:125px;}
+  .pct-chip-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;}
+  .pct-chip-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;}
+  .pct-chip-desc{font-size:11px;color:var(--text-secondary);}
 
-  .pct-row { display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
-  .pct-chip { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-radius: 7px; border: 1px solid var(--border); min-width: 130px; }
-  .pct-chip-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
-  .pct-chip-val { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; }
-  .pct-chip-desc { font-size: 11px; color: var(--text-secondary); }
+  .info-box{border-radius:8px;padding:14px 18px;font-size:12px;line-height:1.6;}
+  .info-box strong{font-family:'IBM Plex Mono',monospace;}
+  .ib-blue{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;}
+  .ib-purple{background:#F5F3FF;border:1px solid #DDD6FE;color:#5B21B6;}
+  .ib-amber{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;}
+  .ib-teal{background:#ECFEFF;border:1px solid #A5F3FC;color:#155E75;}
 
-  .data-table { width: 100%; border-collapse: collapse; }
-  .data-table th { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); font-weight: 500; padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-  .data-table td { padding: 8px 12px; border-bottom: 1px solid var(--grid); color: var(--text-primary); font-size: 13px; }
-  .data-table tr:last-child td { border-bottom: none; }
-  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 2px 7px; border-radius: 4px; background: #FEF3C7; color: #92400E; }
-  .tag-sprint { background: #EFF6FF; color: #1D4ED8; }
+  .verdict{border-radius:10px;padding:20px 24px;display:flex;align-items:center;gap:18px;}
+  .verdict-icon{font-size:26px;flex-shrink:0;}
+  .verdict-text h3{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:4px;}
+  .verdict-text p{font-size:12px;line-height:1.5;}
+  .v-green{background:#F0FDF4;border:1px solid #86EFAC;}
+  .v-amber{background:#FFFBEB;border:1px solid #FCD34D;}
+  .v-red{background:#FFF1F2;border:1px solid #FCA5A5;}
 
-  .info-box { border-radius: 8px; padding: 14px 18px; font-size: 12px; line-height: 1.6; }
-  .info-box strong { font-family: 'IBM Plex Mono', monospace; }
-  .info-box-blue { background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; }
-  .info-box-purple { background: #F5F3FF; border: 1px solid #DDD6FE; color: #5B21B6; }
-  .info-box-amber { background: #FFFBEB; border: 1px solid #FCD34D; color: #92400E; }
-  .info-box-teal  { background: #ECFEFF; border: 1px solid #A5F3FC; color: #155E75; }
+  .data-table{width:100%;border-collapse:collapse;}
+  .data-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:500;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  .data-table td{padding:8px 12px;border-bottom:1px solid var(--grid);font-size:13px;}
+  .data-table tr:last-child td{border-bottom:none;}
+  .tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;background:#FEF3C7;color:#92400E;}
+  .tag-sprint{background:#EFF6FF;color:#1D4ED8;}
 
-  /* verdict card */
-  .verdict { border-radius: 10px; padding: 20px 24px; display: flex; align-items: center; gap: 18px; }
-  .verdict-icon { font-size: 28px; flex-shrink: 0; }
-  .verdict-text h3 { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-  .verdict-text p { font-size: 12px; line-height: 1.5; }
-  .verdict-green { background: #F0FDF4; border: 1px solid #86EFAC; }
-  .verdict-amber { background: #FFFBEB; border: 1px solid #FCD34D; }
-  .verdict-red { background: #FFF1F2; border: 1px solid #FCA5A5; }
-
-  footer { max-width: 1100px; margin: 8px auto 0; padding: 0 24px 24px; font-size: 11px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; text-align: right; }
+  footer{max-width:1100px;margin:8px auto 0;padding:0 24px 24px;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-align:right;}
 </style>
 </head>
 <body>
 
-<div class="tab-bar">
-  <div class="tab-bar-inner">
-    <button class="tab-btn active" onclick="switchTab('all')">📦 Pełny backlog (81 PBI)</button>
-    <button class="tab-btn p1-tab" onclick="switchTab('p1')">🔴 Priorytety P1 (49 PBI)</button>
-    <button class="tab-btn p2-tab" onclick="switchTab('p2')">🟠 P1 + P2 (57 PBI)</button>
-    <button class="tab-btn vac-tab" onclick="switchTab('vac-all')">🏖️ Urlop · Backlog (81)</button>
-    <button class="tab-btn vac-tab" onclick="switchTab('vac-p1')">🏖️ Urlop · P1 (49)</button>
-    <button class="tab-btn vac-tab" onclick="switchTab('vac-p2')">🏖️ Urlop · P1+P2 (57)</button>
-  </div>
-</div>
+<div class="tab-bar"><div class="tab-bar-inner">
+  <button class="tab-btn active"      onclick="sw('all')">📦 Backlog (91)</button>
+  <button class="tab-btn t-p1"        onclick="sw('p1')">🔴 P1 (52)</button>
+  <button class="tab-btn t-p2"        onclick="sw('p2')">🟠 P1+P2 (61)</button>
+  <button class="tab-btn t-vac"       onclick="sw('va')">🏖️ Urlop · Backlog (91)</button>
+  <button class="tab-btn t-vac t-p1"  onclick="sw('vp1')">🏖️ Urlop · P1 (52)</button>
+  <button class="tab-btn t-vac t-p2"  onclick="sw('vp2')">🏖️ Urlop · P1+P2 (61)</button>
+</div></div>
 
-<!-- ═══════════════════ ZAKŁADKA 1: PEŁNY BACKLOG ═══════════════════ -->
-<div id="tab-all" class="tab-content active">
-<div class="page">
+<!-- helper macro: each tab is generated by JS to keep HTML DRY -->
+<div id="tab-all" class="tab-content active"></div>
+<div id="tab-p1"  class="tab-content"></div>
+<div id="tab-p2"  class="tab-content"></div>
+<div id="tab-va"  class="tab-content"></div>
+<div id="tab-vp1" class="tab-content"></div>
+<div id="tab-vp2" class="tab-content"></div>
 
-  <header class="page-header">
-    <div class="header-left">
-      <h1>REW · Monte Carlo Forecast</h1>
-      <p>Net throughput PBI (całkowity − bugi reaktywne) · 10 000 iteracji</p>
-    </div>
-    <div class="header-meta">
-      Backlog: 81 PBI &nbsp;|&nbsp; Start: 06.07.2026<br>
-      Deadline: 10.09.2026 &nbsp;|&nbsp; Avg net: ~11 PBI/tydz.
-    </div>
-  </header>
-
-  <div class="info-box info-box-blue">
-    <strong>Metodologia:</strong> Throughput całkowity (bugi + PBI) pomniejszony o tygodniową liczbę zamykanych bugów reaktywnych.
-    Pula bootstrappingu: 10 tygodni netto (wykluczono 31.05 jako outlier i 28.06 jako sprint w toku).
-    Net pool: [13, 15, 15, 8, 7, 9, 9, 13, 9, 12] PBI/tydz. · średnia 11,0 · min 7 · max 15
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Wykres 1 — Kiedy ukończymy wszystkie 81 PBI?</div>
-    <div class="panel-subtitle">Rozkład dat ukończenia pełnego backlogu · percentyle 50 / 85 / 95 zaznaczone pionowymi liniami</div>
-    <canvas id="chart1" height="220"></canvas>
-    <div class="cards-row" style="margin-top:20px;">
-      <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value" id="p50-date1">–</div><div class="card-sub" id="p50-weeks1"></div></div>
-      <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value" id="p85-date1">–</div><div class="card-sub" id="p85-weeks1"></div></div>
-      <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value" id="p95-date1">–</div><div class="card-sub" id="p95-weeks1"></div></div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 10.09.2026?</div>
-    <div class="panel-subtitle">Rozkład liczby PBI zamkniętych w oknie 6.07 → 10.09 (~9,5 tygodnia roboczego)</div>
-    <canvas id="chart2" height="220"></canvas>
-    <div class="pct-row">
-      <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" id="p50-pbi" style="color:var(--p50)">–</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" id="p85-pbi" style="color:var(--p85)">–</span><span class="pct-chip-desc">PBI z 85% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" id="p95-pbi" style="color:var(--p95)">–</span><span class="pct-chip-desc">PBI z 95% pewnością</span></div>
-      <div class="pct-chip" style="border-color:#DCFCE7; background:#F0FDF4;">
-        <span class="pct-chip-label" style="color:#166534;">Pr(≥81 PBI)</span>
-        <span class="pct-chip-val" id="prob-all" style="color:var(--green)">–</span>
-        <span class="pct-chip-desc" style="color:#166534;">szansa ukończenia wszystkich</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title" style="margin-bottom:14px;">Dane historyczne · dekompozycja throughput</div>
-    <table class="data-table">
-      <thead><tr><th>Tydzień od</th><th>Łącznie</th><th>Bugi</th><th>Net PBI</th><th>Status</th></tr></thead>
-      <tbody id="data-table-body"></tbody>
-    </table>
-  </div>
-
-</div>
-</div>
-
-<!-- ═══════════════════ ZAKŁADKA 2: P1 ═══════════════════ -->
-<div id="tab-p1" class="tab-content">
-<div class="page">
-
-  <header class="page-header">
-    <div class="header-left">
-      <h1>REW · Priorytety P1</h1>
-      <p>Symulacja dla 49 PBI o najwyższym priorytecie · 10 000 iteracji</p>
-    </div>
-    <div class="header-meta">
-      Backlog P1: 49 PBI &nbsp;|&nbsp; Start: 06.07.2026<br>
-      Deadline: 10.09.2026 &nbsp;|&nbsp; Ta sama pula throughput
-    </div>
-  </header>
-
-  <div class="info-box info-box-purple">
-    <strong>Założenie:</strong> P1 stanowią 49 z 81 PBI (60% backlogu). Symulacja używa tej samej puli net throughput co zakładka główna
-    — zakładamy, że team koncentruje się na P1, realizując je w kolejności priorytetowej. Jeśli w rzeczywistości P1 i niższe priorytety
-    są mieszane w sprintach, wynik będzie zachowawczy (korzystny).
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Wykres 1 — Kiedy ukończymy wszystkie 49 PBI (P1)?</div>
-    <div class="panel-subtitle">Rozkład dat ukończenia backlogu P1 · percentyle 50 / 85 / 95</div>
-    <canvas id="chart-p1-1" height="220"></canvas>
-    <div class="cards-row" style="margin-top:20px;">
-      <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value" id="p1-p50-date">–</div><div class="card-sub" id="p1-p50-weeks"></div></div>
-      <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value" id="p1-p85-date">–</div><div class="card-sub" id="p1-p85-weeks"></div></div>
-      <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value" id="p1-p95-date">–</div><div class="card-sub" id="p1-p95-weeks"></div></div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Wykres 2 — Ile P1 ukończymy do 10.09.2026?</div>
-    <div class="panel-subtitle">Rozkład liczby P1 zamkniętych w oknie 6.07 → 10.09</div>
-    <canvas id="chart-p1-2" height="220"></canvas>
-    <div class="pct-row">
-      <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" id="p1-p50-pbi" style="color:var(--p50)">–</span><span class="pct-chip-desc">P1 z 50% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" id="p1-p85-pbi" style="color:var(--p85)">–</span><span class="pct-chip-desc">P1 z 85% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" id="p1-p95-pbi" style="color:var(--p95)">–</span><span class="pct-chip-desc">P1 z 95% pewnością</span></div>
-      <div class="pct-chip" style="border-color:#EDE9FE; background:#F5F3FF;">
-        <span class="pct-chip-label" style="color:#5B21B6;">Pr(≥49 P1)</span>
-        <span class="pct-chip-val" id="p1-prob-all" style="color:var(--p1)">–</span>
-        <span class="pct-chip-desc" style="color:#5B21B6;">szansa ukończenia wszystkich P1</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Verdict card -->
-  <div id="p1-verdict" class="verdict verdict-amber">
-    <div class="verdict-icon">⏳</div>
-    <div class="verdict-text">
-      <h3 id="p1-verdict-title">Obliczanie...</h3>
-      <p id="p1-verdict-desc"></p>
-    </div>
-  </div>
-
-  <!-- porównanie z pełnym backlogiem -->
-  <div class="panel">
-    <div class="panel-title" style="margin-bottom:16px;">Porównanie: P1 vs pełny backlog</div>
-    <table class="data-table">
-      <thead><tr><th>Scenariusz</th><th>Backlog</th><th>P50</th><th>P85</th><th>P95</th><th>Pr(do 10.09)</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>🔴 Tylko P1</td>
-          <td>49 PBI</td>
-          <td id="cmp-p1-p50" style="color:var(--p50);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp-p1-p85" style="color:var(--p85);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp-p1-p95" style="color:var(--p95);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp-p1-prob" style="font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-        </tr>
-        <tr style="color:var(--text-secondary)">
-          <td>📦 Pełny backlog</td>
-          <td>81 PBI</td>
-          <td id="cmp-all-p50" style="font-family:'IBM Plex Mono',monospace">–</td>
-          <td id="cmp-all-p85" style="font-family:'IBM Plex Mono',monospace">–</td>
-          <td id="cmp-all-p95" style="font-family:'IBM Plex Mono',monospace">–</td>
-          <td id="cmp-all-prob" style="font-family:'IBM Plex Mono',monospace">–</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-</div>
-
-<!-- ═══════════════════ ZAKŁADKA 3: P1+P2 ═══════════════════ -->
-<div id="tab-p2" class="tab-content">
-<div class="page">
-
-  <header class="page-header">
-    <div class="header-left">
-      <h1>REW · Priorytety P1 + P2</h1>
-      <p>Symulacja dla 57 PBI o priorytecie P1 i P2 · 10 000 iteracji</p>
-    </div>
-    <div class="header-meta">
-      Backlog P1+P2: 57 PBI &nbsp;|&nbsp; Start: 06.07.2026<br>
-      Deadline: 10.09.2026 &nbsp;|&nbsp; Ta sama pula throughput
-    </div>
-  </header>
-
-  <div class="info-box info-box-amber">
-    <strong>Założenie:</strong> P1+P2 stanowią 57 z 81 PBI (70% backlogu). Symulacja używa tej samej puli net throughput.
-    Scenariusz zakłada skupienie zespołu na PBI P1 i P2 przed realizacją niższych priorytetów.
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Wykres 1 — Kiedy ukończymy wszystkie 57 PBI (P1+P2)?</div>
-    <div class="panel-subtitle">Rozkład dat ukończenia backlogu P1+P2 · percentyle 50 / 85 / 95</div>
-    <canvas id="chart-p2-1" height="220"></canvas>
-    <div class="cards-row" style="margin-top:20px;">
-      <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value" id="p2-p50-date">–</div><div class="card-sub" id="p2-p50-weeks"></div></div>
-      <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value" id="p2-p85-date">–</div><div class="card-sub" id="p2-p85-weeks"></div></div>
-      <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value" id="p2-p95-date">–</div><div class="card-sub" id="p2-p95-weeks"></div></div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-title">Wykres 2 — Ile P1+P2 ukończymy do 10.09.2026?</div>
-    <div class="panel-subtitle">Rozkład liczby PBI P1+P2 zamkniętych w oknie 6.07 → 10.09</div>
-    <canvas id="chart-p2-2" height="220"></canvas>
-    <div class="pct-row">
-      <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" id="p2-p50-pbi" style="color:var(--p50)">–</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" id="p2-p85-pbi" style="color:var(--p85)">–</span><span class="pct-chip-desc">PBI z 85% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" id="p2-p95-pbi" style="color:var(--p95)">–</span><span class="pct-chip-desc">PBI z 95% pewnością</span></div>
-      <div class="pct-chip" style="border-color:#FDE68A; background:#FFFBEB;">
-        <span class="pct-chip-label" style="color:#92400E;">Pr(≥57 PBI)</span>
-        <span class="pct-chip-val" id="p2-prob-all" style="color:var(--p2)">–</span>
-        <span class="pct-chip-desc" style="color:#92400E;">szansa ukończenia wszystkich P1+P2</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Verdict -->
-  <div id="p2-verdict" class="verdict verdict-amber">
-    <div class="verdict-icon" id="p2-verdict-icon">⏳</div>
-    <div class="verdict-text">
-      <h3 id="p2-verdict-title">Obliczanie...</h3>
-      <p id="p2-verdict-desc"></p>
-    </div>
-  </div>
-
-  <!-- Tabela porównawcza wszystkich 3 scenariuszy -->
-  <div class="panel">
-    <div class="panel-title" style="margin-bottom:16px;">Porównanie scenariuszy</div>
-    <table class="data-table">
-      <thead><tr><th>Scenariusz</th><th>Backlog</th><th>P50</th><th>P85</th><th>P95</th><th>Pr(do 10.09)</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>🔴 Tylko P1</td><td>49 PBI</td>
-          <td id="cmp3-p1-p50" style="color:var(--p50);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp3-p1-p85" style="color:var(--p85);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp3-p1-p95" style="color:var(--p95);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp3-p1-prob" style="font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-        </tr>
-        <tr>
-          <td>🟠 P1 + P2</td><td>57 PBI</td>
-          <td id="cmp3-p2-p50" style="color:var(--p50);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp3-p2-p85" style="color:var(--p85);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp3-p2-p95" style="color:var(--p95);font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-          <td id="cmp3-p2-prob" style="font-family:'IBM Plex Mono',monospace;font-weight:600">–</td>
-        </tr>
-        <tr style="color:var(--text-secondary)">
-          <td>📦 Pełny backlog</td><td>81 PBI</td>
-          <td id="cmp3-all-p50" style="font-family:'IBM Plex Mono',monospace">–</td>
-          <td id="cmp3-all-p85" style="font-family:'IBM Plex Mono',monospace">–</td>
-          <td id="cmp3-all-p95" style="font-family:'IBM Plex Mono',monospace">–</td>
-          <td id="cmp3-all-prob" style="font-family:'IBM Plex Mono',monospace">–</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-</div>
-</div>
-
-<!-- ═══════════════ ZAKŁADKA 4: URLOP · PEŁNY BACKLOG ═══════════════ -->
-<div id="tab-vac-all" class="tab-content">
-<div class="page">
-  <header class="page-header">
-    <div class="header-left">
-      <h1>REW · Urlop · Pełny backlog</h1>
-      <p>Capacity ×0.67 (1 z 3 osób nieobecna) · 81 PBI · 10 000 iteracji</p>
-    </div>
-    <div class="header-meta">Backlog: 81 PBI &nbsp;|&nbsp; Start: 06.07.2026<br>Capacity: ×0.67 &nbsp;|&nbsp; Avg net: ~7,4 PBI/tydz.</div>
-  </header>
-  <div class="info-box info-box-teal">
-    <strong>Scenariusz urlopowy:</strong> Net throughput każdego tygodnia przemnożony przez ×0,67 (1 osoba z 3-osobowego zespołu nieobecna przez cały okres).
-    Pula po korekcie: [8.7, 10.1, 10.1, 5.4, 4.7, 6.0, 6.0, 8.7, 6.0, 8.0] → zaokrąglone do pełnych PBI.
-  </div>
-  <div class="panel">
-    <div class="panel-title">Wykres 1 — Kiedy ukończymy wszystkie 81 PBI? (scenariusz urlopowy)</div>
-    <div class="panel-subtitle">Percentyle 50 / 85 / 95 · capacity ×0.67</div>
-    <canvas id="chart-vac-all-1" height="220"></canvas>
-    <div class="cards-row" style="margin-top:20px;">
-      <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value" id="vac-all-p50-date">–</div><div class="card-sub" id="vac-all-p50-weeks"></div></div>
-      <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value" id="vac-all-p85-date">–</div><div class="card-sub" id="vac-all-p85-weeks"></div></div>
-      <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value" id="vac-all-p95-date">–</div><div class="card-sub" id="vac-all-p95-weeks"></div></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 10.09.2026? (scenariusz urlopowy)</div>
-    <div class="panel-subtitle">Okno 6.07 → 10.09 · capacity ×0.67</div>
-    <canvas id="chart-vac-all-2" height="220"></canvas>
-    <div class="pct-row">
-      <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" id="vac-all-p50-pbi" style="color:var(--p50)">–</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" id="vac-all-p85-pbi" style="color:var(--p85)">–</span><span class="pct-chip-desc">PBI z 85% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" id="vac-all-p95-pbi" style="color:var(--p95)">–</span><span class="pct-chip-desc">PBI z 95% pewnością</span></div>
-      <div class="pct-chip" style="border-color:#A5F3FC;background:#ECFEFF;">
-        <span class="pct-chip-label" style="color:#155E75;">Pr(≥81 PBI)</span>
-        <span class="pct-chip-val" id="vac-all-prob" style="color:var(--vac)">–</span>
-        <span class="pct-chip-desc" style="color:#155E75;">szansa ukończenia wszystkich</span>
-      </div>
-    </div>
-  </div>
-  <div id="vac-all-verdict" class="verdict verdict-amber">
-    <div class="verdict-icon" id="vac-all-verdict-icon">⏳</div>
-    <div class="verdict-text"><h3 id="vac-all-verdict-title">Obliczanie...</h3><p id="vac-all-verdict-desc"></p></div>
-  </div>
-</div>
-</div>
-
-<!-- ═══════════════ ZAKŁADKA 5: URLOP · P1 ═══════════════ -->
-<div id="tab-vac-p1" class="tab-content">
-<div class="page">
-  <header class="page-header">
-    <div class="header-left">
-      <h1>REW · Urlop · Priorytety P1</h1>
-      <p>Capacity ×0.67 (1 z 3 osób nieobecna) · 49 PBI · 10 000 iteracji</p>
-    </div>
-    <div class="header-meta">Backlog P1: 49 PBI &nbsp;|&nbsp; Start: 06.07.2026<br>Capacity: ×0.67 &nbsp;|&nbsp; Deadline: 10.09.2026</div>
-  </header>
-  <div class="info-box info-box-teal">
-    <strong>Scenariusz urlopowy:</strong> Pula net throughput przemnożona ×0,67. Cel: 49 PBI P1 przy stałym urlopie jednej osoby.
-  </div>
-  <div class="panel">
-    <div class="panel-title">Wykres 1 — Kiedy ukończymy wszystkie 49 P1? (scenariusz urlopowy)</div>
-    <div class="panel-subtitle">Percentyle 50 / 85 / 95 · capacity ×0.67</div>
-    <canvas id="chart-vac-p1-1" height="220"></canvas>
-    <div class="cards-row" style="margin-top:20px;">
-      <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value" id="vac-p1-p50-date">–</div><div class="card-sub" id="vac-p1-p50-weeks"></div></div>
-      <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value" id="vac-p1-p85-date">–</div><div class="card-sub" id="vac-p1-p85-weeks"></div></div>
-      <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value" id="vac-p1-p95-date">–</div><div class="card-sub" id="vac-p1-p95-weeks"></div></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="panel-title">Wykres 2 — Ile P1 ukończymy do 10.09.2026? (scenariusz urlopowy)</div>
-    <div class="panel-subtitle">Okno 6.07 → 10.09 · capacity ×0.67</div>
-    <canvas id="chart-vac-p1-2" height="220"></canvas>
-    <div class="pct-row">
-      <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" id="vac-p1-p50-pbi" style="color:var(--p50)">–</span><span class="pct-chip-desc">P1 z 50% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" id="vac-p1-p85-pbi" style="color:var(--p85)">–</span><span class="pct-chip-desc">P1 z 85% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" id="vac-p1-p95-pbi" style="color:var(--p95)">–</span><span class="pct-chip-desc">P1 z 95% pewnością</span></div>
-      <div class="pct-chip" style="border-color:#A5F3FC;background:#ECFEFF;">
-        <span class="pct-chip-label" style="color:#155E75;">Pr(≥49 P1)</span>
-        <span class="pct-chip-val" id="vac-p1-prob" style="color:var(--vac)">–</span>
-        <span class="pct-chip-desc" style="color:#155E75;">szansa ukończenia wszystkich P1</span>
-      </div>
-    </div>
-  </div>
-  <div id="vac-p1-verdict" class="verdict verdict-amber">
-    <div class="verdict-icon" id="vac-p1-verdict-icon">⏳</div>
-    <div class="verdict-text"><h3 id="vac-p1-verdict-title">Obliczanie...</h3><p id="vac-p1-verdict-desc"></p></div>
-  </div>
-</div>
-</div>
-
-<!-- ═══════════════ ZAKŁADKA 6: URLOP · P1+P2 ═══════════════ -->
-<div id="tab-vac-p2" class="tab-content">
-<div class="page">
-  <header class="page-header">
-    <div class="header-left">
-      <h1>REW · Urlop · P1 + P2</h1>
-      <p>Capacity ×0.67 (1 z 3 osób nieobecna) · 57 PBI · 10 000 iteracji</p>
-    </div>
-    <div class="header-meta">Backlog P1+P2: 57 PBI &nbsp;|&nbsp; Start: 06.07.2026<br>Capacity: ×0.67 &nbsp;|&nbsp; Deadline: 10.09.2026</div>
-  </header>
-  <div class="info-box info-box-teal">
-    <strong>Scenariusz urlopowy:</strong> Pula net throughput przemnożona ×0,67. Cel: 57 PBI P1+P2 przy stałym urlopie jednej osoby.
-  </div>
-  <div class="panel">
-    <div class="panel-title">Wykres 1 — Kiedy ukończymy wszystkie 57 P1+P2? (scenariusz urlopowy)</div>
-    <div class="panel-subtitle">Percentyle 50 / 85 / 95 · capacity ×0.67</div>
-    <canvas id="chart-vac-p2-1" height="220"></canvas>
-    <div class="cards-row" style="margin-top:20px;">
-      <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value" id="vac-p2-p50-date">–</div><div class="card-sub" id="vac-p2-p50-weeks"></div></div>
-      <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value" id="vac-p2-p85-date">–</div><div class="card-sub" id="vac-p2-p85-weeks"></div></div>
-      <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value" id="vac-p2-p95-date">–</div><div class="card-sub" id="vac-p2-p95-weeks"></div></div>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="panel-title">Wykres 2 — Ile P1+P2 ukończymy do 10.09.2026? (scenariusz urlopowy)</div>
-    <div class="panel-subtitle">Okno 6.07 → 10.09 · capacity ×0.67</div>
-    <canvas id="chart-vac-p2-2" height="220"></canvas>
-    <div class="pct-row">
-      <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" id="vac-p2-p50-pbi" style="color:var(--p50)">–</span><span class="pct-chip-desc">P1+P2 z 50% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" id="vac-p2-p85-pbi" style="color:var(--p85)">–</span><span class="pct-chip-desc">P1+P2 z 85% pewnością</span></div>
-      <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" id="vac-p2-p95-pbi" style="color:var(--p95)">–</span><span class="pct-chip-desc">P1+P2 z 95% pewnością</span></div>
-      <div class="pct-chip" style="border-color:#A5F3FC;background:#ECFEFF;">
-        <span class="pct-chip-label" style="color:#155E75;">Pr(≥57 PBI)</span>
-        <span class="pct-chip-val" id="vac-p2-prob" style="color:var(--vac)">–</span>
-        <span class="pct-chip-desc" style="color:#155E75;">szansa ukończenia wszystkich P1+P2</span>
-      </div>
-    </div>
-  </div>
-  <div id="vac-p2-verdict" class="verdict verdict-amber">
-    <div class="verdict-icon" id="vac-p2-verdict-icon">⏳</div>
-    <div class="verdict-text"><h3 id="vac-p2-verdict-title">Obliczanie...</h3><p id="vac-p2-verdict-desc"></p></div>
-  </div>
-</div>
-</div>
-
-<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter.</footer>
+<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 20 dni</footer>
 
 <script>
-// ── DANE ──────────────────────────────────────────────────────────────
-const rawData = [
-  { week: '12 kwi 2026', total: 22, bugs: 9,  net: 13, excluded: false, reason: '' },
-  { week: '19 kwi 2026', total: 28, bugs: 13, net: 15, excluded: false, reason: '' },
-  { week: '26 kwi 2026', total: 22, bugs: 7,  net: 15, excluded: false, reason: '' },
-  { week: '03 maj 2026', total: 22, bugs: 14, net: 8,  excluded: false, reason: '' },
-  { week: '10 maj 2026', total: 15, bugs: 8,  net: 7,  excluded: false, reason: '' },
-  { week: '17 maj 2026', total: 22, bugs: 13, net: 9,  excluded: false, reason: '' },
-  { week: '24 maj 2026', total: 23, bugs: 14, net: 9,  excluded: false, reason: '' },
-  { week: '31 maj 2026', total: 17, bugs: 10, net: 7,  excluded: true,  reason: 'outlier' },
-  { week: '07 cze 2026', total: 22, bugs: 9,  net: 13, excluded: false, reason: '' },
-  { week: '14 cze 2026', total: 22, bugs: 13, net: 9,  excluded: false, reason: '' },
-  { week: '21 cze 2026', total: 19, bugs: 7,  net: 12, excluded: false, reason: '' },
-  { week: '28 cze 2026', total: 0,  bugs: 0,  net: 0,  excluded: true,  reason: 'sprint w toku' },
+// ── DANE ─────────────────────────────────────────────────────────────
+const RAW = [
+  {w:'19 kwi 2026', tot:28, bug:13, net:15, excl:false, why:''},
+  {w:'26 kwi 2026', tot:22, bug:7,  net:15, excl:false, why:''},
+  {w:'03 maj 2026', tot:22, bug:14, net:8,  excl:false, why:''},
+  {w:'10 maj 2026', tot:15, bug:8,  net:7,  excl:false, why:''},
+  {w:'17 maj 2026', tot:22, bug:13, net:9,  excl:false, why:''},
+  {w:'24 maj 2026', tot:23, bug:14, net:9,  excl:false, why:''},
+  {w:'31 maj 2026', tot:17, bug:10, net:7,  excl:true,  why:'outlier'},
+  {w:'07 cze 2026', tot:22, bug:9,  net:13, excl:false, why:''},
+  {w:'14 cze 2026', tot:22, bug:13, net:9,  excl:false, why:''},
+  {w:'21 cze 2026', tot:19, bug:7,  net:12, excl:false, why:''},
+  {w:'28 cze 2026', tot:20, bug:0,  net:0,  excl:true,  why:'sprint w toku'},
 ];
 
-const pool = rawData.filter(d => !d.excluded).map(d => d.net);
-const ITERS = 10000;
-const START_DATE = new Date(2026, 6, 6);
-const AVAIL_WEEKS = 9;
-const PARTIAL_FRAC = 0.5;
+const pool   = RAW.filter(d=>!d.excl).map(d=>d.net);
+// [15,15,8,7,9,9,13,9,12]
+const poolV  = pool.map(v=>Math.round(v*0.67));
 
-function sampleWeek() { return pool[Math.floor(Math.random() * pool.length)]; }
-function pct(arr, p) { return arr[Math.ceil(p / 100 * arr.length) - 1]; }
-function addWeeks(d, w) { const r = new Date(d); r.setDate(r.getDate() + w * 7); return r; }
-function fmt(d) { return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
-function fmtShort(d) { return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit' }); }
+const START  = new Date(2026,6,7);   // 7 lipca 2026
+const DEADL  = new Date(2026,8,11);  // 11 września 2026
+const ITERS  = 10000;
+// 7.07 → 11.09 = 66 dni = 9 tygodni + 3 dni → 9 pełnych + 0.6 częściowego
+const WFULL  = 9;
+const WPART  = 0.6;
 
-// ── SYMULACJE ──────────────────────────────────────────────────────────
-function runSim1(backlog) {
-  const s = new Array(ITERS);
-  for (let i = 0; i < ITERS; i++) {
-    let done = 0, weeks = 0;
-    while (done < backlog) { done += sampleWeek(); weeks++; }
-    s[i] = weeks;
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function pct(arr,p){return arr[Math.ceil(p/100*arr.length)-1];}
+function addW(d,w){const r=new Date(d);r.setDate(r.getDate()+w*7);return r;}
+function fmt(d){return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmts(d){return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit'});}
+
+function sim1(pool,backlog){
+  const s=new Array(ITERS);
+  for(let i=0;i<ITERS;i++){let done=0,w=0;while(done<backlog){done+=rnd(pool);w++;}s[i]=w;}
+  return s.sort((a,b)=>a-b);
+}
+function sim2(pool,backlog){
+  const s=new Array(ITERS);
+  for(let i=0;i<ITERS;i++){
+    let done=0;
+    for(let w=0;w<WFULL;w++)done+=rnd(pool);
+    done+=Math.round(rnd(pool)*WPART);
+    s[i]=Math.min(done,backlog);
   }
-  return s.sort((a, b) => a - b);
+  return s.sort((a,b)=>a-b);
 }
 
-function runSim2(backlog) {
-  const s = new Array(ITERS);
-  for (let i = 0; i < ITERS; i++) {
-    let done = 0;
-    for (let w = 0; w < AVAIL_WEEKS; w++) done += sampleWeek();
-    done += Math.round(sampleWeek() * PARTIAL_FRAC);
-    s[i] = Math.min(done, backlog);
-  }
-  return s.sort((a, b) => a - b);
-}
-
-// Pełny backlog
-const sim1_all = runSim1(81);
-const sim2_all = runSim2(81);
-const [p50w_all, p85w_all, p95w_all] = [pct(sim1_all,50), pct(sim1_all,85), pct(sim1_all,95)];
-const [p50pbi_all, p85pbi_all, p95pbi_all] = [pct(sim2_all,50), pct(sim2_all,85), pct(sim2_all,95)];
-const probAll_all = (sim2_all.filter(v => v >= 81).length / ITERS * 100).toFixed(1);
-
-// P1 (49)
-const sim1_p1 = runSim1(49);
-const sim2_p1 = runSim2(49);
-const [p50w_p1, p85w_p1, p95w_p1] = [pct(sim1_p1,50), pct(sim1_p1,85), pct(sim1_p1,95)];
-const [p50pbi_p1, p85pbi_p1, p95pbi_p1] = [pct(sim2_p1,50), pct(sim2_p1,85), pct(sim2_p1,95)];
-const probAll_p1 = (sim2_p1.filter(v => v >= 49).length / ITERS * 100).toFixed(1);
-
-// P1+P2 (57)
-const sim1_p2 = runSim1(57);
-const sim2_p2 = runSim2(57);
-const [p50w_p2, p85w_p2, p95w_p2] = [pct(sim1_p2,50), pct(sim1_p2,85), pct(sim1_p2,95)];
-const [p50pbi_p2, p85pbi_p2, p95pbi_p2] = [pct(sim2_p2,50), pct(sim2_p2,85), pct(sim2_p2,95)];
-const probAll_p2 = (sim2_p2.filter(v => v >= 57).length / ITERS * 100).toFixed(1);
-document.getElementById('p50-date1').textContent = fmt(addWeeks(START_DATE, p50w_all));
-document.getElementById('p85-date1').textContent = fmt(addWeeks(START_DATE, p85w_all));
-document.getElementById('p95-date1').textContent = fmt(addWeeks(START_DATE, p95w_all));
-document.getElementById('p50-weeks1').textContent = p50w_all + ' tyg. od startu';
-document.getElementById('p85-weeks1').textContent = p85w_all + ' tyg. od startu';
-document.getElementById('p95-weeks1').textContent = p95w_all + ' tyg. od startu';
-document.getElementById('p50-pbi').textContent = p50pbi_all;
-document.getElementById('p85-pbi').textContent = p85pbi_all;
-document.getElementById('p95-pbi').textContent = p95pbi_all;
-document.getElementById('prob-all').textContent = probAll_all + '%';
-
-// ── WYPEŁNIENIE: zakładka P1 ───────────────────────────────────────────
-document.getElementById('p1-p50-date').textContent = fmt(addWeeks(START_DATE, p50w_p1));
-document.getElementById('p1-p85-date').textContent = fmt(addWeeks(START_DATE, p85w_p1));
-document.getElementById('p1-p95-date').textContent = fmt(addWeeks(START_DATE, p95w_p1));
-document.getElementById('p1-p50-weeks').textContent = p50w_p1 + ' tyg. od startu';
-document.getElementById('p1-p85-weeks').textContent = p85w_p1 + ' tyg. od startu';
-document.getElementById('p1-p95-weeks').textContent = p95w_p1 + ' tyg. od startu';
-document.getElementById('p1-p50-pbi').textContent = p50pbi_p1;
-document.getElementById('p1-p85-pbi').textContent = p85pbi_p1;
-document.getElementById('p1-p95-pbi').textContent = p95pbi_p1;
-document.getElementById('p1-prob-all').textContent = probAll_p1 + '%';
-
-// Verdict
-const prob = parseFloat(probAll_p1);
-const v = document.getElementById('p1-verdict');
-const vt = document.getElementById('p1-verdict-title');
-const vd = document.getElementById('p1-verdict-desc');
-const deadlineDateStr = fmt(new Date(2026, 8, 10));
-if (prob >= 85) {
-  v.className = 'verdict verdict-green';
-  document.querySelector('.verdict-icon').textContent = '✅';
-  vt.textContent = `Cel osiągalny — ${probAll_p1}% szans na ukończenie 49 P1 do ${deadlineDateStr}`;
-  vd.textContent = `Przy P85 = ${fmt(addWeeks(START_DATE, p85w_p1))} zespół ma komfortowy bufor. Rekomendacja: kontynuować tempo.`;
-} else if (prob >= 50) {
-  v.className = 'verdict verdict-amber';
-  document.querySelector('.verdict-icon').textContent = '⚠️';
-  vt.textContent = `Ryzyko umiarkowane — ${probAll_p1}% szans na ukończenie 49 P1 do ${deadlineDateStr}`;
-  vd.textContent = `Mediana (P50) wypada ${fmt(addWeeks(START_DATE, p50w_p1))}, ale P85 i P95 przekraczają deadline. Rozważ redukcję scope lub zwiększenie capacity.`;
-} else {
-  v.className = 'verdict verdict-red';
-  document.querySelector('.verdict-icon').textContent = '🚨';
-  vt.textContent = `Wysokie ryzyko — tylko ${probAll_p1}% szans na ukończenie 49 P1 do ${deadlineDateStr}`;
-  vd.textContent = `Nawet mediana (P50 = ${fmt(addWeeks(START_DATE, p50w_p1))}) przekracza deadline. Konieczna jest rewizja scope lub negocjacja terminu.`;
-}
-
-// Tabela porównawcza
-document.getElementById('cmp-p1-p50').textContent = fmt(addWeeks(START_DATE, p50w_p1));
-document.getElementById('cmp-p1-p85').textContent = fmt(addWeeks(START_DATE, p85w_p1));
-document.getElementById('cmp-p1-p95').textContent = fmt(addWeeks(START_DATE, p95w_p1));
-document.getElementById('cmp-p1-prob').textContent = probAll_p1 + '%';
-document.getElementById('cmp-all-p50').textContent = fmt(addWeeks(START_DATE, p50w_all));
-document.getElementById('cmp-all-p85').textContent = fmt(addWeeks(START_DATE, p85w_all));
-document.getElementById('cmp-all-p95').textContent = fmt(addWeeks(START_DATE, p95w_all));
-document.getElementById('cmp-all-prob').textContent = probAll_all + '%';
-
-// ── WYPEŁNIENIE: zakładka P1+P2 ───────────────────────────────────────
-document.getElementById('p2-p50-date').textContent = fmt(addWeeks(START_DATE, p50w_p2));
-document.getElementById('p2-p85-date').textContent = fmt(addWeeks(START_DATE, p85w_p2));
-document.getElementById('p2-p95-date').textContent = fmt(addWeeks(START_DATE, p95w_p2));
-document.getElementById('p2-p50-weeks').textContent = p50w_p2 + ' tyg. od startu';
-document.getElementById('p2-p85-weeks').textContent = p85w_p2 + ' tyg. od startu';
-document.getElementById('p2-p95-weeks').textContent = p95w_p2 + ' tyg. od startu';
-document.getElementById('p2-p50-pbi').textContent = p50pbi_p2;
-document.getElementById('p2-p85-pbi').textContent = p85pbi_p2;
-document.getElementById('p2-p95-pbi').textContent = p95pbi_p2;
-document.getElementById('p2-prob-all').textContent = probAll_p2 + '%';
-
-// Verdict P1+P2
-const prob2 = parseFloat(probAll_p2);
-const v2 = document.getElementById('p2-verdict');
-const vt2 = document.getElementById('p2-verdict-title');
-const vd2 = document.getElementById('p2-verdict-desc');
-const vi2 = document.getElementById('p2-verdict-icon');
-if (prob2 >= 85) {
-  v2.className = 'verdict verdict-green'; vi2.textContent = '✅';
-  vt2.textContent = `Cel osiągalny — ${probAll_p2}% szans na ukończenie 57 P1+P2 do 10.09.2026`;
-  vd2.textContent = `Przy P85 = ${fmt(addWeeks(START_DATE, p85w_p2))} zespół ma komfortowy bufor przed deadlinem.`;
-} else if (prob2 >= 50) {
-  v2.className = 'verdict verdict-amber'; vi2.textContent = '⚠️';
-  vt2.textContent = `Ryzyko umiarkowane — ${probAll_p2}% szans na ukończenie 57 P1+P2 do 10.09.2026`;
-  vd2.textContent = `Mediana (P50) wypada ${fmt(addWeeks(START_DATE, p50w_p2))}, ale P85/P95 przekraczają deadline. Rozważ redukcję scope lub zwiększenie capacity.`;
-} else {
-  v2.className = 'verdict verdict-red'; vi2.textContent = '🚨';
-  vt2.textContent = `Wysokie ryzyko — tylko ${probAll_p2}% szans na ukończenie 57 P1+P2 do 10.09.2026`;
-  vd2.textContent = `Nawet mediana (P50 = ${fmt(addWeeks(START_DATE, p50w_p2))}) przekracza deadline. Konieczna rewizja scope lub negocjacja terminu.`;
-}
-
-// Tabela porównawcza 3 scenariuszy
-document.getElementById('cmp3-p1-p50').textContent = fmt(addWeeks(START_DATE, p50w_p1));
-document.getElementById('cmp3-p1-p85').textContent = fmt(addWeeks(START_DATE, p85w_p1));
-document.getElementById('cmp3-p1-p95').textContent = fmt(addWeeks(START_DATE, p95w_p1));
-document.getElementById('cmp3-p1-prob').textContent = probAll_p1 + '%';
-document.getElementById('cmp3-p2-p50').textContent = fmt(addWeeks(START_DATE, p50w_p2));
-document.getElementById('cmp3-p2-p85').textContent = fmt(addWeeks(START_DATE, p85w_p2));
-document.getElementById('cmp3-p2-p95').textContent = fmt(addWeeks(START_DATE, p95w_p2));
-document.getElementById('cmp3-p2-prob').textContent = probAll_p2 + '%';
-document.getElementById('cmp3-all-p50').textContent = fmt(addWeeks(START_DATE, p50w_all));
-document.getElementById('cmp3-all-p85').textContent = fmt(addWeeks(START_DATE, p85w_all));
-document.getElementById('cmp3-all-p95').textContent = fmt(addWeeks(START_DATE, p95w_all));
-document.getElementById('cmp3-all-prob').textContent = probAll_all + '%';
-document.getElementById('gen-date').textContent = new Date().toLocaleDateString('pl-PL');
-const tbody = document.getElementById('data-table-body');
-rawData.forEach(d => {
-  const tr = document.createElement('tr');
-  const statusHtml = d.excluded
-    ? `<span class="tag ${d.reason === 'sprint w toku' ? 'tag-sprint' : ''}">${d.reason}</span>`
-    : `<span style="color:var(--green);font-size:12px;font-family:'IBM Plex Mono',monospace;">w modelu</span>`;
-  tr.innerHTML = `
-    <td style="${d.excluded?'color:var(--text-muted)':''}">${d.week}</td>
-    <td style="${d.excluded?'color:var(--text-muted)':''}">${d.total}</td>
-    <td style="${d.excluded?'color:var(--text-muted)':''}">${d.bugs||'–'}</td>
-    <td style="${d.excluded?'color:var(--text-muted)':'font-weight:600'}">${d.excluded?'–':d.net}</td>
-    <td>${statusHtml}</td>`;
-  tbody.appendChild(tr);
+// Run all 6 scenarios
+const SC = {
+  all:  {backlog:91, pool:pool,  label:'81 PBI'},
+  p1:   {backlog:52, pool:pool,  label:'P1 (52)'},
+  p2:   {backlog:61, pool:pool,  label:'P1+P2 (61)'},
+  va:   {backlog:91, pool:poolV, label:'Backlog urlop'},
+  vp1:  {backlog:52, pool:poolV, label:'P1 urlop'},
+  vp2:  {backlog:61, pool:poolV, label:'P1+P2 urlop'},
+};
+Object.keys(SC).forEach(k=>{
+  const sc=SC[k];
+  sc.s1=sim1(sc.pool,sc.backlog);
+  sc.s2=sim2(sc.pool,sc.backlog);
+  sc.p50w=pct(sc.s1,50); sc.p85w=pct(sc.s1,85); sc.p95w=pct(sc.s1,95);
+  sc.p50d=fmt(addW(START,sc.p50w)); sc.p85d=fmt(addW(START,sc.p85w)); sc.p95d=fmt(addW(START,sc.p95w));
+  sc.p50p=pct(sc.s2,50); sc.p85p=pct(sc.s2,85); sc.p95p=pct(sc.s2,95);
+  sc.prob=(sc.s2.filter(v=>v>=sc.backlog).length/ITERS*100).toFixed(1);
 });
 
-// ── WYKRESY ────────────────────────────────────────────────────────────
-function buildHist(data, bins) {
-  const mn = data[0], mx = data[data.length-1];
-  const step = Math.max(1, Math.ceil((mx-mn+1)/bins));
-  const counts = [];
-  for (let b = mn; b <= mx; b += step)
-    counts.push({ x: b, cnt: data.filter(v => v >= b && v < b+step).length });
-  return { counts, step };
+// ── HTML BUILDER ──────────────────────────────────────────────────────
+const CONFIGS = {
+  all: {
+    title:'REW · Monte Carlo · Pełny backlog',
+    sub:'Net throughput PBI (całkowity − bugi reaktywne) · 10 000 iteracji',
+    meta:`Backlog: 91 PBI | Start: 07.07.2026<br>Deadline: 11.09.2026 | Avg net: ~10,8 PBI/tydz.`,
+    box:'ib-blue',
+    boxText:'<strong>Metodologia:</strong> Throughput całkowity pomniejszony o tygodniowe zamknięcia bugów reaktywnych. Pula bootstrappingu: 9 tygodni netto (wykluczono 31.05 outlier i 28.06 sprint w toku). Net pool: [15,15,8,7,9,9,13,9,12] · avg 10,8 · min 7 · max 15. Cycle time ref: 20 dni.',
+    barCol: x => x>=SC.all.p95w?'#FEE2E2':x>=SC.all.p85w?'#FEF3C7':'#DBEAFE',
+    barCol2: x => x>=91?'#D1FAE5':'#DBEAFE',
+    chip4col:'var(--green)', chip4bg:'#F0FDF4', chip4border:'#DCFCE7', chip4label:'Pr(≥91 PBI)',
+    lbl2:'liczba PBI ukończonych do 11.09',
+    showTable:true,
+  },
+  p1: {
+    title:'REW · Priorytety P1 (52 PBI)',
+    sub:'Symulacja dla 52 PBI o najwyższym priorytecie · 10 000 iteracji',
+    meta:`Backlog P1: 52 PBI | Start: 07.07.2026<br>Deadline: 11.09.2026`,
+    box:'ib-purple',
+    boxText:'<strong>Założenie:</strong> P1 stanowią 52 z 91 PBI (57% backlogu). Ta sama pula net throughput co zakładka główna. Team koncentruje się na P1 w kolejności priorytetowej.',
+    barCol: x => x>=SC.p1.p95w?'#FEE2E2':x>=SC.p1.p85w?'#FEF3C7':'#EDE9FE',
+    barCol2: x => x>=52?'#D1FAE5':'#EDE9FE',
+    chip4col:'var(--p1)', chip4bg:'#F5F3FF', chip4border:'#DDD6FE', chip4label:'Pr(≥52 P1)',
+    lbl2:'liczba P1 ukończonych do 11.09',
+    showTable:false, verdict:true,
+  },
+  p2: {
+    title:'REW · P1 + P2 (61 PBI)',
+    sub:'Symulacja dla 61 PBI o priorytecie P1 i P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 61 PBI | Start: 07.07.2026<br>Deadline: 11.09.2026`,
+    box:'ib-amber',
+    boxText:'<strong>Założenie:</strong> P1+P2 stanowią 61 z 91 PBI (67% backlogu). Ta sama pula net throughput.',
+    barCol: x => x>=SC.p2.p95w?'#FEE2E2':x>=SC.p2.p85w?'#FEF3C7':'#FEF9C3',
+    barCol2: x => x>=61?'#D1FAE5':'#FEF9C3',
+    chip4col:'var(--p2)', chip4bg:'#FFFBEB', chip4border:'#FDE68A', chip4label:'Pr(≥61 PBI)',
+    lbl2:'liczba P1+P2 ukończonych do 11.09',
+    showTable:false, verdict:true, cmpTable:true,
+  },
+  va: {
+    title:'REW · Urlop · Pełny backlog',
+    sub:'Capacity ×0.67 (1 z 3 osób nieobecna) · 91 PBI · 10 000 iteracji',
+    meta:`Backlog: 91 PBI | Start: 07.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',
+    boxText:'<strong>Scenariusz urlopowy:</strong> Net throughput każdego tygodnia przemnożony ×0,67. Pula urlopowa: [10,10,5,5,6,6,9,6,8] PBI/tydz. · avg 7,2.',
+    barCol: x => x>=SC.va.p95w?'#FEE2E2':x>=SC.va.p85w?'#FEF3C7':'#CFFAFE',
+    barCol2: x => x>=91?'#D1FAE5':'#CFFAFE',
+    chip4col:'var(--vac)', chip4bg:'#ECFEFF', chip4border:'#A5F3FC', chip4label:'Pr(≥91 PBI)',
+    lbl2:'liczba PBI ukończonych do 11.09',
+    showTable:false, verdict:true,
+  },
+  vp1: {
+    title:'REW · Urlop · P1 (52 PBI)',
+    sub:'Capacity ×0.67 · 52 PBI P1 · 10 000 iteracji',
+    meta:`Backlog P1: 52 PBI | Start: 07.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',
+    boxText:'<strong>Scenariusz urlopowy:</strong> Cel P1 przy stałej nieobecności jednej osoby (×0,67 capacity).',
+    barCol: x => x>=SC.vp1.p95w?'#FEE2E2':x>=SC.vp1.p85w?'#FEF3C7':'#CFFAFE',
+    barCol2: x => x>=52?'#D1FAE5':'#CFFAFE',
+    chip4col:'var(--vac)', chip4bg:'#ECFEFF', chip4border:'#A5F3FC', chip4label:'Pr(≥52 P1)',
+    lbl2:'liczba P1 ukończonych do 11.09',
+    showTable:false, verdict:true,
+  },
+  vp2: {
+    title:'REW · Urlop · P1+P2 (61 PBI)',
+    sub:'Capacity ×0.67 · 61 PBI P1+P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 61 PBI | Start: 07.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',
+    boxText:'<strong>Scenariusz urlopowy:</strong> Cel P1+P2 przy stałej nieobecności jednej osoby (×0,67 capacity).',
+    barCol: x => x>=SC.vp2.p95w?'#FEE2E2':x>=SC.vp2.p85w?'#FEF3C7':'#CFFAFE',
+    barCol2: x => x>=61?'#D1FAE5':'#CFFAFE',
+    chip4col:'var(--vac)', chip4bg:'#ECFEFF', chip4border:'#A5F3FC', chip4label:'Pr(≥61 PBI)',
+    lbl2:'liczba P1+P2 ukończonych do 11.09',
+    showTable:false, verdict:true, cmpTable:true,
+  },
+};
+
+function buildTab(key) {
+  const sc = SC[key];
+  const cf = CONFIGS[key];
+  const el = document.getElementById('tab-'+key);
+
+  let cmpHtml = '';
+  if (cf.cmpTable) {
+    const isVac = key.startsWith('v');
+    const k1 = isVac ? 'vp1' : 'p1';
+    const k2 = isVac ? 'vp2' : 'p2';
+    const k3 = isVac ? 'va'  : 'all';
+    const row = k => `<tr>
+      <td>${k==='vp1'||k==='p1'?'🔴 P1':k==='vp2'||k==='p2'?'🟠 P1+P2':'📦 Backlog'}</td>
+      <td>${SC[k].backlog}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p50)">${SC[k].p50d}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p85)">${SC[k].p85d}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p95)">${SC[k].p95d}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600">${SC[k].prob}%</td>
+    </tr>`;
+    cmpHtml = `<div class="panel"><div class="panel-title" style="margin-bottom:16px">Porównanie scenariuszy${isVac?' (urlop)':''}</div>
+    <table class="data-table"><thead><tr><th>Scenariusz</th><th>Backlog</th><th>P50</th><th>P85</th><th>P95</th><th>Pr(do 11.09)</th></tr></thead>
+    <tbody>${row(k1)}${row(k2)}${row(k3)}</tbody></table></div>`;
+  }
+
+  let tableHtml = '';
+  if (cf.showTable) {
+    const rows = RAW.map(d=>`<tr>
+      <td style="${d.excl?'color:var(--text-muted)':''}">${d.w}</td>
+      <td style="${d.excl?'color:var(--text-muted)':''}">${d.tot}</td>
+      <td style="${d.excl?'color:var(--text-muted)':''}">${d.bug||'–'}</td>
+      <td style="${d.excl?'color:var(--text-muted)':'font-weight:600'}">${d.excl?'–':d.net}</td>
+      <td>${d.excl?`<span class="tag ${d.why==='sprint w toku'?'tag-sprint':''}">${d.why}</span>`:`<span style="color:var(--green);font-size:12px;font-family:'IBM Plex Mono',monospace">w modelu</span>`}</td>
+    </tr>`).join('');
+    tableHtml = `<div class="panel"><div class="panel-title" style="margin-bottom:14px">Dane historyczne · dekompozycja throughput</div>
+    <table class="data-table"><thead><tr><th>Tydzień od</th><th>Łącznie</th><th>Bugi</th><th>Net PBI</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody></table></div>`;
+  }
+
+  let verdictHtml = '';
+  if (cf.verdict) {
+    const prob = parseFloat(sc.prob);
+    const cls  = prob>=85?'v-green':prob>=50?'v-amber':'v-red';
+    const icon = prob>=85?'✅':prob>=50?'⚠️':'🚨';
+    const vt   = prob>=85
+      ? `Cel osiągalny — ${sc.prob}% szans na ukończenie do 11.09.2026`
+      : prob>=50
+      ? `Ryzyko umiarkowane — ${sc.prob}% szans na ukończenie do 11.09.2026`
+      : `Wysokie ryzyko — tylko ${sc.prob}% szans na ukończenie do 11.09.2026`;
+    const vd   = prob>=85
+      ? `P85 = ${sc.p85d} — przed deadlinem. Rekomendacja: utrzymać tempo.`
+      : prob>=50
+      ? `Mediana (P50) = ${sc.p50d}, ale P85/P95 przekraczają deadline. Rozważ redukcję scope lub zwiększenie capacity.`
+      : `Nawet mediana (P50 = ${sc.p50d}) przekracza deadline. Konieczna rewizja scope lub negocjacja terminu.`;
+    verdictHtml = `<div class="verdict ${cls}"><div class="verdict-icon">${icon}</div>
+      <div class="verdict-text"><h3>${vt}</h3><p>${vd}</p></div></div>`;
+  }
+
+  el.innerHTML = `<div class="page">
+    <header class="page-header">
+      <div><h1>${cf.title}</h1><p>${cf.sub}</p></div>
+      <div class="header-meta">${cf.meta}</div>
+    </header>
+    <div class="info-box ${cf.box}">${cf.boxText}</div>
+
+    <div class="panel">
+      <div class="panel-title">Wykres 1 — Kiedy ukończymy backlog (${sc.backlog} PBI)?</div>
+      <div class="panel-subtitle">Rozkład dat ukończenia · percentyle 50 / 85 / 95</div>
+      <canvas id="c1-${key}" height="220"></canvas>
+      <div class="cards-row" style="margin-top:20px">
+        <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value">${sc.p50d}</div><div class="card-sub">${sc.p50w} tyg. od startu</div></div>
+        <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value">${sc.p85d}</div><div class="card-sub">${sc.p85w} tyg. od startu</div></div>
+        <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value">${sc.p95d}</div><div class="card-sub">${sc.p95w} tyg. od startu</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 11.09.2026?</div>
+      <div class="panel-subtitle">Okno 7.07 → 11.09 (~9,6 tygodnia roboczego)</div>
+      <canvas id="c2-${key}" height="220"></canvas>
+      <div class="pct-row">
+        <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" style="color:var(--p50)">${sc.p50p}</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
+        <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" style="color:var(--p85)">${sc.p85p}</span><span class="pct-chip-desc">PBI z 85% pewnością</span></div>
+        <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" style="color:var(--p95)">${sc.p95p}</span><span class="pct-chip-desc">PBI z 95% pewnością</span></div>
+        <div class="pct-chip" style="border-color:${cf.chip4border};background:${cf.chip4bg}">
+          <span class="pct-chip-label" style="color:${cf.chip4col}">${cf.chip4label}</span>
+          <span class="pct-chip-val" style="color:${cf.chip4col}">${sc.prob}%</span>
+          <span class="pct-chip-desc" style="color:${cf.chip4col}">szansa ukończenia wszystkich</span>
+        </div>
+      </div>
+    </div>
+    ${verdictHtml}
+    ${cmpHtml}
+    ${tableHtml}
+  </div>`;
 }
 
-function drawChart(id, data, pctVals, pctLabels, colorFn, xLbl, dateMode) {
-  const canvas = document.getElementById(id);
-  if (!canvas) return;
-  const DPR = window.devicePixelRatio || 1;
-  const W = canvas.parentElement.clientWidth - 52;
-  const H = 220;
-  canvas.width = W*DPR; canvas.height = H*DPR;
-  canvas.style.width = W+'px'; canvas.style.height = H+'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(DPR, DPR);
-  const PAD = { top:16, right:20, bottom:52, left:52 };
-  const cW = W-PAD.left-PAD.right, cH = H-PAD.top-PAD.bottom;
-  const { counts, step } = buildHist(data, 30);
-  const maxCnt = Math.max(...counts.map(c => c.cnt));
-  const minX = counts[0].x, maxX = counts[counts.length-1].x+step;
-  const xp = v => PAD.left+(v-minX)/(maxX-minX)*cW;
-  const yp = v => PAD.top+cH-(v/maxCnt)*cH;
+// Build all tabs upfront
+Object.keys(CONFIGS).forEach(buildTab);
+document.getElementById('gen-date').textContent = new Date().toLocaleDateString('pl-PL');
 
-  ctx.strokeStyle='#EEF0F4'; ctx.lineWidth=1;
-  for (let i=0;i<=4;i++){const y=PAD.top+(cH/4)*i;ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+cW,y);ctx.stroke();}
+// ── CHARTS ───────────────────────────────────────────────────────────
+function buildHist(data,bins){
+  const mn=data[0],mx=data[data.length-1];
+  const step=Math.max(1,Math.ceil((mx-mn+1)/bins));
+  const counts=[];
+  for(let b=mn;b<=mx;b+=step)counts.push({x:b,cnt:data.filter(v=>v>=b&&v<b+step).length});
+  return{counts,step};
+}
+
+function drawChart(id,data,pVals,pLbls,colorFn,xLbl,dateMode){
+  const canvas=document.getElementById(id);
+  if(!canvas)return;
+  const DPR=window.devicePixelRatio||1;
+  const W=canvas.parentElement.clientWidth-52,H=220;
+  canvas.width=W*DPR;canvas.height=H*DPR;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(DPR,DPR);
+  const P={top:16,right:20,bottom:52,left:52};
+  const cW=W-P.left-P.right,cH=H-P.top-P.bottom;
+  const{counts,step}=buildHist(data,30);
+  const maxC=Math.max(...counts.map(c=>c.cnt));
+  const minX=counts[0].x,maxX=counts[counts.length-1].x+step;
+  const xp=v=>P.left+(v-minX)/(maxX-minX)*cW;
+  const yp=v=>P.top+cH-(v/maxC)*cH;
+
+  ctx.strokeStyle='#EEF0F4';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=P.top+(cH/4)*i;ctx.beginPath();ctx.moveTo(P.left,y);ctx.lineTo(P.left+cW,y);ctx.stroke();}
 
   counts.forEach(({x,cnt})=>{
     const bx=xp(x),bw=xp(x+step)-bx-1;
     ctx.fillStyle=colorFn(x);
-    ctx.fillRect(bx,yp(cnt),Math.max(1,bw),cH-(yp(cnt)-PAD.top));
+    ctx.fillRect(bx,yp(cnt),Math.max(1,bw),cH-(yp(cnt)-P.top));
   });
 
   ['#2563EB','#D97706','#DC2626'].forEach((col,i)=>{
-    const x=xp(pctVals[i]);
+    const x=xp(pVals[i]);
     ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([5,3]);
-    ctx.beginPath();ctx.moveTo(x,PAD.top);ctx.lineTo(x,PAD.top+cH);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,P.top);ctx.lineTo(x,P.top+cH);ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle=col;ctx.font=`bold 10px 'IBM Plex Mono',monospace`;ctx.textAlign='left';
-    ctx.fillText(pctLabels[i],Math.min(x+4,W-PAD.right-60),PAD.top+12+i*14);
+    ctx.fillText(pLbls[i],Math.min(x+4,W-P.right-60),P.top+12+i*14);
   });
 
   ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;
@@ -723,188 +391,38 @@ function drawChart(id, data, pctVals, pctLabels, colorFn, xLbl, dateMode) {
     if(idx%ts!==0&&idx!==counts.length-1)return;
     const tx=xp(x+step/2);
     if(dateMode){
-      const d=addWeeks(START_DATE,x);
-      const lbl=fmtShort(d);
-      ctx.save();ctx.translate(tx,PAD.top+cH+10);ctx.rotate(-Math.PI/4);ctx.textAlign='right';ctx.fillText(lbl,0,0);ctx.restore();
-    } else {
-      ctx.textAlign='center';ctx.fillText(x,tx,PAD.top+cH+16);
-    }
+      const d=addW(START,x);
+      ctx.save();ctx.translate(tx,P.top+cH+10);ctx.rotate(-Math.PI/4);
+      ctx.textAlign='right';ctx.fillText(fmts(d),0,0);ctx.restore();
+    }else{ctx.textAlign='center';ctx.fillText(x,tx,P.top+cH+16);}
   });
-
-  ctx.save();ctx.translate(14,PAD.top+cH/2);ctx.rotate(-Math.PI/2);
+  ctx.save();ctx.translate(14,P.top+cH/2);ctx.rotate(-Math.PI/2);
   ctx.textAlign='center';ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;
   ctx.fillText('iteracje',0,0);ctx.restore();
   ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;ctx.textAlign='center';
-  ctx.fillText(xLbl,PAD.left+cW/2,H-4);
+  ctx.fillText(xLbl,P.left+cW/2,H-4);
 }
 
-function renderAll() {
-  drawChart('chart1', sim1_all, [p50w_all,p85w_all,p95w_all],
-    [`P50: ${fmtShort(addWeeks(START_DATE,p50w_all))}`,`P85: ${fmtShort(addWeeks(START_DATE,p85w_all))}`,`P95: ${fmtShort(addWeeks(START_DATE,p95w_all))}`],
-    x => x>=p95w_all?'#FEE2E2':x>=p85w_all?'#FEF3C7':'#DBEAFE',
-    'tygodnie od startu', true);
-
-  drawChart('chart2', sim2_all, [p50pbi_all,p85pbi_all,p95pbi_all],
-    [`P50: ${p50pbi_all} PBI`,`P85: ${p85pbi_all} PBI`,`P95: ${p95pbi_all} PBI`],
-    x => x>=81?'#D1FAE5':'#DBEAFE',
-    'liczba PBI ukończonych do 10.09', false);
+function renderTab(key){
+  const sc=SC[key];const cf=CONFIGS[key];
+  drawChart(`c1-${key}`,sc.s1,[sc.p50w,sc.p85w,sc.p95w],
+    [fmts(addW(START,sc.p50w)),fmts(addW(START,sc.p85w)),fmts(addW(START,sc.p95w))].map((l,i)=>`P${[50,85,95][i]}: ${l}`),
+    cf.barCol,'tygodnie od startu',true);
+  drawChart(`c2-${key}`,sc.s2,[sc.p50p,sc.p85p,sc.p95p],
+    [`P50: ${sc.p50p} PBI`,`P85: ${sc.p85p} PBI`,`P95: ${sc.p95p} PBI`],
+    cf.barCol2,cf.lbl2,false);
 }
 
-function renderP1() {
-  drawChart('chart-p1-1', sim1_p1, [p50w_p1,p85w_p1,p95w_p1],
-    [`P50: ${fmtShort(addWeeks(START_DATE,p50w_p1))}`,`P85: ${fmtShort(addWeeks(START_DATE,p85w_p1))}`,`P95: ${fmtShort(addWeeks(START_DATE,p95w_p1))}`],
-    x => x>=p95w_p1?'#FEE2E2':x>=p85w_p1?'#FEF3C7':'#EDE9FE',
-    'tygodnie od startu', true);
-
-  drawChart('chart-p1-2', sim2_p1, [p50pbi_p1,p85pbi_p1,p95pbi_p1],
-    [`P50: ${p50pbi_p1} P1`,`P85: ${p85pbi_p1} P1`,`P95: ${p95pbi_p1} P1`],
-    x => x>=49?'#D1FAE5':'#EDE9FE',
-    'liczba P1 ukończonych do 10.09', false);
-}
-
-function renderP2() {
-  drawChart('chart-p2-1', sim1_p2, [p50w_p2,p85w_p2,p95w_p2],
-    [`P50: ${fmtShort(addWeeks(START_DATE,p50w_p2))}`,`P85: ${fmtShort(addWeeks(START_DATE,p85w_p2))}`,`P95: ${fmtShort(addWeeks(START_DATE,p95w_p2))}`],
-    x => x>=p95w_p2?'#FEE2E2':x>=p85w_p2?'#FEF3C7':'#FEF9C3',
-    'tygodnie od startu', true);
-
-  drawChart('chart-p2-2', sim2_p2, [p50pbi_p2,p85pbi_p2,p95pbi_p2],
-    [`P50: ${p50pbi_p2} PBI`,`P85: ${p85pbi_p2} PBI`,`P95: ${p95pbi_p2} PBI`],
-    x => x>=57?'#D1FAE5':'#FEF9C3',
-    'liczba P1+P2 ukończonych do 10.09', false);
-}
-
-// ── SYMULACJE URLOPOWE (×0.67) ─────────────────────────────────────────
-const VAC_FACTOR = 0.67;
-const poolVac = pool.map(v => Math.round(v * VAC_FACTOR));
-
-function sampleWeekVac() { return poolVac[Math.floor(Math.random() * poolVac.length)]; }
-
-function runSim1Vac(backlog) {
-  const s = new Array(ITERS);
-  for (let i = 0; i < ITERS; i++) {
-    let done = 0, weeks = 0;
-    while (done < backlog) { done += sampleWeekVac(); weeks++; }
-    s[i] = weeks;
-  }
-  return s.sort((a, b) => a - b);
-}
-
-function runSim2Vac(backlog) {
-  const s = new Array(ITERS);
-  for (let i = 0; i < ITERS; i++) {
-    let done = 0;
-    for (let w = 0; w < AVAIL_WEEKS; w++) done += sampleWeekVac();
-    done += Math.round(sampleWeekVac() * PARTIAL_FRAC);
-    s[i] = Math.min(done, backlog);
-  }
-  return s.sort((a, b) => a - b);
-}
-
-const sim1_vac_all = runSim1Vac(81);  const sim2_vac_all = runSim2Vac(81);
-const sim1_vac_p1  = runSim1Vac(49);  const sim2_vac_p1  = runSim2Vac(49);
-const sim1_vac_p2  = runSim1Vac(57);  const sim2_vac_p2  = runSim2Vac(57);
-
-function getVacStats(s1, s2, target) {
-  return {
-    p50w: pct(s1,50), p85w: pct(s1,85), p95w: pct(s1,95),
-    p50pbi: pct(s2,50), p85pbi: pct(s2,85), p95pbi: pct(s2,95),
-    prob: (s2.filter(v => v >= target).length / ITERS * 100).toFixed(1)
-  };
-}
-
-const vacAll = getVacStats(sim1_vac_all, sim2_vac_all, 81);
-const vacP1  = getVacStats(sim1_vac_p1,  sim2_vac_p1,  49);
-const vacP2  = getVacStats(sim1_vac_p2,  sim2_vac_p2,  57);
-
-function fillVacTab(prefix, stats) {
-  document.getElementById(`${prefix}-p50-date`).textContent  = fmt(addWeeks(START_DATE, stats.p50w));
-  document.getElementById(`${prefix}-p85-date`).textContent  = fmt(addWeeks(START_DATE, stats.p85w));
-  document.getElementById(`${prefix}-p95-date`).textContent  = fmt(addWeeks(START_DATE, stats.p95w));
-  document.getElementById(`${prefix}-p50-weeks`).textContent = stats.p50w + ' tyg. od startu';
-  document.getElementById(`${prefix}-p85-weeks`).textContent = stats.p85w + ' tyg. od startu';
-  document.getElementById(`${prefix}-p95-weeks`).textContent = stats.p95w + ' tyg. od startu';
-  document.getElementById(`${prefix}-p50-pbi`).textContent   = stats.p50pbi;
-  document.getElementById(`${prefix}-p85-pbi`).textContent   = stats.p85pbi;
-  document.getElementById(`${prefix}-p95-pbi`).textContent   = stats.p95pbi;
-  document.getElementById(`${prefix}-prob`).textContent      = stats.prob + '%';
-
-  const prob = parseFloat(stats.prob);
-  const v = document.getElementById(`${prefix}-verdict`);
-  const vi = document.getElementById(`${prefix}-verdict-icon`);
-  const vt = document.getElementById(`${prefix}-verdict-title`);
-  const vd = document.getElementById(`${prefix}-verdict-desc`);
-  if (prob >= 85) {
-    v.className = 'verdict verdict-green'; vi.textContent = '✅';
-    vt.textContent = `Cel osiągalny — ${stats.prob}% szans na ukończenie do 10.09.2026 (scenariusz urlopowy)`;
-    vd.textContent = `Nawet przy urlopie jednej osoby (×0.67) cel jest w zasięgu. P85 = ${fmt(addWeeks(START_DATE, stats.p85w))}.`;
-  } else if (prob >= 50) {
-    v.className = 'verdict verdict-amber'; vi.textContent = '⚠️';
-    vt.textContent = `Ryzyko umiarkowane — ${stats.prob}% szans na ukończenie do 10.09.2026 (scenariusz urlopowy)`;
-    vd.textContent = `Urlop jednej osoby wyraźnie obniża prawdopodobieństwo. Mediana: ${fmt(addWeeks(START_DATE, stats.p50w))}. Rozważ ochronę capacity w kluczowych tygodniach.`;
-  } else {
-    v.className = 'verdict verdict-red'; vi.textContent = '🚨';
-    vt.textContent = `Wysokie ryzyko — tylko ${stats.prob}% szans na ukończenie do 10.09.2026 (scenariusz urlopowy)`;
-    vd.textContent = `Przy urlopie ×0.67 cel jest nieosiągalny w zakładanym terminie. P50 = ${fmt(addWeeks(START_DATE, stats.p50w))}. Niezbędna rewizja scope lub terminu.`;
-  }
-}
-
-fillVacTab('vac-all', vacAll);
-fillVacTab('vac-p1',  vacP1);
-fillVacTab('vac-p2',  vacP2);
-
-function renderVacAll() {
-  drawChart('chart-vac-all-1', sim1_vac_all, [vacAll.p50w, vacAll.p85w, vacAll.p95w],
-    [`P50: ${fmtShort(addWeeks(START_DATE,vacAll.p50w))}`,`P85: ${fmtShort(addWeeks(START_DATE,vacAll.p85w))}`,`P95: ${fmtShort(addWeeks(START_DATE,vacAll.p95w))}`],
-    x => x>=vacAll.p95w?'#FEE2E2':x>=vacAll.p85w?'#FEF3C7':'#CFFAFE',
-    'tygodnie od startu', true);
-  drawChart('chart-vac-all-2', sim2_vac_all, [vacAll.p50pbi, vacAll.p85pbi, vacAll.p95pbi],
-    [`P50: ${vacAll.p50pbi} PBI`,`P85: ${vacAll.p85pbi} PBI`,`P95: ${vacAll.p95pbi} PBI`],
-    x => x>=81?'#D1FAE5':'#CFFAFE',
-    'liczba PBI ukończonych do 10.09', false);
-}
-
-function renderVacP1() {
-  drawChart('chart-vac-p1-1', sim1_vac_p1, [vacP1.p50w, vacP1.p85w, vacP1.p95w],
-    [`P50: ${fmtShort(addWeeks(START_DATE,vacP1.p50w))}`,`P85: ${fmtShort(addWeeks(START_DATE,vacP1.p85w))}`,`P95: ${fmtShort(addWeeks(START_DATE,vacP1.p95w))}`],
-    x => x>=vacP1.p95w?'#FEE2E2':x>=vacP1.p85w?'#FEF3C7':'#CFFAFE',
-    'tygodnie od startu', true);
-  drawChart('chart-vac-p1-2', sim2_vac_p1, [vacP1.p50pbi, vacP1.p85pbi, vacP1.p95pbi],
-    [`P50: ${vacP1.p50pbi} P1`,`P85: ${vacP1.p85pbi} P1`,`P95: ${vacP1.p95pbi} P1`],
-    x => x>=49?'#D1FAE5':'#CFFAFE',
-    'liczba P1 ukończonych do 10.09', false);
-}
-
-function renderVacP2() {
-  drawChart('chart-vac-p2-1', sim1_vac_p2, [vacP2.p50w, vacP2.p85w, vacP2.p95w],
-    [`P50: ${fmtShort(addWeeks(START_DATE,vacP2.p50w))}`,`P85: ${fmtShort(addWeeks(START_DATE,vacP2.p85w))}`,`P95: ${fmtShort(addWeeks(START_DATE,vacP2.p95w))}`],
-    x => x>=vacP2.p95w?'#FEE2E2':x>=vacP2.p85w?'#FEF3C7':'#CFFAFE',
-    'tygodnie od startu', true);
-  drawChart('chart-vac-p2-2', sim2_vac_p2, [vacP2.p50pbi, vacP2.p85pbi, vacP2.p95pbi],
-    [`P50: ${vacP2.p50pbi} PBI`,`P85: ${vacP2.p85pbi} PBI`,`P95: ${vacP2.p95pbi} PBI`],
-    x => x>=57?'#D1FAE5':'#CFFAFE',
-    'liczba P1+P2 ukończonych do 10.09', false);
-}
-
-// ── TABS ───────────────────────────────────────────────────────────────
-let p1Rendered = false;
-let p2Rendered = false;
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
-  if (tab === 'all')     renderAll();
-  if (tab === 'p1')      renderP1();
-  if (tab === 'p2')      renderP2();
-  if (tab === 'vac-all') renderVacAll();
-  if (tab === 'vac-p1')  renderVacP1();
-  if (tab === 'vac-p2')  renderVacP2();
+function sw(tab){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector(`[onclick="sw('${tab}')"]`).classList.add('active');
+  renderTab(tab);
 }
 
 // Init
-renderAll();
+renderTab('all');
 </script>
 </body>
 </html>
