@@ -118,12 +118,12 @@ const pool   = RAW.filter(d=>!d.excl).map(d=>d.net);
 // [15,15,8,7,9,9,13,9,12]
 const poolV  = pool.map(v=>Math.round(v*0.67));
 
-const START  = new Date(2026,6,7);   // 7 lipca 2026
+const START  = new Date(2026,6,8);   // 8 lipca 2026
 const DEADL  = new Date(2026,8,11);  // 11 września 2026
 const ITERS  = 10000;
-// 7.07 → 11.09 = 66 dni = 9 tygodni + 3 dni → 9 pełnych + 0.6 częściowego
+// 8.07 → 11.09 = 65 dni = 9 tygodni + 2 dni → 9 pełnych + 0.4 częściowego
 const WFULL  = 9;
-const WPART  = 0.6;
+const WPART  = 0.4;
 
 function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function pct(arr,p){return arr[Math.ceil(p/100*arr.length)-1];}
@@ -171,7 +171,7 @@ const CONFIGS = {
   all: {
     title:'REW · Monte Carlo · Pełny backlog',
     sub:'Net throughput PBI (całkowity − bugi reaktywne) · 10 000 iteracji',
-    meta:`Backlog: 91 PBI | Start: 07.07.2026<br>Deadline: 11.09.2026 | Avg net: ~10,8 PBI/tydz.`,
+    meta:`Backlog: 91 PBI | Start: 08.07.2026<br>Deadline: 11.09.2026 | Avg net: ~10,8 PBI/tydz.`,
     box:'ib-blue',
     boxText:'<strong>Metodologia:</strong> Throughput całkowity pomniejszony o tygodniowe zamknięcia bugów reaktywnych. Pula bootstrappingu: 9 tygodni netto (wykluczono 31.05 outlier i 28.06 sprint w toku). Net pool: [15,15,8,7,9,9,13,9,12] · avg 10,8 · min 7 · max 15. Cycle time ref: 20 dni.',
     barCol: x => x>=SC.all.p95w?'#FEE2E2':x>=SC.all.p85w?'#FEF3C7':'#DBEAFE',
@@ -183,7 +183,7 @@ const CONFIGS = {
   p1: {
     title:'REW · Priorytety P1 (52 PBI)',
     sub:'Symulacja dla 52 PBI o najwyższym priorytecie · 10 000 iteracji',
-    meta:`Backlog P1: 52 PBI | Start: 07.07.2026<br>Deadline: 11.09.2026`,
+    meta:`Backlog P1: 52 PBI | Start: 08.07.2026<br>Deadline: 11.09.2026`,
     box:'ib-purple',
     boxText:'<strong>Założenie:</strong> P1 stanowią 52 z 91 PBI (57% backlogu). Ta sama pula net throughput co zakładka główna. Team koncentruje się na P1 w kolejności priorytetowej.',
     barCol: x => x>=SC.p1.p95w?'#FEE2E2':x>=SC.p1.p85w?'#FEF3C7':'#EDE9FE',
@@ -195,7 +195,7 @@ const CONFIGS = {
   p2: {
     title:'REW · P1 + P2 (61 PBI)',
     sub:'Symulacja dla 61 PBI o priorytecie P1 i P2 · 10 000 iteracji',
-    meta:`Backlog P1+P2: 61 PBI | Start: 07.07.2026<br>Deadline: 11.09.2026`,
+    meta:`Backlog P1+P2: 61 PBI | Start: 08.07.2026<br>Deadline: 11.09.2026`,
     box:'ib-amber',
     boxText:'<strong>Założenie:</strong> P1+P2 stanowią 61 z 91 PBI (67% backlogu). Ta sama pula net throughput.',
     barCol: x => x>=SC.p2.p95w?'#FEE2E2':x>=SC.p2.p85w?'#FEF3C7':'#FEF9C3',
@@ -207,7 +207,7 @@ const CONFIGS = {
   va: {
     title:'REW · Urlop · Pełny backlog',
     sub:'Capacity ×0.67 (1 z 3 osób nieobecna) · 91 PBI · 10 000 iteracji',
-    meta:`Backlog: 91 PBI | Start: 07.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    meta:`Backlog: 91 PBI | Start: 08.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
     box:'ib-teal',
     boxText:'<strong>Scenariusz urlopowy:</strong> Net throughput każdego tygodnia przemnożony ×0,67. Pula urlopowa: [10,10,5,5,6,6,9,6,8] PBI/tydz. · avg 7,2.',
     barCol: x => x>=SC.va.p95w?'#FEE2E2':x>=SC.va.p85w?'#FEF3C7':'#CFFAFE',
@@ -219,7 +219,7 @@ const CONFIGS = {
   vp1: {
     title:'REW · Urlop · P1 (52 PBI)',
     sub:'Capacity ×0.67 · 52 PBI P1 · 10 000 iteracji',
-    meta:`Backlog P1: 52 PBI | Start: 07.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    meta:`Backlog P1: 52 PBI | Start: 08.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
     box:'ib-teal',
     boxText:'<strong>Scenariusz urlopowy:</strong> Cel P1 przy stałej nieobecności jednej osoby (×0,67 capacity).',
     barCol: x => x>=SC.vp1.p95w?'#FEE2E2':x>=SC.vp1.p85w?'#FEF3C7':'#CFFAFE',
@@ -231,7 +231,7 @@ const CONFIGS = {
   vp2: {
     title:'REW · Urlop · P1+P2 (61 PBI)',
     sub:'Capacity ×0.67 · 61 PBI P1+P2 · 10 000 iteracji',
-    meta:`Backlog P1+P2: 61 PBI | Start: 07.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    meta:`Backlog P1+P2: 61 PBI | Start: 08.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
     box:'ib-teal',
     boxText:'<strong>Scenariusz urlopowy:</strong> Cel P1+P2 przy stałej nieobecności jednej osoby (×0,67 capacity).',
     barCol: x => x>=SC.vp2.p95w?'#FEE2E2':x>=SC.vp2.p85w?'#FEF3C7':'#CFFAFE',
@@ -319,7 +319,7 @@ function buildTab(key) {
 
     <div class="panel">
       <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 11.09.2026?</div>
-      <div class="panel-subtitle">Okno 7.07 → 11.09 (~9,6 tygodnia roboczego)</div>
+      <div class="panel-subtitle">Okno 8.07 → 11.09 (~9,4 tygodnia roboczego)</div>
       <canvas id="c2-${key}" height="220"></canvas>
       <div class="pct-row">
         <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" style="color:var(--p50)">${sc.p50p}</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
