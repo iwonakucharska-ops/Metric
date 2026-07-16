@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRN — Monte Carlo Delivery Forecast</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#1c2321;
+    --paper:#f6f4ee;
+    --panel:#ffffff;
+    --line:#dcd7c9;
+    --ledger:#2f6f4f;       /* zielony księgowy — "on track" */
+    --ledger-dim:#e4efe8;
+    --caution:#b8863b;      /* bursztyn — "uwaga" */
+    --caution-dim:#f5ecd9;
+    --alert:#a8432f;        /* cegła — "opóźnienie" */
+    --alert-dim:#f6e6e1;
+    --p50:#2f6f4f;
+    --p85:#4f7fae;
+    --p95:#8a6fae;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --serif: 'Iowan Old Style','Palatino Linotype', Palatino, Georgia, serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    line-height:1.5;
+    padding:28px 20px 60px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+  header{
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  header h1{font-size:1.5rem;margin:0;font-weight:600;letter-spacing:.2px;}
+  header .sub{font-family:var(--mono);font-size:.72rem;color:#6b6255;text-transform:uppercase;letter-spacing:.08em;}
+  .ledger-tag{
+    font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
+    border:1px solid var(--ink);padding:3px 8px;border-radius:2px;
+    text-transform:uppercase;
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px 22px;
+    margin-bottom:20px;
+  }
+  .panel h2{
+    font-size:1rem;margin:0 0 14px;
+    font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;
+    color:#3a352c;
+    border-bottom:1px solid var(--line);
+    padding-bottom:8px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+
+  label{font-size:.82rem;color:#4a453a;display:block;margin-bottom:4px;font-family:var(--mono);}
+  input[type=number],input[type=date],input[type=text]{
+    width:100%;padding:7px 9px;border:1px solid #c9c2b0;border-radius:4px;
+    font-family:var(--mono);font-size:.88rem;background:#fffdf9;color:var(--ink);
+  }
+  .field{margin-bottom:12px;}
+
+  #throughputTable{width:100%;border-collapse:collapse;margin-bottom:10px;font-family:var(--mono);font-size:.85rem;}
+  #throughputTable th{text-align:left;font-weight:500;color:#6b6255;padding:4px 6px;border-bottom:1px solid var(--line);}
+  #throughputTable td{padding:3px 6px;}
+  #throughputTable input{padding:5px 7px;}
+  .row-actions{display:flex;gap:6px;margin-top:6px;}
+  button{
+    font-family:var(--mono);font-size:.78rem;letter-spacing:.03em;
+    background:var(--ink);color:var(--paper);border:none;border-radius:4px;
+    padding:7px 12px;cursor:pointer;text-transform:uppercase;
+  }
+  button.secondary{background:transparent;color:var(--ink);border:1px solid var(--ink);}
+  button:hover{opacity:.85;}
+  .rm-btn{background:transparent;border:none;color:var(--alert);cursor:pointer;font-size:1rem;padding:0 4px;}
+
+  .checkpoint-row{display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end;margin-bottom:8px;}
+
+  .run-bar{display:flex;justify-content:flex-end;margin-top:6px;}
+  .run-bar button{padding:10px 22px;font-size:.85rem;}
+
+  .weather{
+    background:var(--ledger-dim);
+    border-left:4px solid var(--ledger);
+    padding:14px 16px;border-radius:4px;
+    font-size:.98rem;margin-bottom:16px;white-space:pre-wrap;
+  }
+  .weather.caution{background:var(--caution-dim);border-left-color:var(--caution);}
+  .weather.alert{background:var(--alert-dim);border-left-color:var(--alert);}
+
+  table.results{width:100%;border-collapse:collapse;font-size:.88rem;}
+  table.results th{
+    font-family:var(--mono);text-transform:uppercase;font-size:.7rem;letter-spacing:.05em;
+    text-align:left;color:#6b6255;padding:8px 10px;border-bottom:1px solid var(--ink);
+  }
+  table.results td{padding:8px 10px;border-bottom:1px solid var(--line);font-family:var(--mono);}
+  table.results tr:last-child td{font-weight:600;}
+  .status-pill{
+    display:inline-block;padding:2px 8px;border-radius:10px;font-size:.7rem;
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  .status-ok{background:var(--ledger-dim);color:var(--ledger);}
+  .status-caution{background:var(--caution-dim);color:var(--caution);}
+  .status-alert{background:var(--alert-dim);color:var(--alert);}
+
+  canvas{max-width:100%;}
+  .chart-wrap{position:relative;height:380px;margin-top:10px;}
+
+  .note{font-size:.78rem;color:#7a7264;font-family:var(--mono);margin-top:8px;}
+  .stat-strip{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:14px;}
+  .stat{font-family:var(--mono);font-size:.8rem;}
+  .stat b{display:block;font-size:1.3rem;font-family:var(--serif);color:var(--ink);}
+
+  .actual-row{display:flex;gap:8px;align-items:center;margin-bottom:6px;}
+  .actual-row input{width:110px;}
+  #actualList{margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>Monte Carlo Delivery Forecast — BRN</h1>
+      <div class="sub">Księgowość Uproszczona · bootstrapping wg Troy Magennis</div>
+    </div>
+    <div class="ledger-tag" id="lastRunTag">nie uruchomiono</div>
+  </header>
+
+  <div class="panel">
+    <h2>1 · Dane historyczne throughput</h2>
+    <table id="throughputTable">
+      <thead><tr><th>Tydzień (etykieta)</th><th>Zamknięte PBI</th><th></th></tr></thead>
+      <tbody id="throughputBody"></tbody>
+    </table>
+    <div class="row-actions">
+      <button class="secondary" onclick="addThroughputRow()">+ dodaj tydzień</button>
+      <button class="secondary" onclick="resetThroughputDefaults()">przywróć domyślne (10 tyg., bez 5.07)</button>
+    </div>
+    <p class="note">Domyślnie: 10 próbek z ostatnich pełnych tygodni. Tydzień 5 lipca odrzucony jako anomalia (regresja przed wydaniem). Tydzień 12 lipca pominięty — niepełny.</p>
+  </div>
+
+  <div class="panel">
+    <h2>2 · Parametry delivery planu</h2>
+    <div class="grid2">
+      <div>
+        <div class="field">
+          <label>Wielkość backlogu (łącznie PBI)</label>
+          <input type="number" id="backlogSize" value="71" min="1">
+        </div>
+        <div class="field">
+          <label>Data startu liczenia checkpointów</label>
+          <input type="date" id="startDate" value="2026-07-16">
+        </div>
+        <div class="field">
+          <label>Docelowa data (opcjonalnie, do Wariantu B)</label>
+          <input type="date" id="targetDate" value="">
+        </div>
+      </div>
+      <div>
+        <label style="margin-bottom:8px;">Checkpointy (kumulatywnie narastająco)</label>
+        <div id="checkpointList"></div>
+        <div class="row-actions">
+          <button class="secondary" onclick="addCheckpoint()">+ dodaj checkpoint</button>
+          <button class="secondary" onclick="resetCheckpointDefaults()">4 × ~18 (domyślne)</button>
+        </div>
+        <p class="note" id="checkpointSumNote"></p>
+      </div>
+    </div>
+    <div class="run-bar">
+      <button onclick="runSimulation()">Uruchom symulację (10 000 iteracji)</button>
+    </div>
+  </div>
+
+  <div class="panel" id="resultsPanel" style="display:none;">
+    <h2>3 · Prognoza — checkpointy delivery planu</h2>
+    <div class="weather" id="weatherBox"></div>
+
+    <div class="stat-strip" id="statStrip"></div>
+
+    <table class="results">
+      <thead>
+        <tr><th>Checkpoint</th><th>PBI (kumulat.)</th><th>P50 — data</th><th>P85 — data</th><th>P95 — data</th></tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+
+    <p class="note">P50 = 50% symulacji ukończyło ten zakres do tej daty (median, "przeciętny scenariusz"). P85 = bezpieczniejszy termin do komunikacji na zewnątrz. P95 = scenariusz konserwatywny.</p>
+  </div>
+
+  <div class="panel" id="chartPanel" style="display:none;">
+    <h2>4 · Korytarz prognozy vs. postęp rzeczywisty</h2>
+    <div class="chart-wrap"><canvas id="corridorChart"></canvas></div>
+
+    <div style="margin-top:16px;">
+      <label>Wpisz rzeczywisty postęp (kumulatywna liczba zamkniętych PBI na dany tydzień), aby nanieść na wykres:</label>
+      <div id="actualList"></div>
+      <div class="row-actions">
+        <button class="secondary" onclick="addActualRow()">+ dodaj punkt rzeczywisty</button>
+        <button onclick="updateChartWithActuals()">Odśwież wykres</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---------- STATE ----------
+let chartInstance = null;
+
+function resetThroughputDefaults(){
+  const defaults = [
+    ["26 kwietnia", 5], ["3 maja", 5], ["10 maja", 4], ["17 maja", 6],
+    ["24 maja", 7], ["31 maja", 2], ["7 czerwca", 8], ["14 czerwca", 2],
+    ["21 czerwca", 7], ["28 czerwca", 5]
+  ];
+  const body = document.getElementById('throughputBody');
+  body.innerHTML = '';
+  defaults.forEach(([label, val]) => addThroughputRow(label, val));
+}
+
+function addThroughputRow(label = '', value = 0){
+  const body = document.getElementById('throughputBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" value="${label}" placeholder="np. 21 czerwca"></td>
+    <td><input type="number" value="${value}" min="0" style="width:80px;"></td>
+    <td><button class="rm-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  body.appendChild(tr);
+}
+
+function getThroughputSamples(){
+  const rows = document.querySelectorAll('#throughputBody tr');
+  const samples = [];
+  rows.forEach(r => {
+    const val = parseFloat(r.querySelectorAll('input')[1].value);
+    if(!isNaN(val)) samples.push(val);
+  });
+  return samples;
+}
+
+function resetCheckpointDefaults(){
+  const list = document.getElementById('checkpointList');
+  list.innerHTML = '';
+  [18,18,18,17].forEach((v,i) => addCheckpoint(`Checkpoint ${i+1}`, v));
+  updateCheckpointSumNote();
+}
+
+function addCheckpoint(name = '', size = 0){
+  const list = document.getElementById('checkpointList');
+  const idx = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'checkpoint-row';
+  div.innerHTML = `
+    <div><input type="text" value="${name || 'Checkpoint ' + idx}"></div>
+    <div><input type="number" value="${size}" min="1" onchange="updateCheckpointSumNote()"></div>
+    <button class="rm-btn" onclick="this.closest('.checkpoint-row').remove(); updateCheckpointSumNote();">✕</button>
+  `;
+  list.appendChild(div);
+  updateCheckpointSumNote();
+}
+
+function getCheckpoints(){
+  const rows = document.querySelectorAll('#checkpointList .checkpoint-row');
+  const cps = [];
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input');
+    const name = inputs[0].value || `Checkpoint ${cps.length+1}`;
+    const size = parseFloat(inputs[1].value);
+    if(!isNaN(size) && size > 0) cps.push({name, size});
+  });
+  return cps;
+}
+
+function updateCheckpointSumNote(){
+  const cps = getCheckpoints();
+  const sum = cps.reduce((a,c)=>a+c.size,0);
+  const backlog = parseFloat(document.getElementById('backlogSize').value) || 0;
+  const note = document.getElementById('checkpointSumNote');
+  if(sum === backlog){
+    note.textContent = `Suma checkpointów: ${sum} PBI = wielkość backlogu ✓`;
+    note.style.color = '#2f6f4f';
+  } else {
+    note.textContent = `Suma checkpointów: ${sum} PBI (backlog: ${backlog}) — ${sum < backlog ? 'brakuje ' + (backlog-sum) : 'nadwyżka ' + (sum-backlog)} PBI`;
+    note.style.color = '#a8432f';
+  }
+}
+
+// ---------- MONTE CARLO ----------
+function percentile(arr, p){
+  const sorted = [...arr].sort((a,b)=>a-b);
+  const idx = Math.min(sorted.length - 1, Math.floor(p/100 * sorted.length));
+  return sorted[idx];
+}
+
+function runSimulation(){
+  const samples = getThroughputSamples();
+  if(samples.length < 5){
+    alert('Potrzeba co najmniej 5 próbek throughput do wiarygodnej symulacji.');
+    return;
+  }
+  const backlog = parseFloat(document.getElementById('backlogSize').value);
+  const startDateStr = document.getElementById('startDate').value;
+  const startDate = new Date(startDateStr + 'T00:00:00');
+  let checkpoints = getCheckpoints();
+  if(checkpoints.length === 0){
+    alert('Dodaj przynajmniej jeden checkpoint.');
+    return;
+  }
+
+  // build cumulative thresholds
+  let running = 0;
+  const thresholds = checkpoints.map(cp => {
+    running += cp.size;
+    return {name: cp.name, size: cp.size, cumulative: running};
+  });
+  const maxWeeksCap = 60; // safety cap
+  const ITER = 10000;
+
+  // first-passage week for each threshold, per iteration
+  const passageWeeks = thresholds.map(() => []);
+  // envelope: cumulative completed at each week, per iteration (for corridor chart)
+  const maxTarget = thresholds[thresholds.length - 1].cumulative;
+  const weekSnapshots = []; // weekSnapshots[week] = array of cumulative values across iterations
+
+  for(let it = 0; it < ITER; it++){
+    let cum = 0;
+    let week = 0;
+    let nextThresholdIdx = 0;
+    const iterSnapshot = [];
+    while(cum < maxTarget && week < maxWeeksCap){
+      const draw = samples[Math.floor(Math.random() * samples.length)];
+      cum += draw;
+      week++;
+      iterSnapshot[week] = cum;
+      while(nextThresholdIdx < thresholds.length && cum >= thresholds[nextThresholdIdx].cumulative){
+        passageWeeks[nextThresholdIdx].push(week);
+        nextThresholdIdx++;
+      }
+    }
+    // fill snapshot array up to maxWeeksCap with capped cum for envelope purposes
+    for(let w = 1; w <= maxWeeksCap; w++){
+      if(iterSnapshot[w] === undefined){
+        iterSnapshot[w] = w > week ? cum : (iterSnapshot[w-1] || 0);
+      }
+      if(!weekSnapshots[w]) weekSnapshots[w] = [];
+      weekSnapshots[w].push(Math.min(iterSnapshot[w], maxTarget));
+    }
+  }
+
+  // results table
+  const resultsBody = document.getElementById('resultsBody');
+  resultsBody.innerHTML = '';
+  const results = thresholds.map((t, i) => {
+    const weeks = passageWeeks[i];
+    const p50 = percentile(weeks, 50);
+    const p85 = percentile(weeks, 85);
+    const p95 = percentile(weeks, 95);
+    const dateFor = w => {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + w*7);
+      return d;
+    };
+    return {
+      name: t.name, cumulative: t.cumulative,
+      p50w: p50, p85w: p85, p95w: p95,
+      p50d: dateFor(p50), p85d: dateFor(p85), p95d: dateFor(p95)
+    };
+  });
+
+  const fmt = d => d.toLocaleDateString('pl-PL', {day:'numeric', month:'long', year:'numeric'});
+
+  results.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.cumulative}</td><td>${fmt(r.p50d)}</td><td>${fmt(r.p85d)}</td><td>${fmt(r.p95d)}</td>`;
+    resultsBody.appendChild(tr);
+  });
+
+  // weather summary
+  const final = results[results.length - 1];
+  const targetDateStr = document.getElementById('targetDate').value;
+  let weatherText = `Prognoza dla pełnego backlogu (${backlog} PBI), start ${fmt(startDate)}:\n\n`;
+  weatherText += `☀️ 50% szans, że skończycie do ${fmt(final.p50d)} (${final.p50w} tyg.)\n`;
+  weatherText += `⛅ 85% szans, że skończycie do ${fmt(final.p85d)} (${final.p85w} tyg.) — bezpieczny termin do komunikacji\n`;
+  weatherText += `🌧️ 95% szans, że skończycie do ${fmt(final.p95d)} (${final.p95w} tyg.) — scenariusz konserwatywny`;
+
+  const weatherBox = document.getElementById('weatherBox');
+  weatherBox.classList.remove('caution','alert');
+
+  if(targetDateStr){
+    const target = new Date(targetDateStr + 'T00:00:00');
+    const daysBufferP85 = Math.round((target - final.p85d) / (1000*60*60*24));
+    weatherText += `\n\nWzględem daty docelowej (${fmt(target)}):\n`;
+    if(target >= final.p85d){
+      weatherText += `✅ Bufor ~${daysBufferP85} dni względem P85 — plan wygląda bezpiecznie.`;
+    } else if(target >= final.p50d){
+      weatherText += `⚠️ Data docelowa mieści się między P50 a P85 — realne ryzyko, warto monitorować co tydzień.`;
+      weatherBox.classList.add('caution');
+    } else {
+      weatherText += `🔴 Data docelowa jest przed P50 — przy obecnym tempie prawdopodobne opóźnienie. Rozważ redukcję zakresu lub renegocjację terminu.`;
+      weatherBox.classList.add('alert');
+    }
+  }
+  weatherBox.textContent = weatherText;
+
+  // stat strip
+  const avgThroughput = (samples.reduce((a,b)=>a+b,0)/samples.length).toFixed(1);
+  const cv = (stdDev(samples)/avgTP(samples)).toFixed(2);
+  document.getElementById('statStrip').innerHTML = `
+    <div class="stat">Próbek throughput<b>${samples.length}</b></div>
+    <div class="stat">Śr. throughput/tydz.<b>${avgThroughput}</b></div>
+    <div class="stat">CV (zmienność)<b>${cv}</b></div>
+    <div class="stat">Backlog<b>${backlog} PBI</b></div>
+  `;
+
+  document.getElementById('lastRunTag').textContent = `symulacja: ${new Date().toLocaleString('pl-PL')}`;
+  document.getElementById('resultsPanel').style.display = 'block';
+  document.getElementById('chartPanel').style.display = 'block';
+
+  // build corridor chart data
+  window._corridorData = {weekSnapshots, thresholds, startDate, maxWeeksP95: results[results.length-1].p95w};
+  renderCorridorChart();
+}
+
+function stdDev(arr){
+  const m = avgTP(arr);
+  return Math.sqrt(arr.reduce((s,v)=>s+(v-m)**2,0)/arr.length);
+}
+function avgTP(arr){ return arr.reduce((a,b)=>a+b,0)/arr.length; }
+
+// ---------- CHART ----------
+function renderCorridorChart(){
+  const {weekSnapshots, thresholds, startDate, maxWeeksP95} = window._corridorData;
+  const maxWeek = Math.min(maxWeeksP95 + 3, weekSnapshots.length - 1);
+
+  const labels = [];
+  const p50Line = [], p85Line = [], p95Line = [];
+  for(let w = 1; w <= maxWeek; w++){
+    const d = new Date(startDate); d.setDate(d.getDate() + w*7);
+    labels.push(d.toLocaleDateString('pl-PL', {day:'numeric', month:'short'}));
+    const vals = weekSnapshots[w] || [];
+    p50Line.push(percentile(vals, 50));
+    p85Line.push(percentile(vals, 85));
+    p95Line.push(percentile(vals, 95));
+  }
+
+  const checkpointAnnotations = thresholds.map(t => t.cumulative);
+
+  const ctx = document.getElementById('corridorChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+
+  const actuals = getActualPoints();
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'P95 (konserwatywnie)',
+          data: p95Line,
+          borderColor: '#8a6fae',
+          backgroundColor: 'rgba(138,111,174,0.08)',
+          fill: '+1',
+          borderWidth: 1,
+          pointRadius: 0,
+          tension: 0.15
+        },
+        {
+          label: 'P85',
+          data: p85Line,
+          borderColor: '#4f7fae',
+          backgroundColor: 'rgba(79,127,174,0.15)',
+          fill: '+1',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          tension: 0.15
+        },
+        {
+          label: 'P50 (mediana)',
+          data: p50Line,
+          borderColor: '#2f6f4f',
+          backgroundColor: 'rgba(47,111,79,0.12)',
+          fill: false,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.15
+        },
+        ...(actuals.length ? [{
+          label: 'Rzeczywisty postęp',
+          data: mapActualsToLabels(actuals, labels, startDate),
+          borderColor: '#a8432f',
+          backgroundColor: '#a8432f',
+          fill: false,
+          borderWidth: 2,
+          pointRadius: 4,
+          spanGaps: true,
+          tension: 0
+        }] : [])
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {mode: 'index', intersect: false},
+      plugins: {
+        legend: {position: 'top', labels: {font: {family: 'monospace', size: 11}}},
+        tooltip: {mode: 'index'}
+      },
+      scales: {
+        y: {
+          title: {display: true, text: 'Kumulatywne ukończone PBI'},
+          suggestedMax: checkpointAnnotations[checkpointAnnotations.length-1] * 1.05
+        },
+        x: {title: {display: true, text: 'Tydzień (data)'}}
+      }
+    }
+  });
+}
+
+// ---------- ACTUAL PROGRESS ----------
+function addActualRow(){
+  const list = document.getElementById('actualList');
+  const div = document.createElement('div');
+  div.className = 'actual-row';
+  div.innerHTML = `
+    <input type="date">
+    <input type="number" placeholder="kumulat. PBI" min="0">
+    <button class="rm-btn" onclick="this.closest('.actual-row').remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function getActualPoints(){
+  const rows = document.querySelectorAll('#actualList .actual-row');
+  const points = [];
+  rows.forEach(r => {
+    const inputs = r.querySelectorAll('input');
+    const dateVal = inputs[0].value;
+    const cum = parseFloat(inputs[1].value);
+    if(dateVal && !isNaN(cum)) points.push({date: new Date(dateVal + 'T00:00:00'), cum});
+  });
+  return points.sort((a,b) => a.date - b.date);
+}
+
+function mapActualsToLabels(actuals, labels, startDate){
+  // map each actual point to nearest week-label index
+  const arr = new Array(labels.length).fill(null);
+  actuals.forEach(pt => {
+    const weeksDiff = Math.round((pt.date - startDate) / (1000*60*60*24*7));
+    if(weeksDiff >= 1 && weeksDiff <= labels.length){
+      arr[weeksDiff - 1] = pt.cum;
+    }
+  });
+  return arr;
+}
+
+function updateChartWithActuals(){
+  if(!window._corridorData){ alert('Najpierw uruchom symulację.'); return; }
+  renderCorridorChart();
+}
+
+// ---------- INIT ----------
+resetThroughputDefaults();
+resetCheckpointDefaults();
+document.getElementById('backlogSize').addEventListener('input', updateCheckpointSumNote);
+</script>
+</body>
+</html>
