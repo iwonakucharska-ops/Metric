@@ -22,6 +22,7 @@
   .tab-btn.t-p1.active{border-bottom-color:var(--p1);}
   .tab-btn.t-p2.active{border-bottom-color:var(--p2);}
   .tab-btn.t-vac.active{border-bottom-color:var(--vac);}
+  .tab-btn.t-road.active{border-bottom-color:#0F766E;}
   .tab-btn:hover:not(.active){color:var(--text-secondary);}
   .tab-content{display:none;padding:32px 24px 48px;}
   .tab-content.active{display:block;}
@@ -51,6 +52,30 @@
   .ib-purple{background:#F5F3FF;border:1px solid #DDD6FE;color:#5B21B6;}
   .ib-amber{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;}
   .ib-teal{background:#ECFEFF;border:1px solid #A5F3FC;color:#155E75;}
+
+  /* ROADMAP */
+  .road-feature{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;display:flex;flex-direction:column;gap:10px;}
+  .road-feature-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .road-feature-name{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;}
+  .road-feature-meta{font-size:12px;color:var(--text-secondary);}
+  .road-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;}
+  .badge-green{background:#D1FAE5;color:#065F46;}
+  .badge-amber{background:#FEF3C7;color:#92400E;}
+  .badge-red{background:#FEE2E2;color:#991B1B;}
+  .badge-grey{background:#F3F4F6;color:#4B5563;}
+  .road-bar-track{background:#F3F4F6;border-radius:4px;height:8px;width:100%;overflow:hidden;}
+  .road-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+  .road-pct-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+  .road-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border);}
+  .road-cutline{border-left:3px solid;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;line-height:1.5;margin-top:2px;}
+  .road-cutline-green{border-color:#059669;background:#F0FDF4;color:#065F46;}
+  .road-cutline-amber{border-color:#D97706;background:#FFFBEB;color:#92400E;}
+  .road-cutline-red{border-color:#DC2626;background:#FFF1F2;color:#991B1B;}
+  .road-summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .rss-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+  .rss-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+  .rss-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;}
+  .rss-sub{font-size:11px;color:var(--text-secondary);margin-top:3px;}
   .verdict{border-radius:10px;padding:20px 24px;display:flex;align-items:center;gap:18px;}
   .verdict-icon{font-size:26px;flex-shrink:0;}
   .verdict-text h3{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:4px;}
@@ -76,6 +101,7 @@
   <button class="tab-btn t-vac"      onclick="sw('va')">🏖️ Urlop · Backlog (85)</button>
   <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (49)</button>
   <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (61)</button>
+  <button class="tab-btn t-road"     onclick="sw('road')">🗺️ Roadmapa featurów</button>
 </div></div>
 
 <div id="tab-all" class="tab-content active"></div>
@@ -84,6 +110,7 @@
 <div id="tab-va"  class="tab-content"></div>
 <div id="tab-vp1" class="tab-content"></div>
 <div id="tab-vp2" class="tab-content"></div>
+<div id="tab-road" class="tab-content"></div>
 
 <footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 31 dni · Start: 21.07.2026</footer>
 
@@ -381,6 +408,171 @@ function drawChart(id,data,pVals,pLbls,colorFn,xLbl,dateMode){
   ctx.fillText(xLbl,P.left+cW/2,H-4);
 }
 
+// ── ROADMAPA FEATURÓW ─────────────────────────────────────────────────
+const FEATURES = [
+  {id:'423659', total:11, todo:5},
+  {id:'214031', total:8,  todo:7},
+  {id:'213660', total:30, todo:24},
+  {id:'140295', total:2,  todo:2},
+  {id:'421841', total:12, todo:7},
+  {id:'207247', total:4,  todo:4},
+  {id:'421844', total:8,  todo:8},
+];
+
+// Wylicz skumulowane "todo" — cut-line operuje na pozostałych PBI
+let cumTodo = 0;
+FEATURES.forEach(f => {
+  f.done = f.total - f.todo;
+  cumTodo += f.todo;
+  f.cumTodo = cumTodo;  // skumulowane pozostałe PBI do tego featurea
+});
+
+function buildRoadmapTab() {
+  // Weź wyniki symulacji sim2 dla pełnego backlogu (pool, bl=85)
+  // ale roadmapa potrzebuje rozkładu ile PBI zrobimy w oknie → to jest SC.all.s2
+  const s2 = SC.all.s2;
+  const totalIter = s2.length;
+
+  // Dla każdego featurea oblicz Pr(ukończymy go do deadline)
+  // = Pr(liczba PBI w oknie >= cumTodo featurea)
+  FEATURES.forEach(f => {
+    f.prob = (s2.filter(v => v >= f.cumTodo).length / totalIter * 100).toFixed(1);
+    f.probNum = parseFloat(f.prob);
+    // Oczekiwana data ukończenia: ile tygodni potrzeba na cumTodo PBI → sim1-style
+    // Szybkie przybliżenie: percentyle tygodni z sim1 dla backlog=cumTodo
+    const s1f = sim1(pool, f.cumTodo);
+    f.p50d = fmt(addW(START, pct(s1f, 50)));
+    f.p85d = fmt(addW(START, pct(s1f, 85)));
+    f.p95d = fmt(addW(START, pct(s1f, 95)));
+    f.p50w = pct(s1f, 50);
+  });
+
+  const DEADLINE = new Date(2026, 8, 11);
+  const totalTodo = FEATURES.reduce((a,f)=>a+f.todo,0);
+  const greenCount = FEATURES.filter(f=>f.probNum>=85).length;
+  const amberCount = FEATURES.filter(f=>f.probNum>=50&&f.probNum<85).length;
+  const redCount   = FEATURES.filter(f=>f.probNum<50).length;
+
+  // P50/P85 ile PBI zrobimy w oknie
+  const pbi50 = SC.all.p50p;
+  const pbi85 = SC.all.p85p;
+  const pbi95 = SC.all.p95p;
+
+  const summaryHtml = `
+  <div class="road-summary-strip">
+    <div class="rss-card">
+      <div class="rss-label">Łącznie pozostało</div>
+      <div class="rss-val">${totalTodo} PBI</div>
+      <div class="rss-sub">w ${FEATURES.length} featurach</div>
+    </div>
+    <div class="rss-card">
+      <div class="rss-label">Do 11.09 zrobimy (P85)</div>
+      <div class="rss-val" style="color:var(--p85)">${pbi85} PBI</div>
+      <div class="rss-sub">P50: ${pbi50} · P95: ${pbi95}</div>
+    </div>
+    <div class="rss-card">
+      <div class="rss-label">Status featurów</div>
+      <div class="rss-val">🟢${greenCount} 🟡${amberCount} 🔴${redCount}</div>
+      <div class="rss-sub">bezpieczne / ryzyko / zagrożone</div>
+    </div>
+    <div class="rss-card">
+      <div class="rss-label">Avg throughput</div>
+      <div class="rss-val">${avgP} PBI/tydz.</div>
+      <div class="rss-sub">pool: 11 tygodni hist.</div>
+    </div>
+  </div>`;
+
+  // Cut-line bar — oś skumulowanych PBI
+  const maxCum = FEATURES[FEATURES.length-1].cumTodo;
+  const barW50 = (pbi50/maxCum*100).toFixed(1);
+  const barW85 = (pbi85/maxCum*100).toFixed(1);
+
+  const cutlineHtml = `
+  <div class="panel">
+    <div class="panel-title">Linia cięcia (cut-line) do 11.09.2026</div>
+    <div class="panel-subtitle">Skumulowane PBI pozostałe · gdzie pada P50 i P85 na osi featurów</div>
+    <div style="position:relative;margin:8px 0 24px;">
+      <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:6px;">
+        <span>0</span><span>${maxCum} PBI</span>
+      </div>
+      <div style="position:relative;height:28px;background:#F3F4F6;border-radius:6px;overflow:visible;">
+        <!-- P85 fill -->
+        <div style="position:absolute;left:0;top:0;height:100%;width:${barW85}%;background:#FEF3C7;border-radius:6px 0 0 6px;"></div>
+        <!-- P50 fill -->
+        <div style="position:absolute;left:0;top:0;height:100%;width:${barW50}%;background:#DBEAFE;border-radius:6px 0 0 6px;opacity:0.7;"></div>
+        <!-- Feature boundary markers -->
+        ${FEATURES.map(f=>{
+          const pct_= (f.cumTodo/maxCum*100).toFixed(1);
+          return `<div style="position:absolute;left:${pct_}%;top:-4px;bottom:-4px;width:2px;background:var(--border);"></div>
+          <div style="position:absolute;left:${pct_}%;top:32px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);transform:translateX(-50%);white-space:nowrap;">${f.id}</div>`;
+        }).join('')}
+        <!-- P50 line -->
+        <div style="position:absolute;left:${barW50}%;top:-8px;bottom:-8px;width:2px;background:#2563EB;"></div>
+        <div style="position:absolute;left:${barW50}%;top:-22px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#2563EB;transform:translateX(-50%)">P50=${pbi50}</div>
+        <!-- P85 line -->
+        <div style="position:absolute;left:${barW85}%;top:-8px;bottom:-8px;width:2px;background:#D97706;"></div>
+        <div style="position:absolute;left:${barW85}%;top:-22px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#D97706;transform:translateX(-50%)">P85=${pbi85}</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:48px">Featury po lewej od linii P85 mają ≥85% szans ukończenia do deadline. Po prawej — poza zasięgiem przy obecnym tempie.</p>
+  </div>`;
+
+  const featuresHtml = FEATURES.map((f, idx) => {
+    const cls   = f.probNum>=85?'badge-green':f.probNum>=50?'badge-amber':'badge-red';
+    const icon  = f.probNum>=85?'✅':f.probNum>=50?'⚠️':'🚨';
+    const clsLine = f.probNum>=85?'road-cutline-green':f.probNum>=50?'road-cutline-amber':'road-cutline-red';
+    const verdict = f.probNum>=85
+      ? `Bezpieczny — ${f.prob}% szans ukończenia do 11.09. Oczekiwana data (P85): ${f.p85d}.`
+      : f.probNum>=50
+      ? `Ryzyko — ${f.prob}% szans ukończenia do 11.09. Mediana ukończenia: ${f.p50d}, P85: ${f.p85d}.`
+      : `Zagrożony — tylko ${f.prob}% szans ukończenia do 11.09. Mediana: ${f.p50d}. Poza zasięgiem przy obecnym tempie.`;
+    const doneBarPct = (f.done/f.total*100).toFixed(0);
+
+    return `<div class="road-feature">
+      <div class="road-feature-header">
+        <div>
+          <div class="road-feature-name">${icon} Feature ${f.id}</div>
+          <div class="road-feature-meta">${f.done} z ${f.total} PBI ukończone · pozostało <strong>${f.todo}</strong> · skumulowane remaining: ${f.cumTodo}</div>
+        </div>
+        <div class="road-badge ${cls}">Pr(do 11.09) = ${f.prob}%</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
+          <span>Postęp</span><span>${doneBarPct}%</span>
+        </div>
+        <div class="road-bar-track">
+          <div class="road-bar-fill" style="width:${doneBarPct}%;background:${f.probNum>=85?'#059669':f.probNum>=50?'#D97706':'#DC2626'}"></div>
+        </div>
+      </div>
+      <div class="road-pct-row">
+        <span class="road-pct" style="color:var(--p50);border-color:#BFDBFE">P50: ${f.p50d}</span>
+        <span class="road-pct" style="color:var(--p85);border-color:#FDE68A">P85: ${f.p85d}</span>
+        <span class="road-pct" style="color:var(--p95);border-color:#FCA5A5">P95: ${f.p95d}</span>
+      </div>
+      <div class="${clsLine} road-cutline">${verdict}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tab-road').innerHTML = `<div class="page">
+    <header class="page-header">
+      <div><h1>REW · Roadmapa featurów</h1><p>Cut-line forecasting · probabilistyczny status każdego featurea · 10 000 iter.</p></div>
+      <div class="header-meta">Okno: 21.07 → 11.09.2026<br>Avg throughput: ${avgP} PBI/tydz. · Featury: ${FEATURES.length}</div>
+    </header>
+    <div class="info-box ib-blue">
+      <strong>Metodologia:</strong> Dla każdego featurea obliczamy Pr(ukończymy wszystkie skumulowane PBI do deadline) na podstawie rozkładu bootstrapowego z sim2.
+      Daty P50/P85/P95 pokazują kiedy feature zostanie ukończony przy danym poziomie pewności.
+      Kolejność featurów = kolejność realizacji (priorytet).
+    </div>
+    ${summaryHtml}
+    ${cutlineHtml}
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      ${featuresHtml}
+    </div>
+  </div>`;
+}
+
+buildRoadmapTab();
+
 function renderTab(key){
   const sc=SC[key],cf=CF[key];
   drawChart(`c1-${key}`,sc.s1,[sc.p50w,sc.p85w,sc.p95w],
@@ -396,6 +588,7 @@ function sw(tab){
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.querySelector(`[onclick="sw('${tab}')"]`).classList.add('active');
+  if(tab==='road') return; // already built
   renderTab(tab);
 }
 
