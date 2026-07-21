@@ -3,6 +3,410 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monte Carlo · REW Backlog v2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F7F8FA;--surface:#FFF;--border:#E4E7ED;
+    --text-primary:#1A1D23;--text-secondary:#6B7280;--text-muted:#9CA3AF;
+    --p50:#2563EB;--p85:#D97706;--p95:#DC2626;
+    --green:#059669;--grid:#EEF0F4;
+    --p1:#7C3AED;--p2:#D97706;--vac:#0891B2;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text-primary);min-height:100vh;}
+  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;overflow-x:auto;}
+  .tab-bar-inner{max-width:1200px;margin:0 auto;display:flex;padding:0 24px;min-width:max-content;}
+  .tab-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:13px 16px;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;white-space:nowrap;}
+  .tab-btn.active{color:var(--text-primary);border-bottom-color:#2563EB;}
+  .tab-btn.t-p1.active{border-bottom-color:var(--p1);}
+  .tab-btn.t-p2.active{border-bottom-color:var(--p2);}
+  .tab-btn.t-vac.active{border-bottom-color:var(--vac);}
+  .tab-btn:hover:not(.active){color:var(--text-secondary);}
+  .tab-content{display:none;padding:32px 24px 48px;}
+  .tab-content.active{display:block;}
+  .page{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:28px;}
+  .page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .page-header h1{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:600;letter-spacing:-.3px;}
+  .page-header p{font-size:13px;color:var(--text-secondary);margin-top:4px;}
+  .header-meta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);text-align:right;line-height:1.8;}
+  .cards-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 22px;}
+  .card-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+  .card-value{font-family:'IBM Plex Mono',monospace;font-size:25px;font-weight:600;line-height:1;}
+  .card-sub{font-size:12px;color:var(--text-secondary);margin-top:6px;}
+  .c50 .card-value{color:var(--p50);}.c85 .card-value{color:var(--p85);}.c95 .card-value{color:var(--p95);}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px 26px 20px;}
+  .panel-title{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:4px;}
+  .panel-subtitle{font-size:12px;color:var(--text-secondary);margin-bottom:20px;}
+  canvas{width:100%!important;display:block;}
+  .pct-row{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;}
+  .pct-chip{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:7px;border:1px solid var(--border);min-width:125px;}
+  .pct-chip-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;}
+  .pct-chip-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;}
+  .pct-chip-desc{font-size:11px;color:var(--text-secondary);}
+  .info-box{border-radius:8px;padding:14px 18px;font-size:12px;line-height:1.6;}
+  .info-box strong{font-family:'IBM Plex Mono',monospace;}
+  .ib-blue{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;}
+  .ib-purple{background:#F5F3FF;border:1px solid #DDD6FE;color:#5B21B6;}
+  .ib-amber{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;}
+  .ib-teal{background:#ECFEFF;border:1px solid #A5F3FC;color:#155E75;}
+  .verdict{border-radius:10px;padding:20px 24px;display:flex;align-items:center;gap:18px;}
+  .verdict-icon{font-size:26px;flex-shrink:0;}
+  .verdict-text h3{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:4px;}
+  .verdict-text p{font-size:12px;line-height:1.5;}
+  .v-green{background:#F0FDF4;border:1px solid #86EFAC;}
+  .v-amber{background:#FFFBEB;border:1px solid #FCD34D;}
+  .v-red{background:#FFF1F2;border:1px solid #FCA5A5;}
+  .data-table{width:100%;border-collapse:collapse;}
+  .data-table th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);font-weight:500;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  .data-table td{padding:8px 12px;border-bottom:1px solid var(--grid);font-size:13px;}
+  .data-table tr:last-child td{border-bottom:none;}
+  .tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;background:#FEF3C7;color:#92400E;}
+  .tag-sprint{background:#EFF6FF;color:#1D4ED8;}
+  footer{max-width:1100px;margin:8px auto 0;padding:0 24px 24px;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-align:right;}
+</style>
+</head>
+<body>
+
+<div class="tab-bar"><div class="tab-bar-inner">
+  <button class="tab-btn active"     onclick="sw('all')">📦 Backlog (85)</button>
+  <button class="tab-btn t-p1"       onclick="sw('p1')">🔴 P1 (49)</button>
+  <button class="tab-btn t-p2"       onclick="sw('p2')">🟠 P1+P2 (61)</button>
+  <button class="tab-btn t-vac"      onclick="sw('va')">🏖️ Urlop · Backlog (85)</button>
+  <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (49)</button>
+  <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (61)</button>
+</div></div>
+
+<div id="tab-all" class="tab-content active"></div>
+<div id="tab-p1"  class="tab-content"></div>
+<div id="tab-p2"  class="tab-content"></div>
+<div id="tab-va"  class="tab-content"></div>
+<div id="tab-vp1" class="tab-content"></div>
+<div id="tab-vp2" class="tab-content"></div>
+
+<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 31 dni · Start: 21.07.2026</footer>
+
+<script>
+// ── DANE ─────────────────────────────────────────────────────────────
+const RAW = [
+  {w:'03 maj 2026', net:8,  excl:false, why:''},
+  {w:'10 maj 2026', net:7,  excl:false, why:''},
+  {w:'17 maj 2026', net:9,  excl:false, why:''},
+  {w:'24 maj 2026', net:9,  excl:false, why:''},
+  {w:'31 maj 2026', net:7,  excl:false, why:''},
+  {w:'07 cze 2026', net:13, excl:true,  why:'outlier'},
+  {w:'14 cze 2026', net:9,  excl:false, why:''},
+  {w:'21 cze 2026', net:12, excl:false, why:''},
+  {w:'28 cze 2026', net:11, excl:false, why:''},
+  {w:'05 lip 2026', net:4,  excl:false, why:''},
+  {w:'12 lip 2026', net:10, excl:false, why:''},
+  {w:'19 lip 2026', net:5,  excl:false, why:''},
+];
+
+// Pool: [8,7,9,9,7,9,12,11,4,10,5] — 11 tygodni, avg 8.3
+const pool  = RAW.filter(d=>!d.excl).map(d=>d.net);
+const poolV = pool.map(v=>Math.round(v*0.67));
+
+const START = new Date(2026,6,21);  // 21 lipca 2026
+const ITERS = 10000;
+// 21.07 → 11.09 = 52 dni = 7 tyg + 3 dni → WFULL=7, WPART=3/5=0.6
+const WFULL = 7;
+const WPART = 0.6;
+
+const avgP  = (pool.reduce((a,b)=>a+b,0)/pool.length).toFixed(1);
+const avgPV = (poolV.reduce((a,b)=>a+b,0)/poolV.length).toFixed(1);
+
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function pct(a,p){return a[Math.ceil(p/100*a.length)-1];}
+function addW(d,w){const r=new Date(d);r.setDate(r.getDate()+w*7);return r;}
+function fmt(d){return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmts(d){return d.toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit'});}
+
+function sim1(p,bl){
+  const s=new Array(ITERS);
+  for(let i=0;i<ITERS;i++){let d=0,w=0;while(d<bl){d+=rnd(p);w++;}s[i]=w;}
+  return s.sort((a,b)=>a-b);
+}
+function sim2(p,bl){
+  const s=new Array(ITERS);
+  for(let i=0;i<ITERS;i++){
+    let d=0;
+    for(let w=0;w<WFULL;w++)d+=rnd(p);
+    d+=Math.round(rnd(p)*WPART);
+    s[i]=Math.min(d,bl);
+  }
+  return s.sort((a,b)=>a-b);
+}
+
+const SC={
+  all: {bl:85, p:pool,  label:'85 PBI'},
+  p1:  {bl:49,  p:pool,  label:'P1 (49)'},
+  p2:  {bl:61,  p:pool,  label:'P1+P2 (61)'},
+  va:  {bl:85, p:poolV, label:'Backlog urlop'},
+  vp1: {bl:49,  p:poolV, label:'P1 urlop'},
+  vp2: {bl:61,  p:poolV, label:'P1+P2 urlop'},
+};
+
+Object.keys(SC).forEach(k=>{
+  const sc=SC[k];
+  sc.s1=sim1(sc.p,sc.bl); sc.s2=sim2(sc.p,sc.bl);
+  sc.p50w=pct(sc.s1,50); sc.p85w=pct(sc.s1,85); sc.p95w=pct(sc.s1,95);
+  sc.p50d=fmt(addW(START,sc.p50w)); sc.p85d=fmt(addW(START,sc.p85w)); sc.p95d=fmt(addW(START,sc.p95w));
+  sc.p50p=pct(sc.s2,50); sc.p85p=pct(sc.s2,85); sc.p95p=pct(sc.s2,95);
+  sc.prob=(sc.s2.filter(v=>v>=sc.bl).length/ITERS*100).toFixed(1);
+});
+
+const CF={
+  all:{
+    title:'REW · Monte Carlo · Pełny backlog',
+    sub:'Throughput tygodniowy (tylko PBI) · 10 000 iteracji bootstrapowych',
+    meta:`Backlog: 85 PBI | Start: 21.07.2026<br>Deadline: 11.09.2026 | Avg: ${avgP} PBI/tydz.`,
+    box:'ib-blue',
+    boxt:`<strong>Dane:</strong> Pool: 11 tygodni (wykluczono 07.06 outlier). Wartości: [8,7,9,9,7,9,12,11,4,10,5] · avg ${avgP} · min 4 · max 12. Cycle time ref: 31 dni. Okno: 21.07 → 11.09.2026 (7 tyg. + 3 dni).`,
+    bc:x=>x>=SC.all.p95w?'#FEE2E2':x>=SC.all.p85w?'#FEF3C7':'#DBEAFE',
+    bc2:x=>x>=85?'#D1FAE5':'#DBEAFE',
+    c4col:'var(--green)',c4bg:'#F0FDF4',c4brd:'#DCFCE7',c4lbl:'Pr(≥85 PBI)',
+    xl2:'liczba PBI ukończonych do 11.09',tbl:true,
+  },
+  p1:{
+    title:'REW · Priorytety P1 (67 PBI)',
+    sub:'Symulacja dla 67 PBI o najwyższym priorytecie · 10 000 iteracji',
+    meta:`Backlog P1: 49 PBI | Start: 21.07.2026<br>Deadline: 11.09.2026`,
+    box:'ib-purple',
+    boxt:'<strong>Założenie:</strong> P1 stanowią 49 z 85 PBI (58% backlogu). Ta sama pula throughput co zakładka główna.',
+    bc:x=>x>=SC.p1.p95w?'#FEE2E2':x>=SC.p1.p85w?'#FEF3C7':'#EDE9FE',
+    bc2:x=>x>=49?'#D1FAE5':'#EDE9FE',
+    c4col:'var(--p1)',c4bg:'#F5F3FF',c4brd:'#DDD6FE',c4lbl:'Pr(≥49 P1)',
+    xl2:'liczba P1 ukończonych do 11.09',vrd:true,
+  },
+  p2:{
+    title:'REW · P1 + P2 (80 PBI)',
+    sub:'Symulacja dla 80 PBI o priorytecie P1 i P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 61 PBI | Start: 21.07.2026<br>Deadline: 11.09.2026`,
+    box:'ib-amber',
+    boxt:'<strong>Założenie:</strong> P1+P2 stanowią 61 z 85 PBI (72% backlogu). Ta sama pula throughput.',
+    bc:x=>x>=SC.p2.p95w?'#FEE2E2':x>=SC.p2.p85w?'#FEF3C7':'#FEF9C3',
+    bc2:x=>x>=61?'#D1FAE5':'#FEF9C3',
+    c4col:'var(--p2)',c4bg:'#FFFBEB',c4brd:'#FDE68A',c4lbl:'Pr(≥61 PBI)',
+    xl2:'liczba P1+P2 ukończonych do 11.09',vrd:true,cmp:true,
+  },
+  va:{
+    title:'REW · Urlop · Pełny backlog',
+    sub:'Capacity ×0.67 (1 z 3 osób nieobecna) · 105 PBI · 10 000 iteracji',
+    meta:`Backlog: 85 PBI | Start: 21.07.2026<br>Capacity: ×0.67 | Avg: ${avgPV} PBI/tydz.`,
+    box:'ib-teal',
+    boxt:`<strong>Scenariusz urlopowy:</strong> Throughput ×0,67. Pula urlopowa: [${poolV.join(', ')}] PBI/tydz. · avg ${avgPV}.`,
+    bc:x=>x>=SC.va.p95w?'#FEE2E2':x>=SC.va.p85w?'#FEF3C7':'#CFFAFE',
+    bc2:x=>x>=85?'#D1FAE5':'#CFFAFE',
+    c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥85 PBI)',
+    xl2:'liczba PBI ukończonych do 11.09',vrd:true,
+  },
+  vp1:{
+    title:'REW · Urlop · P1 (67 PBI)',
+    sub:'Capacity ×0.67 · 49 PBI P1 · 10 000 iteracji',
+    meta:`Backlog P1: 49 PBI | Start: 21.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',
+    boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1 przy nieobecności jednej osoby (×0,67 capacity).',
+    bc:x=>x>=SC.vp1.p95w?'#FEE2E2':x>=SC.vp1.p85w?'#FEF3C7':'#CFFAFE',
+    bc2:x=>x>=49?'#D1FAE5':'#CFFAFE',
+    c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥49 P1)',
+    xl2:'liczba P1 ukończonych do 11.09',vrd:true,
+  },
+  vp2:{
+    title:'REW · Urlop · P1+P2 (80 PBI)',
+    sub:'Capacity ×0.67 · 61 PBI P1+P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 61 PBI | Start: 21.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',
+    boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1+P2 przy nieobecności jednej osoby (×0,67 capacity).',
+    bc:x=>x>=SC.vp2.p95w?'#FEE2E2':x>=SC.vp2.p85w?'#FEF3C7':'#CFFAFE',
+    bc2:x=>x>=61?'#D1FAE5':'#CFFAFE',
+    c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥61 PBI)',
+    xl2:'liczba P1+P2 ukończonych do 11.09',vrd:true,cmp:true,
+  },
+};
+
+function buildTab(key){
+  const sc=SC[key],cf=CF[key];
+  const el=document.getElementById('tab-'+key);
+
+  let cmpHtml='';
+  if(cf.cmp){
+    const iv=key.startsWith('v');
+    const k1=iv?'vp1':'p1',k2=iv?'vp2':'p2',k3=iv?'va':'all';
+    const row=k=>`<tr>
+      <td>${k===k1?'🔴 P1':k===k2?'🟠 P1+P2':'📦 Backlog'}</td>
+      <td>${SC[k].bl}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p50)">${SC[k].p50d}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p85)">${SC[k].p85d}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p95)">${SC[k].p95d}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600">${SC[k].prob}%</td>
+    </tr>`;
+    cmpHtml=`<div class="panel"><div class="panel-title" style="margin-bottom:16px">Porównanie scenariuszy${iv?' (urlop)':''}</div>
+    <table class="data-table"><thead><tr><th>Scenariusz</th><th>Backlog</th><th>P50</th><th>P85</th><th>P95</th><th>Pr(do 11.09)</th></tr></thead>
+    <tbody>${row(k1)}${row(k2)}${row(k3)}</tbody></table></div>`;
+  }
+
+  let tblHtml='';
+  if(cf.tbl){
+    const rows=RAW.map(d=>`<tr>
+      <td style="${d.excl?'color:var(--text-muted)':''}">${d.w}</td>
+      <td style="${d.excl?'color:var(--text-muted)':'font-weight:600'}">${d.net}</td>
+      <td>${d.excl
+        ?`<span class="tag">${d.why}</span>`
+        :`<span style="color:var(--green);font-size:12px;font-family:'IBM Plex Mono',monospace">w modelu</span>`}
+      </td></tr>`).join('');
+    tblHtml=`<div class="panel"><div class="panel-title" style="margin-bottom:14px">Dane historyczne · PBI/tydz.</div>
+    <table class="data-table"><thead><tr><th>Tydzień od</th><th>PBI</th><th>Status</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:12px;font-family:'IBM Plex Mono',monospace">Źródło: FlowViz · wyłącznie PBI</p></div>`;
+  }
+
+  let vrdHtml='';
+  if(cf.vrd){
+    const prob=parseFloat(sc.prob);
+    const cls=prob>=85?'v-green':prob>=50?'v-amber':'v-red';
+    const icon=prob>=85?'✅':prob>=50?'⚠️':'🚨';
+    const vt=prob>=85
+      ?`Cel osiągalny — ${sc.prob}% szans na ukończenie do 11.09.2026`
+      :prob>=50
+      ?`Ryzyko umiarkowane — ${sc.prob}% szans na ukończenie do 11.09.2026`
+      :`Wysokie ryzyko — tylko ${sc.prob}% szans na ukończenie do 11.09.2026`;
+    const vd=prob>=85
+      ?`P85 = ${sc.p85d} — przed deadlinem. Rekomendacja: utrzymać tempo.`
+      :prob>=50
+      ?`Mediana (P50) = ${sc.p50d}, ale P85/P95 przekraczają deadline. Rozważ redukcję scope lub zwiększenie capacity.`
+      :`Nawet mediana (P50 = ${sc.p50d}) przekracza deadline. Konieczna rewizja scope lub negocjacja terminu.`;
+    vrdHtml=`<div class="verdict ${cls}"><div class="verdict-icon">${icon}</div>
+      <div class="verdict-text"><h3>${vt}</h3><p>${vd}</p></div></div>`;
+  }
+
+  el.innerHTML=`<div class="page">
+    <header class="page-header">
+      <div><h1>${cf.title}</h1><p>${cf.sub}</p></div>
+      <div class="header-meta">${cf.meta}</div>
+    </header>
+    <div class="info-box ${cf.box}">${cf.boxt}</div>
+    <div class="panel">
+      <div class="panel-title">Wykres 1 — Kiedy ukończymy ${sc.bl} PBI?</div>
+      <div class="panel-subtitle">Rozkład dat ukończenia · percentyle 50 / 85 / 95</div>
+      <canvas id="c1-${key}" height="220"></canvas>
+      <div class="cards-row" style="margin-top:20px">
+        <div class="card c50"><div class="card-label">P50 · 50% pewności</div><div class="card-value">${sc.p50d}</div><div class="card-sub">${sc.p50w} tyg. od startu</div></div>
+        <div class="card c85"><div class="card-label">P85 · 85% pewności</div><div class="card-value">${sc.p85d}</div><div class="card-sub">${sc.p85w} tyg. od startu</div></div>
+        <div class="card c95"><div class="card-label">P95 · 95% pewności</div><div class="card-value">${sc.p95d}</div><div class="card-sub">${sc.p95w} tyg. od startu</div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 11.09.2026?</div>
+      <div class="panel-subtitle">Okno 21.07 → 11.09 (7 tyg. + 3 dni robocze)</div>
+      <canvas id="c2-${key}" height="220"></canvas>
+      <div class="pct-row">
+        <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" style="color:var(--p50)">${sc.p50p}</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
+        <div class="pct-chip"><span class="pct-chip-label">P85</span><span class="pct-chip-val" style="color:var(--p85)">${sc.p85p}</span><span class="pct-chip-desc">PBI z 85% pewnością</span></div>
+        <div class="pct-chip"><span class="pct-chip-label">P95</span><span class="pct-chip-val" style="color:var(--p95)">${sc.p95p}</span><span class="pct-chip-desc">PBI z 95% pewnością</span></div>
+        <div class="pct-chip" style="border-color:${cf.c4brd};background:${cf.c4bg}">
+          <span class="pct-chip-label" style="color:${cf.c4col}">${cf.c4lbl}</span>
+          <span class="pct-chip-val" style="color:${cf.c4col}">${sc.prob}%</span>
+          <span class="pct-chip-desc" style="color:${cf.c4col}">szansa ukończenia wszystkich</span>
+        </div>
+      </div>
+    </div>
+    ${vrdHtml}${cmpHtml}${tblHtml}
+  </div>`;
+}
+
+Object.keys(CF).forEach(buildTab);
+document.getElementById('gen-date').textContent=new Date().toLocaleDateString('pl-PL');
+
+// ── CHARTS ───────────────────────────────────────────────────────────
+function buildHist(data,bins){
+  const mn=data[0],mx=data[data.length-1];
+  const step=Math.max(1,Math.ceil((mx-mn+1)/bins));
+  const counts=[];
+  for(let b=mn;b<=mx;b+=step)counts.push({x:b,cnt:data.filter(v=>v>=b&&v<b+step).length});
+  return{counts,step};
+}
+
+function drawChart(id,data,pVals,pLbls,colorFn,xLbl,dateMode){
+  const canvas=document.getElementById(id);
+  if(!canvas)return;
+  const DPR=window.devicePixelRatio||1;
+  const W=canvas.parentElement.clientWidth-52,H=220;
+  canvas.width=W*DPR;canvas.height=H*DPR;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(DPR,DPR);
+  const P={top:16,right:20,bottom:52,left:52};
+  const cW=W-P.left-P.right,cH=H-P.top-P.bottom;
+  const{counts}=buildHist(data,30);
+  const maxC=Math.max(...counts.map(c=>c.cnt));
+  const minX=counts[0].x,maxX=counts[counts.length-1].x+(counts[1]?counts[1].x-counts[0].x:1);
+  const step=counts.length>1?counts[1].x-counts[0].x:1;
+  const xp=v=>P.left+(v-minX)/(maxX-minX)*cW;
+  const yp=v=>P.top+cH-(v/maxC)*cH;
+
+  ctx.strokeStyle='#EEF0F4';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=P.top+(cH/4)*i;ctx.beginPath();ctx.moveTo(P.left,y);ctx.lineTo(P.left+cW,y);ctx.stroke();}
+
+  counts.forEach(({x,cnt})=>{
+    const bx=xp(x),bw=xp(x+step)-bx-1;
+    ctx.fillStyle=colorFn(x);
+    ctx.fillRect(bx,yp(cnt),Math.max(1,bw),cH-(yp(cnt)-P.top));
+  });
+
+  ['#2563EB','#D97706','#DC2626'].forEach((col,i)=>{
+    const x=xp(pVals[i]);
+    ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([5,3]);
+    ctx.beginPath();ctx.moveTo(x,P.top);ctx.lineTo(x,P.top+cH);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle=col;ctx.font=`bold 10px 'IBM Plex Mono',monospace`;ctx.textAlign='left';
+    ctx.fillText(pLbls[i],Math.min(x+4,W-P.right-60),P.top+12+i*14);
+  });
+
+  ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;
+  const ts=Math.ceil(counts.length/10);
+  counts.forEach(({x},idx)=>{
+    if(idx%ts!==0&&idx!==counts.length-1)return;
+    const tx=xp(x+step/2);
+    if(dateMode){
+      const d=addW(START,x);
+      ctx.save();ctx.translate(tx,P.top+cH+10);ctx.rotate(-Math.PI/4);
+      ctx.textAlign='right';ctx.fillText(fmts(d),0,0);ctx.restore();
+    }else{ctx.textAlign='center';ctx.fillText(x,tx,P.top+cH+16);}
+  });
+  ctx.save();ctx.translate(14,P.top+cH/2);ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;
+  ctx.fillText('iteracje',0,0);ctx.restore();
+  ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;ctx.textAlign='center';
+  ctx.fillText(xLbl,P.left+cW/2,H-4);
+}
+
+function renderTab(key){
+  const sc=SC[key],cf=CF[key];
+  drawChart(`c1-${key}`,sc.s1,[sc.p50w,sc.p85w,sc.p95w],
+    [`P50: ${fmts(addW(START,sc.p50w))}`,`P85: ${fmts(addW(START,sc.p85w))}`,`P95: ${fmts(addW(START,sc.p95w))}`],
+    cf.bc,'tygodnie od startu',true);
+  drawChart(`c2-${key}`,sc.s2,[sc.p50p,sc.p85p,sc.p95p],
+    [`P50: ${sc.p50p} PBI`,`P85: ${sc.p85p} PBI`,`P95: ${sc.p95p} PBI`],
+    cf.bc2,cf.xl2,false);
+}
+
+function sw(tab){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector(`[onclick="sw('${tab}')"]`).classList.add('active');
+  renderTab(tab);
+}
+
+renderTab('all');
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BRN — Monte Carlo Delivery Forecast</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
