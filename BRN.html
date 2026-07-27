@@ -97,11 +97,11 @@
     <h2>Dane wejściowe</h2>
 
     <label>Throughput tygodniowy (rozdziel przecinkami)</label>
-    <textarea id="throughputInput">6,5,8,8,2,10,4,8,8,10,11</textarea>
-    <div class="stat-row"><span id="statCount">11 próbek</span><span id="statCV">CV ≈ 0.36</span></div>
+    <textarea id="throughputInput">4,6,7,2,8,2,7,5,4,6,4</textarea>
+    <div class="stat-row"><span id="statCount">11 próbek</span><span id="statCV">CV ≈ 0.38</span></div>
 
     <label>Data startu</label>
-    <input type="date" id="startDate" value="2026-07-22">
+    <input type="date" id="startDate" value="2026-07-27">
 
     <label>WARIANT A — liczba PBI do ukończenia</label>
     <input type="number" id="backlogSize" value="69">
@@ -162,26 +162,27 @@
   <div class="card">
     <h2>Priorytet featerów</h2>
     <div class="assumption">
-      <b>Założenie dotyczące kolejności:</b> na pierwszym miejscu ustawiłam featery już
-      <b>rozpoczęte</b> — posortowane od najwcześniejszej daty startu. Featery bez podanej daty,
-      ale z widocznym postępem (to do &lt; wielkość feature'a — czyli 424088 i 410316) potraktowałam
-      jako rozpoczęte i umieściłam zaraz po nich. Na końcu — featery jeszcze nierozpoczęte, w kolejności
-      z Twojej wiadomości. Jeśli realny priorytet biznesowy (PO/BA) jest inny — zmień kolejność wierszy
-      poniżej i uruchom symulację ponownie.
+      <b>Założenie dotyczące kolejności:</b> zachowałam kolejność z poprzedniej sesji — featery
+      rozpoczęte (wg znanych dat startu) na początku, potem featery w toku bez daty (424088, 410316,
+      nowy 410142 — wszystkie mają "to do" mniejsze niż wielkość, więc traktuję je jako rozpoczęte),
+      na końcu featery jeszcze nierozpoczęte. W danych z Twojej wiadomości kilka featerów (251298,
+      406086, 410316, 251322) pojawiło się dwa razy — przyjęłam <b>ostatnie</b> podane wartości jako
+      aktualne (406086 urosło z 6 do 7 PBI). Jeśli kolejność powinna być inna — zmień wiersze poniżej.
     </div>
     <label>Lista featerów: ID, PBI do zrobienia, data startu (RRRR-MM-DD lub puste jeśli nierozpoczęty) — jeden na linię, w kolejności priorytetu</label>
-    <textarea id="featuresInput" style="min-height:280px; font-family:monospace;">151046, 12, 2026-04-23
+    <textarea id="featuresInput" style="min-height:300px; font-family:monospace;">151046, 12, 2026-04-23
 425239, 4, 2026-05-27
 425238, 3, 2026-06-10
 409954, 1, 2026-06-19
 426113, 1, 2026-06-25
-424975, 2, 2026-07-10
+424975, 1, 2026-07-10
 424665, 1, 2026-07-13
-424088, 2,
+424088, 3,
 410316, 5,
+410142, 7,
 425395, 1,
 251298, 2,
-406086, 6,
+406086, 7,
 251322, 3,</textarea>
     <button onclick="runFeatureSimulation()">▶ Uruchom symulację featerów</button>
     <div class="footer-note">
