@@ -6,13 +6,7 @@
 <title>Monte Carlo · REW Backlog v2</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#F7F8FA;--surface:#FFF;--border:#E4E7ED;
-    --text-primary:#1A1D23;--text-secondary:#6B7280;--text-muted:#9CA3AF;
-    --p50:#2563EB;--p85:#D97706;--p95:#DC2626;
-    --green:#059669;--grid:#EEF0F4;
-    --p1:#7C3AED;--p2:#D97706;--vac:#0891B2;
-  }
+  :root{--bg:#F7F8FA;--surface:#FFF;--border:#E4E7ED;--text-primary:#1A1D23;--text-secondary:#6B7280;--text-muted:#9CA3AF;--p50:#2563EB;--p85:#D97706;--p95:#DC2626;--green:#059669;--grid:#EEF0F4;--p1:#7C3AED;--p2:#D97706;--vac:#0891B2;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text-primary);min-height:100vh;}
   .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;overflow-x:auto;}
@@ -52,30 +46,6 @@
   .ib-purple{background:#F5F3FF;border:1px solid #DDD6FE;color:#5B21B6;}
   .ib-amber{background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;}
   .ib-teal{background:#ECFEFF;border:1px solid #A5F3FC;color:#155E75;}
-
-  /* ROADMAP */
-  .road-feature{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;display:flex;flex-direction:column;gap:10px;}
-  .road-feature-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-  .road-feature-name{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;}
-  .road-feature-meta{font-size:12px;color:var(--text-secondary);}
-  .road-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;}
-  .badge-green{background:#D1FAE5;color:#065F46;}
-  .badge-amber{background:#FEF3C7;color:#92400E;}
-  .badge-red{background:#FEE2E2;color:#991B1B;}
-  .badge-grey{background:#F3F4F6;color:#4B5563;}
-  .road-bar-track{background:#F3F4F6;border-radius:4px;height:8px;width:100%;overflow:hidden;}
-  .road-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
-  .road-pct-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-  .road-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border);}
-  .road-cutline{border-left:3px solid;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;line-height:1.5;margin-top:2px;}
-  .road-cutline-green{border-color:#059669;background:#F0FDF4;color:#065F46;}
-  .road-cutline-amber{border-color:#D97706;background:#FFFBEB;color:#92400E;}
-  .road-cutline-red{border-color:#DC2626;background:#FFF1F2;color:#991B1B;}
-  .road-summary-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-  .rss-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
-  .rss-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-  .rss-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;}
-  .rss-sub{font-size:11px;color:var(--text-secondary);margin-top:3px;}
   .verdict{border-radius:10px;padding:20px 24px;display:flex;align-items:center;gap:18px;}
   .verdict-icon{font-size:26px;flex-shrink:0;}
   .verdict-text h3{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:4px;}
@@ -89,35 +59,56 @@
   .data-table tr:last-child td{border-bottom:none;}
   .tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;background:#FEF3C7;color:#92400E;}
   .tag-sprint{background:#EFF6FF;color:#1D4ED8;}
+  /* ROADMAP */
+  .road-feature{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;display:flex;flex-direction:column;gap:10px;}
+  .road-feature-header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .road-feature-name{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;}
+  .road-feature-meta{font-size:12px;color:var(--text-secondary);}
+  .road-badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;white-space:nowrap;}
+  .badge-green{background:#D1FAE5;color:#065F46;}
+  .badge-amber{background:#FEF3C7;color:#92400E;}
+  .badge-red{background:#FEE2E2;color:#991B1B;}
+  .road-bar-track{background:#F3F4F6;border-radius:4px;height:8px;width:100%;overflow:hidden;}
+  .road-bar-fill{height:100%;border-radius:4px;}
+  .road-pct-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+  .road-pct{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 10px;border-radius:4px;border:1px solid var(--border);}
+  .road-cutline{border-left:3px solid;padding:10px 14px;border-radius:0 6px 6px 0;font-size:12px;line-height:1.5;}
+  .rcl-green{border-color:#059669;background:#F0FDF4;color:#065F46;}
+  .rcl-amber{border-color:#D97706;background:#FFFBEB;color:#92400E;}
+  .rcl-red{border-color:#DC2626;background:#FFF1F2;color:#991B1B;}
+  .rss{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .rss-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+  .rss-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+  .rss-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;}
+  .rss-sub{font-size:11px;color:var(--text-secondary);margin-top:3px;}
   footer{max-width:1100px;margin:8px auto 0;padding:0 24px 24px;font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;text-align:right;}
 </style>
 </head>
 <body>
 
 <div class="tab-bar"><div class="tab-bar-inner">
-  <button class="tab-btn active"     onclick="sw('all')">📦 Backlog (85)</button>
-  <button class="tab-btn t-p1"       onclick="sw('p1')">🔴 P1 (49)</button>
-  <button class="tab-btn t-p2"       onclick="sw('p2')">🟠 P1+P2 (61)</button>
-  <button class="tab-btn t-vac"      onclick="sw('va')">🏖️ Urlop · Backlog (85)</button>
-  <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (49)</button>
-  <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (61)</button>
+  <button class="tab-btn active"     onclick="sw('all')">📦 Backlog (76)</button>
+  <button class="tab-btn t-p1"       onclick="sw('p1')">🔴 P1 (36)</button>
+  <button class="tab-btn t-p2"       onclick="sw('p2')">🟠 P1+P2 (49)</button>
+  <button class="tab-btn t-vac"      onclick="sw('va')">🏖️ Urlop · Backlog (76)</button>
+  <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (36)</button>
+  <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (49)</button>
   <button class="tab-btn t-road"     onclick="sw('road')">🗺️ Roadmapa featurów</button>
 </div></div>
 
-<div id="tab-all" class="tab-content active"></div>
-<div id="tab-p1"  class="tab-content"></div>
-<div id="tab-p2"  class="tab-content"></div>
-<div id="tab-va"  class="tab-content"></div>
-<div id="tab-vp1" class="tab-content"></div>
-<div id="tab-vp2" class="tab-content"></div>
+<div id="tab-all"  class="tab-content active"></div>
+<div id="tab-p1"   class="tab-content"></div>
+<div id="tab-p2"   class="tab-content"></div>
+<div id="tab-va"   class="tab-content"></div>
+<div id="tab-vp1"  class="tab-content"></div>
+<div id="tab-vp2"  class="tab-content"></div>
 <div id="tab-road" class="tab-content"></div>
 
-<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 31 dni · Start: 21.07.2026</footer>
+<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 32 dni · Start: 27.07.2026</footer>
 
 <script>
 // ── DANE ─────────────────────────────────────────────────────────────
 const RAW = [
-  {w:'03 maj 2026', net:8,  excl:false, why:''},
   {w:'10 maj 2026', net:7,  excl:false, why:''},
   {w:'17 maj 2026', net:9,  excl:false, why:''},
   {w:'24 maj 2026', net:9,  excl:false, why:''},
@@ -128,18 +119,18 @@ const RAW = [
   {w:'28 cze 2026', net:11, excl:false, why:''},
   {w:'05 lip 2026', net:4,  excl:false, why:''},
   {w:'12 lip 2026', net:10, excl:false, why:''},
-  {w:'19 lip 2026', net:5,  excl:false, why:''},
+  {w:'19 lip 2026', net:16, excl:true,  why:'outlier'},
+  {w:'26 lip 2026', net:1,  excl:true,  why:'sprint w toku'},
 ];
-
-// Pool: [8,7,9,9,7,9,12,11,4,10,5] — 11 tygodni, avg 8.3
+// Pool: [7,9,9,7,9,12,11,4,10] — 9 tygodni, avg 8.7
 const pool  = RAW.filter(d=>!d.excl).map(d=>d.net);
 const poolV = pool.map(v=>Math.round(v*0.67));
 
-const START = new Date(2026,6,21);  // 21 lipca 2026
+const START = new Date(2026,6,27);  // 27 lipca 2026
 const ITERS = 10000;
-// 21.07 → 11.09 = 52 dni = 7 tyg + 3 dni → WFULL=7, WPART=3/5=0.6
-const WFULL = 7;
-const WPART = 0.6;
+// 27.07 → 11.09 = 46 dni = 6 tyg. + 4 dni → WPART = 4/5 = 0.8
+const WFULL = 6;
+const WPART = 0.8;
 
 const avgP  = (pool.reduce((a,b)=>a+b,0)/pool.length).toFixed(1);
 const avgPV = (poolV.reduce((a,b)=>a+b,0)/poolV.length).toFixed(1);
@@ -167,12 +158,12 @@ function sim2(p,bl){
 }
 
 const SC={
-  all: {bl:85, p:pool,  label:'85 PBI'},
-  p1:  {bl:49,  p:pool,  label:'P1 (49)'},
-  p2:  {bl:61,  p:pool,  label:'P1+P2 (61)'},
-  va:  {bl:85, p:poolV, label:'Backlog urlop'},
-  vp1: {bl:49,  p:poolV, label:'P1 urlop'},
-  vp2: {bl:61,  p:poolV, label:'P1+P2 urlop'},
+  all: {bl:76, p:pool,  label:'76 PBI'},
+  p1:  {bl:36, p:pool,  label:'P1 (36)'},
+  p2:  {bl:49, p:pool,  label:'P1+P2 (49)'},
+  va:  {bl:76, p:poolV, label:'Backlog urlop'},
+  vp1: {bl:36, p:poolV, label:'P1 urlop'},
+  vp2: {bl:49, p:poolV, label:'P1+P2 urlop'},
 };
 
 Object.keys(SC).forEach(k=>{
@@ -185,129 +176,80 @@ Object.keys(SC).forEach(k=>{
 });
 
 const CF={
-  all:{
-    title:'REW · Monte Carlo · Pełny backlog',
-    sub:'Throughput tygodniowy (tylko PBI) · 10 000 iteracji bootstrapowych',
-    meta:`Backlog: 85 PBI | Start: 21.07.2026<br>Deadline: 11.09.2026 | Avg: ${avgP} PBI/tydz.`,
-    box:'ib-blue',
-    boxt:`<strong>Dane:</strong> Pool: 11 tygodni (wykluczono 07.06 outlier). Wartości: [8,7,9,9,7,9,12,11,4,10,5] · avg ${avgP} · min 4 · max 12. Cycle time ref: 31 dni. Okno: 21.07 → 11.09.2026 (7 tyg. + 3 dni).`,
+  all:{title:'REW · Monte Carlo · Pełny backlog',sub:'Throughput tygodniowy (tylko PBI) · 10 000 iteracji',
+    meta:`Backlog: 76 PBI | Start: 27.07.2026<br>Deadline: 11.09.2026 | Avg: ${avgP} PBI/tydz.`,
+    box:'ib-blue',boxt:`<strong>Dane:</strong> Pool: 9 tygodni (wykluczono 07.06 outlier, 19.07 outlier, 26.07 sprint w toku). Wartości: [7,9,9,7,9,12,11,4,10] · avg ${avgP} · min 4 · max 12. Cycle time ref: 32 dni. Okno: 27.07 → 11.09 (6 tyg. + 4 dni).`,
     bc:x=>x>=SC.all.p95w?'#FEE2E2':x>=SC.all.p85w?'#FEF3C7':'#DBEAFE',
-    bc2:x=>x>=85?'#D1FAE5':'#DBEAFE',
-    c4col:'var(--green)',c4bg:'#F0FDF4',c4brd:'#DCFCE7',c4lbl:'Pr(≥85 PBI)',
-    xl2:'liczba PBI ukończonych do 11.09',tbl:true,
-  },
-  p1:{
-    title:'REW · Priorytety P1 (67 PBI)',
-    sub:'Symulacja dla 67 PBI o najwyższym priorytecie · 10 000 iteracji',
-    meta:`Backlog P1: 49 PBI | Start: 21.07.2026<br>Deadline: 11.09.2026`,
-    box:'ib-purple',
-    boxt:'<strong>Założenie:</strong> P1 stanowią 49 z 85 PBI (58% backlogu). Ta sama pula throughput co zakładka główna.',
+    bc2:x=>x>=76?'#D1FAE5':'#DBEAFE',c4col:'var(--green)',c4bg:'#F0FDF4',c4brd:'#DCFCE7',c4lbl:'Pr(≥76 PBI)',xl2:'liczba PBI ukończonych do 11.09',tbl:true},
+  p1:{title:'REW · Priorytety P1 (36 PBI)',sub:'Symulacja dla 49 PBI o najwyższym priorytecie · 10 000 iteracji',
+    meta:`Backlog P1: 36 PBI | Start: 27.07.2026<br>Deadline: 11.09.2026`,
+    box:'ib-purple',boxt:'<strong>Założenie:</strong> P1 stanowią 36 z 76 PBI (47% backlogu).',
     bc:x=>x>=SC.p1.p95w?'#FEE2E2':x>=SC.p1.p85w?'#FEF3C7':'#EDE9FE',
-    bc2:x=>x>=49?'#D1FAE5':'#EDE9FE',
-    c4col:'var(--p1)',c4bg:'#F5F3FF',c4brd:'#DDD6FE',c4lbl:'Pr(≥49 P1)',
-    xl2:'liczba P1 ukończonych do 11.09',vrd:true,
-  },
-  p2:{
-    title:'REW · P1 + P2 (80 PBI)',
-    sub:'Symulacja dla 80 PBI o priorytecie P1 i P2 · 10 000 iteracji',
-    meta:`Backlog P1+P2: 61 PBI | Start: 21.07.2026<br>Deadline: 11.09.2026`,
-    box:'ib-amber',
-    boxt:'<strong>Założenie:</strong> P1+P2 stanowią 61 z 85 PBI (72% backlogu). Ta sama pula throughput.',
+    bc2:x=>x>=36?'#D1FAE5':'#EDE9FE',c4col:'var(--p1)',c4bg:'#F5F3FF',c4brd:'#DDD6FE',c4lbl:'Pr(≥36 P1)',xl2:'liczba P1 ukończonych do 11.09',vrd:true},
+  p2:{title:'REW · P1 + P2 (49 PBI)',sub:'Symulacja dla 61 PBI o priorytecie P1 i P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 49 PBI | Start: 27.07.2026<br>Deadline: 11.09.2026`,
+    box:'ib-amber',boxt:'<strong>Założenie:</strong> P1+P2 stanowią 49 z 76 PBI (64% backlogu).',
     bc:x=>x>=SC.p2.p95w?'#FEE2E2':x>=SC.p2.p85w?'#FEF3C7':'#FEF9C3',
-    bc2:x=>x>=61?'#D1FAE5':'#FEF9C3',
-    c4col:'var(--p2)',c4bg:'#FFFBEB',c4brd:'#FDE68A',c4lbl:'Pr(≥61 PBI)',
-    xl2:'liczba P1+P2 ukończonych do 11.09',vrd:true,cmp:true,
-  },
-  va:{
-    title:'REW · Urlop · Pełny backlog',
-    sub:'Capacity ×0.67 (1 z 3 osób nieobecna) · 105 PBI · 10 000 iteracji',
-    meta:`Backlog: 85 PBI | Start: 21.07.2026<br>Capacity: ×0.67 | Avg: ${avgPV} PBI/tydz.`,
-    box:'ib-teal',
-    boxt:`<strong>Scenariusz urlopowy:</strong> Throughput ×0,67. Pula urlopowa: [${poolV.join(', ')}] PBI/tydz. · avg ${avgPV}.`,
+    bc2:x=>x>=49?'#D1FAE5':'#FEF9C3',c4col:'var(--p2)',c4bg:'#FFFBEB',c4brd:'#FDE68A',c4lbl:'Pr(≥49 PBI)',xl2:'liczba P1+P2 ukończonych do 11.09',vrd:true,cmp:true},
+  va:{title:'REW · Urlop · Pełny backlog',sub:'Capacity ×0.67 · 76 PBI · 10 000 iteracji',
+    meta:`Backlog: 76 PBI | Start: 27.07.2026<br>Capacity: ×0.67 | Avg: ${avgPV} PBI/tydz.`,
+    box:'ib-teal',boxt:`<strong>Scenariusz urlopowy:</strong> Throughput ×0,67. Pula: [${poolV.join(', ')}] · avg ${avgPV}.`,
     bc:x=>x>=SC.va.p95w?'#FEE2E2':x>=SC.va.p85w?'#FEF3C7':'#CFFAFE',
-    bc2:x=>x>=85?'#D1FAE5':'#CFFAFE',
-    c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥85 PBI)',
-    xl2:'liczba PBI ukończonych do 11.09',vrd:true,
-  },
-  vp1:{
-    title:'REW · Urlop · P1 (67 PBI)',
-    sub:'Capacity ×0.67 · 49 PBI P1 · 10 000 iteracji',
-    meta:`Backlog P1: 49 PBI | Start: 21.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
-    box:'ib-teal',
-    boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1 przy nieobecności jednej osoby (×0,67 capacity).',
+    bc2:x=>x>=76?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥76 PBI)',xl2:'liczba PBI ukończonych do 11.09',vrd:true},
+  vp1:{title:'REW · Urlop · P1 (36 PBI)',sub:'Capacity ×0.67 · 36 PBI P1 · 10 000 iteracji',
+    meta:`Backlog P1: 36 PBI | Start: 27.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1 przy nieobecności jednej osoby (×0,67).',
     bc:x=>x>=SC.vp1.p95w?'#FEE2E2':x>=SC.vp1.p85w?'#FEF3C7':'#CFFAFE',
-    bc2:x=>x>=49?'#D1FAE5':'#CFFAFE',
-    c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥49 P1)',
-    xl2:'liczba P1 ukończonych do 11.09',vrd:true,
-  },
-  vp2:{
-    title:'REW · Urlop · P1+P2 (80 PBI)',
-    sub:'Capacity ×0.67 · 61 PBI P1+P2 · 10 000 iteracji',
-    meta:`Backlog P1+P2: 61 PBI | Start: 21.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
-    box:'ib-teal',
-    boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1+P2 przy nieobecności jednej osoby (×0,67 capacity).',
+    bc2:x=>x>=36?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥36 P1)',xl2:'liczba P1 ukończonych do 11.09',vrd:true},
+  vp2:{title:'REW · Urlop · P1+P2 (61 PBI)',sub:'Capacity ×0.67 · 49 PBI P1+P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 49 PBI | Start: 27.07.2026<br>Capacity: ×0.67 | Deadline: 11.09.2026`,
+    box:'ib-teal',boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1+P2 przy nieobecności jednej osoby (×0,67).',
     bc:x=>x>=SC.vp2.p95w?'#FEE2E2':x>=SC.vp2.p85w?'#FEF3C7':'#CFFAFE',
-    bc2:x=>x>=61?'#D1FAE5':'#CFFAFE',
-    c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥61 PBI)',
-    xl2:'liczba P1+P2 ukończonych do 11.09',vrd:true,cmp:true,
-  },
+    bc2:x=>x>=49?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥49 PBI)',xl2:'liczba P1+P2 ukończonych do 11.09',vrd:true,cmp:true},
 };
 
 function buildTab(key){
-  const sc=SC[key],cf=CF[key];
-  const el=document.getElementById('tab-'+key);
-
+  const sc=SC[key],cf=CF[key],el=document.getElementById('tab-'+key);
   let cmpHtml='';
   if(cf.cmp){
     const iv=key.startsWith('v');
     const k1=iv?'vp1':'p1',k2=iv?'vp2':'p2',k3=iv?'va':'all';
     const row=k=>`<tr>
-      <td>${k===k1?'🔴 P1':k===k2?'🟠 P1+P2':'📦 Backlog'}</td>
-      <td>${SC[k].bl}</td>
+      <td>${k===k1?'🔴 P1':k===k2?'🟠 P1+P2':'📦 Backlog'}</td><td>${SC[k].bl}</td>
       <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p50)">${SC[k].p50d}</td>
       <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p85)">${SC[k].p85d}</td>
       <td style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--p95)">${SC[k].p95d}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600">${SC[k].prob}%</td>
-    </tr>`;
+      <td style="font-family:'IBM Plex Mono',monospace;font-weight:600">${SC[k].prob}%</td></tr>`;
     cmpHtml=`<div class="panel"><div class="panel-title" style="margin-bottom:16px">Porównanie scenariuszy${iv?' (urlop)':''}</div>
     <table class="data-table"><thead><tr><th>Scenariusz</th><th>Backlog</th><th>P50</th><th>P85</th><th>P95</th><th>Pr(do 11.09)</th></tr></thead>
     <tbody>${row(k1)}${row(k2)}${row(k3)}</tbody></table></div>`;
   }
-
   let tblHtml='';
   if(cf.tbl){
     const rows=RAW.map(d=>`<tr>
       <td style="${d.excl?'color:var(--text-muted)':''}">${d.w}</td>
       <td style="${d.excl?'color:var(--text-muted)':'font-weight:600'}">${d.net}</td>
-      <td>${d.excl
-        ?`<span class="tag">${d.why}</span>`
-        :`<span style="color:var(--green);font-size:12px;font-family:'IBM Plex Mono',monospace">w modelu</span>`}
-      </td></tr>`).join('');
+      <td>${d.excl?`<span class="tag ${d.why==='sprint w toku'?'tag-sprint':''}">${d.why}</span>`
+        :`<span style="color:var(--green);font-size:12px;font-family:'IBM Plex Mono',monospace">w modelu</span>`}</td></tr>`).join('');
     tblHtml=`<div class="panel"><div class="panel-title" style="margin-bottom:14px">Dane historyczne · PBI/tydz.</div>
     <table class="data-table"><thead><tr><th>Tydzień od</th><th>PBI</th><th>Status</th></tr></thead>
     <tbody>${rows}</tbody></table>
     <p style="font-size:11px;color:var(--text-muted);margin-top:12px;font-family:'IBM Plex Mono',monospace">Źródło: FlowViz · wyłącznie PBI</p></div>`;
   }
-
   let vrdHtml='';
   if(cf.vrd){
     const prob=parseFloat(sc.prob);
     const cls=prob>=85?'v-green':prob>=50?'v-amber':'v-red';
     const icon=prob>=85?'✅':prob>=50?'⚠️':'🚨';
-    const vt=prob>=85
-      ?`Cel osiągalny — ${sc.prob}% szans na ukończenie do 11.09.2026`
-      :prob>=50
-      ?`Ryzyko umiarkowane — ${sc.prob}% szans na ukończenie do 11.09.2026`
+    const vt=prob>=85?`Cel osiągalny — ${sc.prob}% szans na ukończenie do 11.09.2026`
+      :prob>=50?`Ryzyko umiarkowane — ${sc.prob}% szans na ukończenie do 11.09.2026`
       :`Wysokie ryzyko — tylko ${sc.prob}% szans na ukończenie do 11.09.2026`;
-    const vd=prob>=85
-      ?`P85 = ${sc.p85d} — przed deadlinem. Rekomendacja: utrzymać tempo.`
-      :prob>=50
-      ?`Mediana (P50) = ${sc.p50d}, ale P85/P95 przekraczają deadline. Rozważ redukcję scope lub zwiększenie capacity.`
+    const vd=prob>=85?`P85 = ${sc.p85d} — przed deadlinem. Rekomendacja: utrzymać tempo.`
+      :prob>=50?`Mediana (P50) = ${sc.p50d}, ale P85/P95 przekraczają deadline. Rozważ redukcję scope lub zwiększenie capacity.`
       :`Nawet mediana (P50 = ${sc.p50d}) przekracza deadline. Konieczna rewizja scope lub negocjacja terminu.`;
     vrdHtml=`<div class="verdict ${cls}"><div class="verdict-icon">${icon}</div>
       <div class="verdict-text"><h3>${vt}</h3><p>${vd}</p></div></div>`;
   }
-
   el.innerHTML=`<div class="page">
     <header class="page-header">
       <div><h1>${cf.title}</h1><p>${cf.sub}</p></div>
@@ -326,7 +268,7 @@ function buildTab(key){
     </div>
     <div class="panel">
       <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 11.09.2026?</div>
-      <div class="panel-subtitle">Okno 21.07 → 11.09 (7 tyg. + 3 dni robocze)</div>
+      <div class="panel-subtitle">Okno 27.07 → 11.09 (6 tyg. + 4 dni robocze)</div>
       <canvas id="c2-${key}" height="220"></canvas>
       <div class="pct-row">
         <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" style="color:var(--p50)">${sc.p50p}</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
@@ -344,9 +286,119 @@ function buildTab(key){
 }
 
 Object.keys(CF).forEach(buildTab);
+
+// ── ROADMAPA ──────────────────────────────────────────────────────────
+const FEATURES = [
+  {id:'423659', total:11, todo:5},
+  {id:'214031', total:8,  todo:7},
+  {id:'213660', total:30, todo:24},
+  {id:'140295', total:2,  todo:2},
+  {id:'421841', total:12, todo:7},
+  {id:'207247', total:4,  todo:4},
+  {id:'421844', total:8,  todo:8},
+];
+
+let cumTodo=0;
+FEATURES.forEach(f=>{
+  f.done=f.total-f.todo;
+  cumTodo+=f.todo;
+  f.cumTodo=cumTodo;
+});
+
+function buildRoadmapTab(){
+  const s2=SC.all.s2;
+  FEATURES.forEach(f=>{
+    f.prob=(s2.filter(v=>v>=f.cumTodo).length/ITERS*100).toFixed(1);
+    f.probNum=parseFloat(f.prob);
+    const s1f=sim1(pool,f.cumTodo);
+    f.p50d=fmt(addW(START,pct(s1f,50)));
+    f.p85d=fmt(addW(START,pct(s1f,85)));
+    f.p95d=fmt(addW(START,pct(s1f,95)));
+  });
+
+  const totalTodo=FEATURES.reduce((a,f)=>a+f.todo,0);
+  const greenCount=FEATURES.filter(f=>f.probNum>=85).length;
+  const amberCount=FEATURES.filter(f=>f.probNum>=50&&f.probNum<85).length;
+  const redCount=FEATURES.filter(f=>f.probNum<50).length;
+  const pbi50=SC.all.p50p, pbi85=SC.all.p85p, pbi95=SC.all.p95p;
+  const maxCum=FEATURES[FEATURES.length-1].cumTodo;
+  const bw50=Math.min((pbi50/maxCum*100),100).toFixed(1);
+  const bw85=Math.min((pbi85/maxCum*100),100).toFixed(1);
+
+  const summaryHtml=`<div class="rss">
+    <div class="rss-card"><div class="rss-label">Łącznie pozostało</div><div class="rss-val">${totalTodo} PBI</div><div class="rss-sub">w ${FEATURES.length} featurach</div></div>
+    <div class="rss-card"><div class="rss-label">Do 11.09 zrobimy (P85)</div><div class="rss-val" style="color:var(--p85)">${pbi85} PBI</div><div class="rss-sub">P50: ${pbi50} · P95: ${pbi95}</div></div>
+    <div class="rss-card"><div class="rss-label">Status featurów</div><div class="rss-val">🟢${greenCount} 🟡${amberCount} 🔴${redCount}</div><div class="rss-sub">bezpieczne / ryzyko / zagrożone</div></div>
+    <div class="rss-card"><div class="rss-label">Avg throughput</div><div class="rss-val">${avgP} PBI/tydz.</div><div class="rss-sub">pool: 9 tygodni</div></div>
+  </div>`;
+
+  const cutlineHtml=`<div class="panel">
+    <div class="panel-title">Linia cięcia (cut-line) do 11.09.2026</div>
+    <div class="panel-subtitle">Skumulowane PBI remaining na osi featurów · gdzie pada P50 i P85</div>
+    <div style="margin:28px 0 56px;position:relative;">
+      <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:6px;"><span>0</span><span>${maxCum} PBI</span></div>
+      <div style="position:relative;height:32px;background:#F3F4F6;border-radius:6px;">
+        <div style="position:absolute;left:0;top:0;height:100%;width:${bw85}%;background:#FEF3C7;border-radius:6px 0 0 6px;"></div>
+        <div style="position:absolute;left:0;top:0;height:100%;width:${bw50}%;background:#BFDBFE;border-radius:6px 0 0 6px;opacity:.8;"></div>
+        ${FEATURES.map(f=>{const p=(f.cumTodo/maxCum*100).toFixed(1);return`
+          <div style="position:absolute;left:${p}%;top:0;bottom:0;width:2px;background:var(--border);"></div>
+          <div style="position:absolute;left:${p}%;top:38px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);transform:translateX(-50%);white-space:nowrap;">${f.id}<br><span style="color:var(--text-primary);font-weight:600">${f.cumTodo}</span></div>`;}).join('')}
+        <div style="position:absolute;left:${bw50}%;top:-20px;bottom:-4px;width:2px;background:#2563EB;"></div>
+        <div style="position:absolute;left:${bw50}%;top:-32px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#2563EB;transform:translateX(-50%);white-space:nowrap;">P50=${pbi50}</div>
+        <div style="position:absolute;left:${bw85}%;top:-20px;bottom:-4px;width:2px;background:#D97706;"></div>
+        <div style="position:absolute;left:${bw85}%;top:-32px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#D97706;transform:translateX(-50%);white-space:nowrap;">P85=${pbi85}</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace">🟦 P50 · 🟨 P85 · Featury po lewej od P85 mają ≥85% szans ukończenia do deadline.</p>
+  </div>`;
+
+  const featuresHtml=FEATURES.map(f=>{
+    const cls=f.probNum>=85?'badge-green':f.probNum>=50?'badge-amber':'badge-red';
+    const icon=f.probNum>=85?'✅':f.probNum>=50?'⚠️':'🚨';
+    const clsL=f.probNum>=85?'rcl-green':f.probNum>=50?'rcl-amber':'rcl-red';
+    const verdict=f.probNum>=85
+      ?`Bezpieczny — ${f.prob}% szans ukończenia do 11.09. P85: ${f.p85d}.`
+      :f.probNum>=50
+      ?`Ryzyko — ${f.prob}% szans ukończenia do 11.09. Mediana: ${f.p50d}, P85: ${f.p85d}.`
+      :`Zagrożony — tylko ${f.prob}% szans ukończenia do 11.09. Mediana: ${f.p50d}. Poza zasięgiem przy obecnym tempie.`;
+    const doneP=f.total>0?(f.done/f.total*100).toFixed(0):0;
+    return`<div class="road-feature">
+      <div class="road-feature-header">
+        <div>
+          <div class="road-feature-name">${icon} Feature ${f.id}</div>
+          <div class="road-feature-meta">${f.done} z ${f.total} PBI ukończone · pozostało <strong>${f.todo}</strong> · skumulowane: ${f.cumTodo}</div>
+        </div>
+        <div class="road-badge ${cls}">Pr(do 11.09) = ${f.prob}%</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;"><span>Postęp</span><span>${doneP}%</span></div>
+        <div class="road-bar-track"><div class="road-bar-fill" style="width:${doneP}%;background:${f.probNum>=85?'#059669':f.probNum>=50?'#D97706':'#DC2626'}"></div></div>
+      </div>
+      <div class="road-pct-row">
+        <span class="road-pct" style="color:var(--p50);border-color:#BFDBFE">P50: ${f.p50d}</span>
+        <span class="road-pct" style="color:var(--p85);border-color:#FDE68A">P85: ${f.p85d}</span>
+        <span class="road-pct" style="color:var(--p95);border-color:#FCA5A5">P95: ${f.p95d}</span>
+      </div>
+      <div class="${clsL} road-cutline">${verdict}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tab-road').innerHTML=`<div class="page">
+    <header class="page-header">
+      <div><h1>REW · Roadmapa featurów</h1><p>Cut-line forecasting · probabilistyczny status każdego featurea · 10 000 iter.</p></div>
+      <div class="header-meta">Okno: 27.07 → 11.09.2026<br>Avg: ${avgP} PBI/tydz. · ${FEATURES.length} featurów</div>
+    </header>
+    <div class="info-box ib-blue"><strong>Metodologia:</strong> Dla każdego featurea: Pr(ukończymy wszystkie skumulowane remaining PBI do deadline). Kolejność featurów = kolejność realizacji (priorytet). Daty P50/P85/P95 = kiedy feature zostanie ukończony przy danym poziomie pewności.</div>
+    ${summaryHtml}
+    ${cutlineHtml}
+    <div style="display:flex;flex-direction:column;gap:14px;">${featuresHtml}</div>
+  </div>`;
+}
+
+buildRoadmapTab();
 document.getElementById('gen-date').textContent=new Date().toLocaleDateString('pl-PL');
 
-// ── CHARTS ───────────────────────────────────────────────────────────
+// ── CHARTS ────────────────────────────────────────────────────────────
 function buildHist(data,bins){
   const mn=data[0],mx=data[data.length-1];
   const step=Math.max(1,Math.ceil((mx-mn+1)/bins));
@@ -365,213 +417,32 @@ function drawChart(id,data,pVals,pLbls,colorFn,xLbl,dateMode){
   const ctx=canvas.getContext('2d');ctx.scale(DPR,DPR);
   const P={top:16,right:20,bottom:52,left:52};
   const cW=W-P.left-P.right,cH=H-P.top-P.bottom;
-  const{counts}=buildHist(data,30);
+  const{counts,step}=buildHist(data,30);
   const maxC=Math.max(...counts.map(c=>c.cnt));
-  const minX=counts[0].x,maxX=counts[counts.length-1].x+(counts[1]?counts[1].x-counts[0].x:1);
-  const step=counts.length>1?counts[1].x-counts[0].x:1;
+  const minX=counts[0].x,maxX=counts[counts.length-1].x+step;
   const xp=v=>P.left+(v-minX)/(maxX-minX)*cW;
   const yp=v=>P.top+cH-(v/maxC)*cH;
-
   ctx.strokeStyle='#EEF0F4';ctx.lineWidth=1;
   for(let i=0;i<=4;i++){const y=P.top+(cH/4)*i;ctx.beginPath();ctx.moveTo(P.left,y);ctx.lineTo(P.left+cW,y);ctx.stroke();}
-
-  counts.forEach(({x,cnt})=>{
-    const bx=xp(x),bw=xp(x+step)-bx-1;
-    ctx.fillStyle=colorFn(x);
-    ctx.fillRect(bx,yp(cnt),Math.max(1,bw),cH-(yp(cnt)-P.top));
-  });
-
+  counts.forEach(({x,cnt})=>{const bx=xp(x),bw=xp(x+step)-bx-1;ctx.fillStyle=colorFn(x);ctx.fillRect(bx,yp(cnt),Math.max(1,bw),cH-(yp(cnt)-P.top));});
   ['#2563EB','#D97706','#DC2626'].forEach((col,i)=>{
     const x=xp(pVals[i]);
     ctx.strokeStyle=col;ctx.lineWidth=2;ctx.setLineDash([5,3]);
-    ctx.beginPath();ctx.moveTo(x,P.top);ctx.lineTo(x,P.top+cH);ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(x,P.top);ctx.lineTo(x,P.top+cH);ctx.stroke();ctx.setLineDash([]);
     ctx.fillStyle=col;ctx.font=`bold 10px 'IBM Plex Mono',monospace`;ctx.textAlign='left';
     ctx.fillText(pLbls[i],Math.min(x+4,W-P.right-60),P.top+12+i*14);
   });
-
   ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;
   const ts=Math.ceil(counts.length/10);
   counts.forEach(({x},idx)=>{
     if(idx%ts!==0&&idx!==counts.length-1)return;
     const tx=xp(x+step/2);
-    if(dateMode){
-      const d=addW(START,x);
-      ctx.save();ctx.translate(tx,P.top+cH+10);ctx.rotate(-Math.PI/4);
-      ctx.textAlign='right';ctx.fillText(fmts(d),0,0);ctx.restore();
-    }else{ctx.textAlign='center';ctx.fillText(x,tx,P.top+cH+16);}
+    if(dateMode){const d=addW(START,x);ctx.save();ctx.translate(tx,P.top+cH+10);ctx.rotate(-Math.PI/4);ctx.textAlign='right';ctx.fillText(fmts(d),0,0);ctx.restore();}
+    else{ctx.textAlign='center';ctx.fillText(x,tx,P.top+cH+16);}
   });
-  ctx.save();ctx.translate(14,P.top+cH/2);ctx.rotate(-Math.PI/2);
-  ctx.textAlign='center';ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;
-  ctx.fillText('iteracje',0,0);ctx.restore();
-  ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;ctx.textAlign='center';
-  ctx.fillText(xLbl,P.left+cW/2,H-4);
+  ctx.save();ctx.translate(14,P.top+cH/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;ctx.fillText('iteracje',0,0);ctx.restore();
+  ctx.fillStyle='#9CA3AF';ctx.font=`11px 'DM Sans',sans-serif`;ctx.textAlign='center';ctx.fillText(xLbl,P.left+cW/2,H-4);
 }
-
-// ── ROADMAPA FEATURÓW ─────────────────────────────────────────────────
-const FEATURES = [
-  {id:'423659', total:11, todo:5},
-  {id:'214031', total:8,  todo:7},
-  {id:'213660', total:30, todo:24},
-  {id:'140295', total:2,  todo:2},
-  {id:'421841', total:12, todo:7},
-  {id:'207247', total:4,  todo:4},
-  {id:'421844', total:8,  todo:8},
-];
-
-// Wylicz skumulowane "todo" — cut-line operuje na pozostałych PBI
-let cumTodo = 0;
-FEATURES.forEach(f => {
-  f.done = f.total - f.todo;
-  cumTodo += f.todo;
-  f.cumTodo = cumTodo;  // skumulowane pozostałe PBI do tego featurea
-});
-
-function buildRoadmapTab() {
-  // Weź wyniki symulacji sim2 dla pełnego backlogu (pool, bl=85)
-  // ale roadmapa potrzebuje rozkładu ile PBI zrobimy w oknie → to jest SC.all.s2
-  const s2 = SC.all.s2;
-  const totalIter = s2.length;
-
-  // Dla każdego featurea oblicz Pr(ukończymy go do deadline)
-  // = Pr(liczba PBI w oknie >= cumTodo featurea)
-  FEATURES.forEach(f => {
-    f.prob = (s2.filter(v => v >= f.cumTodo).length / totalIter * 100).toFixed(1);
-    f.probNum = parseFloat(f.prob);
-    // Oczekiwana data ukończenia: ile tygodni potrzeba na cumTodo PBI → sim1-style
-    // Szybkie przybliżenie: percentyle tygodni z sim1 dla backlog=cumTodo
-    const s1f = sim1(pool, f.cumTodo);
-    f.p50d = fmt(addW(START, pct(s1f, 50)));
-    f.p85d = fmt(addW(START, pct(s1f, 85)));
-    f.p95d = fmt(addW(START, pct(s1f, 95)));
-    f.p50w = pct(s1f, 50);
-  });
-
-  const DEADLINE = new Date(2026, 8, 11);
-  const totalTodo = FEATURES.reduce((a,f)=>a+f.todo,0);
-  const greenCount = FEATURES.filter(f=>f.probNum>=85).length;
-  const amberCount = FEATURES.filter(f=>f.probNum>=50&&f.probNum<85).length;
-  const redCount   = FEATURES.filter(f=>f.probNum<50).length;
-
-  // P50/P85 ile PBI zrobimy w oknie
-  const pbi50 = SC.all.p50p;
-  const pbi85 = SC.all.p85p;
-  const pbi95 = SC.all.p95p;
-
-  const summaryHtml = `
-  <div class="road-summary-strip">
-    <div class="rss-card">
-      <div class="rss-label">Łącznie pozostało</div>
-      <div class="rss-val">${totalTodo} PBI</div>
-      <div class="rss-sub">w ${FEATURES.length} featurach</div>
-    </div>
-    <div class="rss-card">
-      <div class="rss-label">Do 11.09 zrobimy (P85)</div>
-      <div class="rss-val" style="color:var(--p85)">${pbi85} PBI</div>
-      <div class="rss-sub">P50: ${pbi50} · P95: ${pbi95}</div>
-    </div>
-    <div class="rss-card">
-      <div class="rss-label">Status featurów</div>
-      <div class="rss-val">🟢${greenCount} 🟡${amberCount} 🔴${redCount}</div>
-      <div class="rss-sub">bezpieczne / ryzyko / zagrożone</div>
-    </div>
-    <div class="rss-card">
-      <div class="rss-label">Avg throughput</div>
-      <div class="rss-val">${avgP} PBI/tydz.</div>
-      <div class="rss-sub">pool: 11 tygodni hist.</div>
-    </div>
-  </div>`;
-
-  // Cut-line bar — oś skumulowanych PBI
-  const maxCum = FEATURES[FEATURES.length-1].cumTodo;
-  const barW50 = (pbi50/maxCum*100).toFixed(1);
-  const barW85 = (pbi85/maxCum*100).toFixed(1);
-
-  const cutlineHtml = `
-  <div class="panel">
-    <div class="panel-title">Linia cięcia (cut-line) do 11.09.2026</div>
-    <div class="panel-subtitle">Skumulowane PBI pozostałe · gdzie pada P50 i P85 na osi featurów</div>
-    <div style="position:relative;margin:8px 0 24px;">
-      <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:6px;">
-        <span>0</span><span>${maxCum} PBI</span>
-      </div>
-      <div style="position:relative;height:28px;background:#F3F4F6;border-radius:6px;overflow:visible;">
-        <!-- P85 fill -->
-        <div style="position:absolute;left:0;top:0;height:100%;width:${barW85}%;background:#FEF3C7;border-radius:6px 0 0 6px;"></div>
-        <!-- P50 fill -->
-        <div style="position:absolute;left:0;top:0;height:100%;width:${barW50}%;background:#DBEAFE;border-radius:6px 0 0 6px;opacity:0.7;"></div>
-        <!-- Feature boundary markers -->
-        ${FEATURES.map(f=>{
-          const pct_= (f.cumTodo/maxCum*100).toFixed(1);
-          return `<div style="position:absolute;left:${pct_}%;top:-4px;bottom:-4px;width:2px;background:var(--border);"></div>
-          <div style="position:absolute;left:${pct_}%;top:32px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);transform:translateX(-50%);white-space:nowrap;">${f.id}</div>`;
-        }).join('')}
-        <!-- P50 line -->
-        <div style="position:absolute;left:${barW50}%;top:-8px;bottom:-8px;width:2px;background:#2563EB;"></div>
-        <div style="position:absolute;left:${barW50}%;top:-22px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#2563EB;transform:translateX(-50%)">P50=${pbi50}</div>
-        <!-- P85 line -->
-        <div style="position:absolute;left:${barW85}%;top:-8px;bottom:-8px;width:2px;background:#D97706;"></div>
-        <div style="position:absolute;left:${barW85}%;top:-22px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#D97706;transform:translateX(-50%)">P85=${pbi85}</div>
-      </div>
-    </div>
-    <p style="font-size:11px;color:var(--text-muted);margin-top:48px">Featury po lewej od linii P85 mają ≥85% szans ukończenia do deadline. Po prawej — poza zasięgiem przy obecnym tempie.</p>
-  </div>`;
-
-  const featuresHtml = FEATURES.map((f, idx) => {
-    const cls   = f.probNum>=85?'badge-green':f.probNum>=50?'badge-amber':'badge-red';
-    const icon  = f.probNum>=85?'✅':f.probNum>=50?'⚠️':'🚨';
-    const clsLine = f.probNum>=85?'road-cutline-green':f.probNum>=50?'road-cutline-amber':'road-cutline-red';
-    const verdict = f.probNum>=85
-      ? `Bezpieczny — ${f.prob}% szans ukończenia do 11.09. Oczekiwana data (P85): ${f.p85d}.`
-      : f.probNum>=50
-      ? `Ryzyko — ${f.prob}% szans ukończenia do 11.09. Mediana ukończenia: ${f.p50d}, P85: ${f.p85d}.`
-      : `Zagrożony — tylko ${f.prob}% szans ukończenia do 11.09. Mediana: ${f.p50d}. Poza zasięgiem przy obecnym tempie.`;
-    const doneBarPct = (f.done/f.total*100).toFixed(0);
-
-    return `<div class="road-feature">
-      <div class="road-feature-header">
-        <div>
-          <div class="road-feature-name">${icon} Feature ${f.id}</div>
-          <div class="road-feature-meta">${f.done} z ${f.total} PBI ukończone · pozostało <strong>${f.todo}</strong> · skumulowane remaining: ${f.cumTodo}</div>
-        </div>
-        <div class="road-badge ${cls}">Pr(do 11.09) = ${f.prob}%</div>
-      </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:4px;">
-          <span>Postęp</span><span>${doneBarPct}%</span>
-        </div>
-        <div class="road-bar-track">
-          <div class="road-bar-fill" style="width:${doneBarPct}%;background:${f.probNum>=85?'#059669':f.probNum>=50?'#D97706':'#DC2626'}"></div>
-        </div>
-      </div>
-      <div class="road-pct-row">
-        <span class="road-pct" style="color:var(--p50);border-color:#BFDBFE">P50: ${f.p50d}</span>
-        <span class="road-pct" style="color:var(--p85);border-color:#FDE68A">P85: ${f.p85d}</span>
-        <span class="road-pct" style="color:var(--p95);border-color:#FCA5A5">P95: ${f.p95d}</span>
-      </div>
-      <div class="${clsLine} road-cutline">${verdict}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('tab-road').innerHTML = `<div class="page">
-    <header class="page-header">
-      <div><h1>REW · Roadmapa featurów</h1><p>Cut-line forecasting · probabilistyczny status każdego featurea · 10 000 iter.</p></div>
-      <div class="header-meta">Okno: 21.07 → 11.09.2026<br>Avg throughput: ${avgP} PBI/tydz. · Featury: ${FEATURES.length}</div>
-    </header>
-    <div class="info-box ib-blue">
-      <strong>Metodologia:</strong> Dla każdego featurea obliczamy Pr(ukończymy wszystkie skumulowane PBI do deadline) na podstawie rozkładu bootstrapowego z sim2.
-      Daty P50/P85/P95 pokazują kiedy feature zostanie ukończony przy danym poziomie pewności.
-      Kolejność featurów = kolejność realizacji (priorytet).
-    </div>
-    ${summaryHtml}
-    ${cutlineHtml}
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      ${featuresHtml}
-    </div>
-  </div>`;
-}
-
-buildRoadmapTab();
 
 function renderTab(key){
   const sc=SC[key],cf=CF[key];
@@ -588,8 +459,7 @@ function sw(tab){
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.querySelector(`[onclick="sw('${tab}')"]`).classList.add('active');
-  if(tab==='road') return; // already built
-  renderTab(tab);
+  if(tab!=='road') renderTab(tab);
 }
 
 renderTab('all');
