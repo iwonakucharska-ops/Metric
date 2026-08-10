@@ -97,14 +97,14 @@
     <h2>Dane wejściowe</h2>
 
     <label>Throughput tygodniowy (rozdziel przecinkami)</label>
-    <textarea id="throughputInput">4,6,7,2,8,2,7,5,4,6,4</textarea>
-    <div class="stat-row"><span id="statCount">11 próbek</span><span id="statCV">CV ≈ 0.38</span></div>
+    <textarea id="throughputInput">8,2,10,4,8,8,10,11,11,2,18</textarea>
+    <div class="stat-row"><span id="statCount">11 próbek</span><span id="statCV">CV ≈ 0.53</span></div>
 
     <label>Data startu</label>
-    <input type="date" id="startDate" value="2026-07-27">
+    <input type="date" id="startDate" value="2026-08-10">
 
     <label>WARIANT A — liczba PBI do ukończenia</label>
-    <input type="number" id="backlogSize" value="34">
+    <input type="number" id="backlogSize" value="105">
 
     <label>WARIANT B — data docelowa</label>
     <input type="date" id="targetDate" value="2026-09-17">
@@ -115,8 +115,7 @@
     <button onclick="runSimulation()">▶ Uruchom symulację</button>
 
     <div class="footer-note">
-      <b>Cycle time (kontekst):</b> ~35 dni (wzrost z ~28 dni w poprzednim odczycie — sygnał do
-      obserwacji, np. rosnący WIP lub dług techniczny spowalniający przepływ). Metoda throughput-based
+      <b>Cycle time (kontekst):</b> ~34 dni (lekka poprawa z ~35 dni). Metoda throughput-based
       nie używa cycle time bezpośrednio w obliczeniach — liczy się tylko liczba ukończeń na tydzień.
     </div>
     <div class="footer-note">
@@ -131,7 +130,7 @@
 
     <div class="card">
       <div class="variant-title">Wariant A — Ile czasu na <span id="backlogLabel">69</span> PBI?</div>
-      <div class="variant-sub">P1+P2 (34 PBI) — rozkład dat ukończenia</div>
+      <div class="variant-sub">Cały backlog (105 PBI) — rozkład dat ukończenia</div>
       <div class="percentiles">
         <div class="pbox p50"><div class="label">P50</div><div class="val" id="A_P50">–</div><div class="date" id="A_P50_date">–</div></div>
         <div class="pbox p85"><div class="label">P85</div><div class="val" id="A_P85">–</div><div class="date" id="A_P85_date">–</div></div>
@@ -168,21 +167,33 @@
     <h2>Priorytet featerów</h2>
     <div class="assumption">
       <b>Uwaga:</b> to symulacja cut-line na poziomie priorytetów, progi są <b>kumulatywne</b>
-      (P1 → P1+P2 → P1+P2+P3). P3 ustawiłam na 35 PBI, żeby suma P1+P2+P3 = <b>69 PBI</b>
-      (cały backlog).
+      (Must have → Must+Should → cały backlog). "Pozostałe" (Could have / Won't have) dopełnia
+      backlog do 105 PBI.
     </div>
     <label>Priorytety: nazwa, liczba PBI w tym priorytecie — jeden na linię, w kolejności realizacji</label>
-    <textarea id="featuresInput" style="min-height:110px; font-family:monospace;">P1, 13
-P2, 21
-P3, 35</textarea>
-    <button onclick="runFeatureSimulation()">▶ Uruchom symulację featerów</button>
+    <textarea id="featuresInput" style="min-height:110px; font-family:monospace;">Must have, 38
+Should have, 27
+Pozostałe, 40</textarea>
+    <button onclick="runFeatureSimulation()">▶ Uruchom symulację priorytetów</button>
     <div class="footer-note">
-      Metoda: Multiple Feature Cut-Line Forecaster (Troy Magennis). Featery ustawione są w kolejności
-      priorytetu, tworząc rosnący próg skumulowanych PBI. W każdej z 10 000 iteracji losujemy tygodniowy
+      Metoda: Multiple Feature Cut-Line Forecaster (Troy Magennis). Priorytety w kolejności realizacji
+      tworzą rosnący próg skumulowanych PBI. W każdej z 10 000 iteracji losujemy tygodniowy
       throughput (bootstrapping z danych z zakładki "Warianty A/B") i sprawdzamy, w którym tygodniu
-      skumulowana przepustowość przekracza próg danego feature'a. P50/P85/P95 to percentyle rozkładu
-      dat ukończenia każdego feature'a.
+      skumulowana przepustowość przekracza próg danego priorytetu. P50/P85/P95 to percentyle rozkładu
+      dat ukończenia. Druga tabela pokazuje dodatkowo prawdopodobieństwo ukończenia danego priorytetu
+      do konkretnej daty docelowej (z zakładki "Warianty A/B").
     </div>
+  </div>
+
+  <div class="card">
+    <h2>Prawdopodobieństwo ukończenia do daty docelowej</h2>
+    <div class="sub" style="margin-bottom:10px;">Data docelowa brana jest z pola "Data docelowa (Wariant B)" na zakładce "Warianty A/B".</div>
+    <table class="feattable" id="probTable">
+      <thead>
+        <tr><th>Priorytet</th><th>Próg (kum.)</th><th>Prawdopodobieństwo ukończenia do <span id="probTargetLabel">–</span></th></tr>
+      </thead>
+      <tbody id="probTableBody"></tbody>
+    </table>
   </div>
 
   <div class="card">
@@ -420,6 +431,37 @@ function runFeatureSimulation(){
     p85arr.push(+p85.toFixed(2));
     p95arr.push(+p95.toFixed(2));
     d50arr.push(d50); d85arr.push(d85); d95arr.push(d95);
+  });
+
+  // --- Prawdopodobieństwo ukończenia progów do daty docelowej (z zakładki Warianty A/B) ---
+  const targetDate = new Date(document.getElementById('targetDate').value);
+  document.getElementById('probTargetLabel').textContent = fmtDate(targetDate);
+  const daysToTarget = (targetDate - startDate)/(1000*60*60*24);
+  const weeksToTarget = daysToTarget/7;
+  const fullWeeksT = Math.floor(weeksToTarget);
+  const fracWeekT = weeksToTarget - fullWeeksT;
+
+  const totalsAtTarget = [];
+  for(let i=0;i<ITER;i++){
+    let total=0;
+    for(let w=0; w<fullWeeksT; w++){
+      total += throughput[Math.floor(Math.random()*n)];
+    }
+    if(fracWeekT>0){
+      total += throughput[Math.floor(Math.random()*n)]*fracWeekT;
+    }
+    totalsAtTarget.push(total);
+  }
+
+  const probBody = document.getElementById('probTableBody');
+  probBody.innerHTML = '';
+  features.forEach((f,i)=>{
+    const threshold = thresholds[i];
+    const hits = totalsAtTarget.filter(t=>t>=threshold).length;
+    const prob = (hits/ITER*100);
+    const color = prob>=85 ? 'var(--good)' : (prob>=50 ? 'var(--warn)' : 'var(--bad)');
+    probBody.innerHTML += '<tr><td><b>'+f.id+'</b></td><td>'+threshold+' PBI</td>'+
+      '<td style="color:'+color+'; font-weight:700;">'+prob.toFixed(1)+'%</td></tr>';
   });
 
   if(chartFeat) chartFeat.destroy();
