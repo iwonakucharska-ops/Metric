@@ -87,6 +87,8 @@
 <div class="tabs">
   <button class="tabbtn active" id="tabBtn1" onclick="switchTab(1)">Warianty A / B</button>
   <button class="tabbtn" id="tabBtn2" onclick="switchTab(2)">Featury (cut-line)</button>
+  <button class="tabbtn" id="tabBtn3" onclick="switchTab(3)">38 PBI</button>
+  <button class="tabbtn" id="tabBtn4" onclick="switchTab(4)">65 PBI</button>
 </div>
 
 <div class="tabcontent active" id="tab1">
@@ -112,7 +114,7 @@
     <label>Liczba iteracji symulacji</label>
     <input type="number" id="iterations" value="10000">
 
-    <button onclick="runSimulation()">▶ Uruchom symulację</button>
+    <button onclick="runSimulation(); runFeatureSimulation(); runSimulation38(); runSimulation65();">▶ Uruchom symulację (wszystkie zakładki)</button>
 
     <div class="footer-note">
       <b>Cycle time (kontekst):</b> ~34 dni (lekka poprawa z ~35 dni). Metoda throughput-based
@@ -213,17 +215,104 @@ Pozostałe, 40</textarea>
 
 </div><!-- /tab2 -->
 
+<div class="tabcontent" id="tab3">
+  <div class="card">
+    <div class="variant-title">Ile czasu na 38 PBI (Must have)?</div>
+    <div class="variant-sub">Symulacja korzysta z tego samego throughputu i daty startu co zakładka "Warianty A/B"</div>
+    <div class="percentiles">
+      <div class="pbox p50"><div class="label">P50</div><div class="val" id="F38_P50">–</div><div class="date" id="F38_P50_date">–</div></div>
+      <div class="pbox p85"><div class="label">P85</div><div class="val" id="F38_P85">–</div><div class="date" id="F38_P85_date">–</div></div>
+      <div class="pbox p95"><div class="label">P95</div><div class="val" id="F38_P95">–</div><div class="date" id="F38_P95_date">–</div></div>
+    </div>
+    <canvas id="chart38"></canvas>
+    <div class="weather" id="weather38"></div>
+  </div>
+</div><!-- /tab3 -->
+
+<div class="tabcontent" id="tab4">
+  <div class="card">
+    <div class="variant-title">Ile czasu na 65 PBI (Must + Should have)?</div>
+    <div class="variant-sub">Symulacja korzysta z tego samego throughputu i daty startu co zakładka "Warianty A/B"</div>
+    <div class="percentiles">
+      <div class="pbox p50"><div class="label">P50</div><div class="val" id="F65_P50">–</div><div class="date" id="F65_P50_date">–</div></div>
+      <div class="pbox p85"><div class="label">P85</div><div class="val" id="F65_P85">–</div><div class="date" id="F65_P85_date">–</div></div>
+      <div class="pbox p95"><div class="label">P95</div><div class="val" id="F65_P95">–</div><div class="date" id="F65_P95_date">–</div></div>
+    </div>
+    <canvas id="chart65"></canvas>
+    <div class="weather" id="weather65"></div>
+  </div>
+</div><!-- /tab4 -->
+
 <script>
 function switchTab(n){
-  document.getElementById('tab1').classList.toggle('active', n===1);
-  document.getElementById('tab2').classList.toggle('active', n===2);
-  document.getElementById('tabBtn1').classList.toggle('active', n===1);
-  document.getElementById('tabBtn2').classList.toggle('active', n===2);
+  for(let i=1;i<=4;i++){
+    document.getElementById('tab'+i).classList.toggle('active', n===i);
+    document.getElementById('tabBtn'+i).classList.toggle('active', n===i);
+  }
 }
 
 if(window.ChartDataLabels){ Chart.register(ChartDataLabels); }
 
-let chartA, chartB, chartFeat;
+let chartA, chartB, chartFeat, chart38, chart65;
+
+function runFixedBacklogSimulation(backlog, prefix){
+  const throughput = parseThroughput();
+  const n = throughput.length;
+  const startDate = new Date(document.getElementById('startDate').value);
+  const ITER = parseInt(document.getElementById('iterations').value) || 10000;
+
+  const weeksNeeded = [];
+  for(let i=0;i<ITER;i++){
+    let cum=0, weeks=0, last=0;
+    while(cum < backlog){
+      last = throughput[Math.floor(Math.random()*n)];
+      cum += last;
+      weeks++;
+      if(weeks>500) break;
+    }
+    const overshoot = cum - backlog;
+    const frac = last>0 ? overshoot/last : 0;
+    weeksNeeded.push(weeks - frac);
+  }
+  weeksNeeded.sort((a,b)=>a-b);
+  const p50 = percentile(weeksNeeded,50);
+  const p85 = percentile(weeksNeeded,85);
+  const p95 = percentile(weeksNeeded,95);
+  const d50 = addDays(startDate,p50*7);
+  const d85 = addDays(startDate,p85*7);
+  const d95 = addDays(startDate,p95*7);
+
+  document.getElementById(prefix+'_P50').textContent = p50.toFixed(1)+' tyg';
+  document.getElementById(prefix+'_P85').textContent = p85.toFixed(1)+' tyg';
+  document.getElementById(prefix+'_P95').textContent = p95.toFixed(1)+' tyg';
+  document.getElementById(prefix+'_P50_date').textContent = fmtDate(d50);
+  document.getElementById(prefix+'_P85_date').textContent = fmtDate(d85);
+  document.getElementById(prefix+'_P95_date').textContent = fmtDate(d95);
+
+  document.getElementById('weather'+(prefix==='F38'?'38':'65')).innerHTML =
+    '☀️ Z prawdopodobieństwem <b>50%</b> zdążymy do <b>'+fmtDate(d50)+'</b>. '+
+    '⛅ Z prawdopodobieństwem <b>85%</b> zdążymy do <b>'+fmtDate(d85)+'</b> — bezpieczniejszy termin do komunikacji. '+
+    '🌧️ Konserwatywnie (95%) — do <b>'+fmtDate(d95)+'</b>.';
+
+  const weeksInt = weeksNeeded.map(w=>Math.round(w));
+  const hist = {};
+  weeksInt.forEach(w=>hist[w]=(hist[w]||0)+1);
+  const labels = Object.keys(hist).map(Number).sort((a,b)=>a-b);
+  const data = labels.map(l=>hist[l]);
+
+  const canvasId = prefix==='F38' ? 'chart38' : 'chart65';
+  const color = prefix==='F38' ? '#34d399' : '#a78bfa';
+  if(prefix==='F38'){ if(chart38) chart38.destroy(); } else { if(chart65) chart65.destroy(); }
+  const newChart = new Chart(document.getElementById(canvasId), {
+    type:'bar',
+    data:{ labels:labels.map(l=>l+' tyg'), datasets:[{label:'Liczba symulacji', data:data, backgroundColor:color}]},
+    options:{ plugins:{legend:{display:false}, datalabels:{display:false}}, scales:{ x:{ticks:{color:'#94a3b8'}, grid:{color:'#2c3b52'}}, y:{ticks:{color:'#94a3b8'}, grid:{color:'#2c3b52'}}}}
+  });
+  if(prefix==='F38'){ chart38 = newChart; } else { chart65 = newChart; }
+}
+
+function runSimulation38(){ runFixedBacklogSimulation(38,'F38'); }
+function runSimulation65(){ runFixedBacklogSimulation(65,'F65'); }
 
 function parseThroughput(){
   return document.getElementById('throughputInput').value
@@ -514,6 +603,8 @@ function runFeatureSimulation(){
 
 runSimulation();
 runFeatureSimulation();
+runSimulation38();
+runSimulation65();
 </script>
 </body>
 </html>
