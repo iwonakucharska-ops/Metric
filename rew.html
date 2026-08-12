@@ -17,6 +17,7 @@
   .tab-btn.t-p2.active{border-bottom-color:var(--p2);}
   .tab-btn.t-vac.active{border-bottom-color:var(--vac);}
   .tab-btn.t-road.active{border-bottom-color:#0F766E;}
+  .tab-btn.t-owr.active{border-bottom-color:#3b5bdb;}
   .tab-btn:hover:not(.active){color:var(--text-secondary);}
   .tab-content{display:none;padding:32px 24px 48px;}
   .tab-content.active{display:block;}
@@ -92,6 +93,7 @@
   <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (30)</button>
   <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (37)</button>
   <button class="tab-btn t-road"     onclick="sw('road')">🗺️ Roadmapa featurów</button>
+  <button class="tab-btn t-owr"      onclick="sw('owr')">📊 Other Work Ratio</button>
 </div></div>
 
 <div id="tab-all"  class="tab-content active"></div>
@@ -101,6 +103,7 @@
 <div id="tab-vp1"  class="tab-content"></div>
 <div id="tab-vp2"  class="tab-content"></div>
 <div id="tab-road" class="tab-content"></div>
+<div id="tab-owr"  class="tab-content"></div>
 
 <footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 25 dni · Start: 11.08.2026</footer>
 
@@ -385,8 +388,144 @@ function buildRoadmapTab(){
   </div>`;
 }
 
-buildRoadmapTab();
-document.getElementById('gen-date').textContent=new Date().toLocaleDateString('pl-PL');
+// ── OTHER WORK RATIO ──────────────────────────────────────────────────
+(function(){
+  const owrWeeks = ["24 maja","31 maja","7 czerwca","14 czerwca","21 czerwca","28 czerwca","5 lipca","12 lipca","19 lipca","26 lipca","2 sierpnia"];
+  const owrValues = [61,59,41,59,37,45,64,60,47,56,24];
+  const owrExcl = new Set(["31 maja","7 czerwca"]);
+  const owrFlag = {"2 sierpnia":"do potwierdzenia: pełny tydzień?"};
+  const owrAvg = Math.round(owrValues.reduce((a,b)=>a+b,0)/owrValues.length);
+
+  function owrColor(v){return v>=60?'#DC2626':v<40?'#059669':'#D97706';}
+  function owrBadge(v){return v>=60?'background:#FEE2E2;color:#991B1B':v<40?'background:#D1FAE5;color:#065F46':'background:#FEF3C7;color:#92400E';}
+  function owrLabel(v){return v>=60?'Wysoki':v<40?'Niski':'Średni';}
+
+  const tableRows = owrWeeks.map((w,i)=>{
+    const v=owrValues[i], excl=owrExcl.has(w), flag=owrFlag[w]||'';
+    return`<tr>
+      <td style="font-family:'DM Sans',sans-serif;padding:9px 12px;border-bottom:1px solid #EEF0F4;font-size:13px">${w}${excl?' <span style="color:#9CA3AF;font-size:11px;font-style:italic">(wykluczony z puli throughput)</span>':''}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;padding:9px 12px;border-bottom:1px solid #EEF0F4;font-size:13px;font-weight:600">${v}%</td>
+      <td style="padding:9px 12px;border-bottom:1px solid #EEF0F4"><span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;${owrBadge(v)}">${owrLabel(v)}</span></td>
+      <td style="padding:9px 12px;border-bottom:1px solid #EEF0F4;color:#9CA3AF;font-size:11px;font-style:italic">${flag}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tab-owr').innerHTML=`<div class="page">
+    <header class="page-header">
+      <div><h1>REW · Other Work Ratio</h1><p>Bug percentage rate (bugi jako % całkowitego throughput) · tygodniowo · 24 maja – 2 sierpnia 2026</p></div>
+      <div class="header-meta">Źródło: FlowViz (Power BI)<br>Zespół REW · 11 tygodni obserwacji</div>
+    </header>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+      <div class="card" style="padding:18px 20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Średnia w okresie</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">${owrAvg}%</div>
+        <div style="font-size:11px;color:#6B7280;margin-top:4px">11 tygodni obserwacji</div>
+      </div>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Zakres (min–max)</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">24–64%</div>
+        <div style="font-size:11px;color:#6B7280;margin-top:4px">rozrzut 40 p.p.</div>
+      </div>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Ostatni tydzień</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:#059669">24%</div>
+        <div style="font-size:11px;color:#6B7280;margin-top:4px">2 sierpnia — do potwierdzenia</div>
+      </div>
+      <div class="card" style="padding:18px 20px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Trend</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-top:4px">Oscylacja</div>
+        <div style="font-size:11px;color:#6B7280;margin-top:4px">brak jednoznacznego kierunku</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Bug % tydzień do tygodnia</div>
+      <div class="panel-subtitle">Linia przerywana = średnia okresu (${owrAvg}%). Zakreskowane słupki = tygodnie wykluczone z puli throughput jako outliery objętościowe.</div>
+      <canvas id="owrChart" height="300" style="height:300px"></canvas>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:#6B7280;margin-top:12px">
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#059669;display:inline-block"></span>&lt; 40% (niżej niż zwykle)</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#D97706;display:inline-block"></span>40–59%</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#DC2626;display:inline-block"></span>≥ 60% (wysoki udział bugów)</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#9CA3AF;display:inline-block"></span>tydzień wykluczony z puli throughput</span>
+      </div>
+    </div>
+
+    <div class="panel" style="padding:8px 20px 20px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9CA3AF;font-weight:500;padding:10px 12px;text-align:left;border-bottom:1px solid #E4E7ED">Tydzień od</th>
+          <th style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9CA3AF;font-weight:500;padding:10px 12px;text-align:left;border-bottom:1px solid #E4E7ED">Bug %</th>
+          <th style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9CA3AF;font-weight:500;padding:10px 12px;text-align:left;border-bottom:1px solid #E4E7ED">Status</th>
+          <th style="font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9CA3AF;font-weight:500;padding:10px 12px;text-align:left;border-bottom:1px solid #E4E7ED">Uwaga</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+
+    <div class="panel" style="border-left:4px solid #D97706">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:10px">Co to znaczy dla prognozy i rozmowy z zarządem</div>
+      <div style="font-size:13px;line-height:1.65;color:#3a3f47">
+        Bug % <strong>nie jest stałą wartością ~55–60%</strong> — waha się tydzień do tygodnia w zakresie <strong>24–64%</strong>,
+        bez wyraźnego trendu spadkowego poza ostatnią obserwacją. To sam w sobie sygnał niestabilności systemu
+        dostaw, niezależny od tego, czy ostatecznie poprawia się jakość, czy nie.<br><br>
+        Tygodnie <strong>31 maja</strong> i <strong>7 czerwca</strong> to te same tygodnie, które już wcześniej wykluczono z puli
+        throughput jako outliery objętościowe — ich bug % (59% i 41%) nie wskazuje jednoznacznie
+        na gorszą ani lepszą jakość, tylko potwierdza, że to były nietypowe tygodnie pod względem wolumenu.<br><br>
+        Ostatni tydzień (<strong>2 sierpnia, 24%</strong>) wyraźnie odstaje w dół od reszty okresu — zanim potraktujemy to
+        jako realną poprawę, warto potwierdzić, czy to pełny tydzień danych, czy tydzień w trakcie zbierania.
+      </div>
+    </div>
+  </div>`;
+
+  // Draw chart after tab is rendered
+  window._drawOwrChart = function(){
+    const canvas=document.getElementById('owrChart');
+    if(!canvas)return;
+    const DPR=window.devicePixelRatio||1;
+    const W=canvas.parentElement.clientWidth-48, H=300;
+    canvas.width=W*DPR; canvas.height=H*DPR;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    const ctx=canvas.getContext('2d'); ctx.scale(DPR,DPR);
+    const padL=40,padR=10,padT=20,padB=56;
+    const cW=W-padL-padR, cH=H-padT-padB;
+    const maxV=70, n=owrValues.length;
+
+    // grid
+    [0,20,40,60].forEach(g=>{
+      const y=padT+cH-(g/maxV)*cH;
+      ctx.strokeStyle='#EEF0F4'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cW,y); ctx.stroke();
+      ctx.fillStyle='#9CA3AF'; ctx.font=`11px 'IBM Plex Mono',monospace`; ctx.textAlign='right';
+      ctx.fillText(g+'%',padL-6,y+4);
+    });
+
+    // avg line
+    const avgY=padT+cH-(owrAvg/maxV)*cH;
+    ctx.setLineDash([5,4]); ctx.strokeStyle='#6B7280'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(padL,avgY); ctx.lineTo(padL+cW,avgY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // bars
+    const gap=8, barW=(cW-gap*(n-1))/n;
+    owrValues.forEach((v,i)=>{
+      const x=padL+i*(barW+gap);
+      const bH=(v/maxV)*cH, y=padT+cH-bH;
+      const excl=owrExcl.has(owrWeeks[i]);
+      ctx.globalAlpha=excl?0.35:0.85;
+      ctx.fillStyle=owrColor(v);
+      ctx.fillRect(x,y,barW,bH);
+      if(excl){ctx.globalAlpha=1;ctx.strokeStyle='#9CA3AF';ctx.lineWidth=1;ctx.strokeRect(x,y,barW,bH);}
+      ctx.globalAlpha=1;
+      ctx.fillStyle='#1A1D23'; ctx.font=`bold 10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
+      ctx.fillText(v+'%',x+barW/2,y-5);
+      ctx.save(); ctx.translate(x+barW/2,H-padB+14); ctx.rotate(-Math.PI/5);
+      ctx.fillStyle='#6B7280'; ctx.font=`10px 'DM Sans',sans-serif`; ctx.textAlign='right';
+      ctx.fillText(owrWeeks[i],0,0); ctx.restore();
+    });
+    ctx.textAlign='left';
+  };
+})();
 
 // ── CHARTS ────────────────────────────────────────────────────────────
 function buildHist(data,bins){
@@ -449,9 +588,11 @@ function sw(tab){
   document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   document.querySelector(`[onclick="sw('${tab}')"]`).classList.add('active');
+  if(tab==='owr'){setTimeout(()=>window._drawOwrChart&&window._drawOwrChart(),50);return;}
   if(tab!=='road') renderTab(tab);
 }
 
+document.getElementById('gen-date').textContent=new Date().toLocaleDateString('pl-PL');
 renderTab('all');
 </script>
 </body>
