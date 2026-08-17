@@ -87,8 +87,8 @@
 <div class="tabs">
   <button class="tabbtn active" id="tabBtn1" onclick="switchTab(1)">Warianty A / B</button>
   <button class="tabbtn" id="tabBtn2" onclick="switchTab(2)">Featury (cut-line)</button>
-  <button class="tabbtn" id="tabBtn3" onclick="switchTab(3)">38 PBI</button>
-  <button class="tabbtn" id="tabBtn4" onclick="switchTab(4)">65 PBI</button>
+  <button class="tabbtn" id="tabBtn3" onclick="switchTab(3)">20 PBI</button>
+  <button class="tabbtn" id="tabBtn4" onclick="switchTab(4)">34 PBI</button>
 </div>
 
 <div class="tabcontent active" id="tab1">
@@ -99,14 +99,14 @@
     <h2>Dane wejściowe</h2>
 
     <label>Throughput tygodniowy (rozdziel przecinkami)</label>
-    <textarea id="throughputInput">8,2,10,4,8,8,10,11,11,2,18</textarea>
-    <div class="stat-row"><span id="statCount">11 próbek</span><span id="statCV">CV ≈ 0.53</span></div>
+    <textarea id="throughputInput">2,10,4,8,8,10,11,11,2,11,0</textarea>
+    <div class="stat-row"><span id="statCount">11 próbek</span><span id="statCV">CV ≈ 0.57</span></div>
 
     <label>Data startu</label>
-    <input type="date" id="startDate" value="2026-08-10">
+    <input type="date" id="startDate" value="2026-08-17">
 
     <label>WARIANT A — liczba PBI do ukończenia</label>
-    <input type="number" id="backlogSize" value="105">
+    <input type="number" id="backlogSize" value="39">
 
     <label>WARIANT B — data docelowa</label>
     <input type="date" id="targetDate" value="2026-09-17">
@@ -117,7 +117,7 @@
     <button onclick="runSimulation(); runFeatureSimulation(); runSimulation38(); runSimulation65();">▶ Uruchom symulację (wszystkie zakładki)</button>
 
     <div class="footer-note">
-      <b>Cycle time (kontekst):</b> ~34 dni (lekka poprawa z ~35 dni). Metoda throughput-based
+      <b>Cycle time (kontekst):</b> ~27 dni (wyraźna poprawa z ~35 dni). Metoda throughput-based
       nie używa cycle time bezpośrednio w obliczeniach — liczy się tylko liczba ukończeń na tydzień.
     </div>
     <div class="footer-note">
@@ -132,7 +132,7 @@
 
     <div class="card">
       <div class="variant-title">Wariant A — Ile czasu na <span id="backlogLabel">69</span> PBI?</div>
-      <div class="variant-sub">Cały backlog (105 PBI) — rozkład dat ukończenia</div>
+      <div class="variant-sub">Nowy, zawężony backlog (39 PBI) — rozkład dat ukończenia</div>
       <div class="percentiles">
         <div class="pbox p50"><div class="label">P50</div><div class="val" id="A_P50">–</div><div class="date" id="A_P50_date">–</div></div>
         <div class="pbox p85"><div class="label">P85</div><div class="val" id="A_P85">–</div><div class="date" id="A_P85_date">–</div></div>
@@ -169,13 +169,13 @@
     <h2>Priorytet featerów</h2>
     <div class="assumption">
       <b>Uwaga:</b> to symulacja cut-line na poziomie priorytetów, progi są <b>kumulatywne</b>
-      (Must have → Must+Should → cały backlog). "Pozostałe" (Could have / Won't have) dopełnia
-      backlog do 105 PBI.
+      (P1 → P1+P2 → cały backlog). Wpisałam P1 = 20, P2 = 14 (żeby P1+P2 = 34 zgodnie z Twoimi
+      danymi), Pozostałe = 5 (żeby suma doszła do nowego backlogu 39 PBI).
     </div>
     <label>Priorytety: nazwa, liczba PBI w tym priorytecie — jeden na linię, w kolejności realizacji</label>
-    <textarea id="featuresInput" style="min-height:110px; font-family:monospace;">Must have, 38
-Should have, 27
-Pozostałe, 40</textarea>
+    <textarea id="featuresInput" style="min-height:110px; font-family:monospace;">P1, 20
+P2, 14
+Pozostałe, 5</textarea>
     <button onclick="runFeatureSimulation()">▶ Uruchom symulację priorytetów</button>
     <div class="footer-note">
       Metoda: Multiple Feature Cut-Line Forecaster (Troy Magennis). Priorytety w kolejności realizacji
@@ -217,7 +217,7 @@ Pozostałe, 40</textarea>
 
 <div class="tabcontent" id="tab3">
   <div class="card">
-    <div class="variant-title">Ile czasu na 38 PBI (Must have)?</div>
+    <div class="variant-title">Ile czasu na 20 PBI (P1)?</div>
     <div class="variant-sub">Symulacja korzysta z tego samego throughputu i daty startu co zakładka "Warianty A/B"</div>
     <div class="percentiles">
       <div class="pbox p50"><div class="label">P50</div><div class="val" id="F38_P50">–</div><div class="date" id="F38_P50_date">–</div></div>
@@ -231,7 +231,7 @@ Pozostałe, 40</textarea>
 
 <div class="tabcontent" id="tab4">
   <div class="card">
-    <div class="variant-title">Ile czasu na 65 PBI (Must + Should have)?</div>
+    <div class="variant-title">Ile czasu na 34 PBI (P1 + P2)?</div>
     <div class="variant-sub">Symulacja korzysta z tego samego throughputu i daty startu co zakładka "Warianty A/B"</div>
     <div class="percentiles">
       <div class="pbox p50"><div class="label">P50</div><div class="val" id="F65_P50">–</div><div class="date" id="F65_P50_date">–</div></div>
@@ -311,8 +311,8 @@ function runFixedBacklogSimulation(backlog, prefix){
   if(prefix==='F38'){ chart38 = newChart; } else { chart65 = newChart; }
 }
 
-function runSimulation38(){ runFixedBacklogSimulation(38,'F38'); }
-function runSimulation65(){ runFixedBacklogSimulation(65,'F65'); }
+function runSimulation38(){ runFixedBacklogSimulation(20,'F38'); }
+function runSimulation65(){ runFixedBacklogSimulation(34,'F65'); }
 
 function parseThroughput(){
   return document.getElementById('throughputInput').value
