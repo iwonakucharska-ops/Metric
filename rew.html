@@ -86,12 +86,12 @@
 <body>
 
 <div class="tab-bar"><div class="tab-bar-inner">
-  <button class="tab-btn active"     onclick="sw('all')">📦 Backlog (56)</button>
-  <button class="tab-btn t-p1"       onclick="sw('p1')">🔴 P1 (30)</button>
-  <button class="tab-btn t-p2"       onclick="sw('p2')">🟠 P1+P2 (37)</button>
-  <button class="tab-btn t-vac"      onclick="sw('va')">🏖️ Urlop · Backlog (56)</button>
-  <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (30)</button>
-  <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (37)</button>
+  <button class="tab-btn active"     onclick="sw('all')">📦 Backlog (53)</button>
+  <button class="tab-btn t-p1"       onclick="sw('p1')">🔴 P1 (25)</button>
+  <button class="tab-btn t-p2"       onclick="sw('p2')">🟠 P1+P2 (30)</button>
+  <button class="tab-btn t-vac"      onclick="sw('va')">🏖️ Urlop · Backlog (53)</button>
+  <button class="tab-btn t-vac t-p1" onclick="sw('vp1')">🏖️ Urlop · P1 (25)</button>
+  <button class="tab-btn t-vac t-p2" onclick="sw('vp2')">🏖️ Urlop · P1+P2 (30)</button>
   <button class="tab-btn t-road"     onclick="sw('road')">🗺️ Roadmapa featurów</button>
   <button class="tab-btn t-owr"      onclick="sw('owr')">📊 Other Work Ratio</button>
 </div></div>
@@ -105,31 +105,32 @@
 <div id="tab-road" class="tab-content"></div>
 <div id="tab-owr"  class="tab-content"></div>
 
-<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 25 dni · Start: 11.08.2026</footer>
+<footer>Wygenerowano: <span id="gen-date"></span> · Monte Carlo bootstrap 10 000 iter. · Cycle time ref: 23 dni · Start: 18.08.2026</footer>
 
 <script>
+// ── DANE ─────────────────────────────────────────────────────────────
 const RAW=[
-  {w:'24 maj 2026', net:9,  excl:false, why:''},
-  {w:'31 maj 2026', net:7,  excl:false, why:''},
-  {w:'07 cze 2026', net:13, excl:true,  why:'outlier'},
-  {w:'14 cze 2026', net:9,  excl:false, why:''},
-  {w:'21 cze 2026', net:12, excl:false, why:''},
-  {w:'28 cze 2026', net:11, excl:false, why:''},
-  {w:'05 lip 2026', net:4,  excl:false, why:''},
-  {w:'12 lip 2026', net:10, excl:false, why:''},
-  {w:'19 lip 2026', net:16, excl:true,  why:'outlier'},
-  {w:'26 lip 2026', net:8,  excl:false, why:''},
-  {w:'02 sie 2026', net:19, excl:true,  why:'outlier'},
-  {w:'09 sie 2026', net:3,  excl:false, why:''},
+  {w:'31 maj 2026', net:17, excl:false, why:''},
+  {w:'07 cze 2026', net:22, excl:false, why:''},
+  {w:'14 cze 2026', net:22, excl:false, why:''},
+  {w:'21 cze 2026', net:19, excl:false, why:''},
+  {w:'28 cze 2026', net:20, excl:false, why:''},
+  {w:'05 lip 2026', net:11, excl:false, why:''},
+  {w:'12 lip 2026', net:25, excl:false, why:''},
+  {w:'19 lip 2026', net:30, excl:true,  why:'outlier'},
+  {w:'26 lip 2026', net:18, excl:false, why:''},
+  {w:'02 sie 2026', net:25, excl:false, why:''},
+  {w:'09 sie 2026', net:21, excl:false, why:''},
+  {w:'16 sie 2026', net:5,  excl:false, why:''},
 ];
-// Pool: [9,7,9,12,11,4,10,8,3] — 9 tygodni, avg 8.1
+// Pool: [17,22,22,19,20,11,25,18,25,21,5] — 11 tygodni, avg 18.6
 const pool  = RAW.filter(d=>!d.excl).map(d=>d.net);
 const poolV = pool.map(v=>Math.round(v*0.67));
 
-const START = new Date(2026,7,11);  // 11 sierpnia 2026
+const START = new Date(2026,7,18);  // 18 sierpnia 2026
 const ITERS = 10000;
-// 11.08 → 17.09 = 37 dni = 5 tyg + 2 dni → WPART = 2/5 = 0.4
-const WFULL = 5;
+// 18.08 → 17.09 = 30 dni = 4 tyg. + 2 dni → WPART = 0.4
+const WFULL = 4;
 const WPART = 0.4;
 
 const avgP  = (pool.reduce((a,b)=>a+b,0)/pool.length).toFixed(1);
@@ -158,12 +159,12 @@ function sim2(p,bl){
 }
 
 const SC={
-  all: {bl:56, p:pool,  label:'56 PBI'},
-  p1:  {bl:30, p:pool,  label:'P1 (30)'},
-  p2:  {bl:37, p:pool,  label:'P1+P2 (37)'},
-  va:  {bl:56, p:poolV, label:'Backlog urlop'},
-  vp1: {bl:30, p:poolV, label:'P1 urlop'},
-  vp2: {bl:37, p:poolV, label:'P1+P2 urlop'},
+  all: {bl:53, p:pool,  label:'53 PBI'},
+  p1:  {bl:25, p:pool,  label:'P1 (25)'},
+  p2:  {bl:30, p:pool,  label:'P1+P2 (30)'},
+  va:  {bl:53, p:poolV, label:'Backlog urlop'},
+  vp1: {bl:25, p:poolV, label:'P1 urlop'},
+  vp2: {bl:30, p:poolV, label:'P1+P2 urlop'},
 };
 
 Object.keys(SC).forEach(k=>{
@@ -177,35 +178,35 @@ Object.keys(SC).forEach(k=>{
 
 const CF={
   all:{title:'REW · Monte Carlo · Pełny backlog',sub:'Throughput tygodniowy (tylko PBI) · 10 000 iteracji',
-    meta:`Backlog: 56 PBI | Start: 11.08.2026<br>Deadline: 17.09.2026 | Avg: ${avgP} PBI/tydz.`,
-    box:'ib-blue',boxt:`<strong>Dane:</strong> Pool: 9 tygodni (wykluczono 07.06, 19.07 i 02.08 outliery). Wartości: [9,7,9,12,11,4,10,8,3] · avg ${avgP} · min 3 · max 12. Cycle time ref: 25 dni. Okno: 11.08 → 17.09 (5 tyg. + 2 dni).`,
+    meta:`Backlog: 53 PBI | Start: 18.08.2026<br>Deadline: 17.09.2026 | Avg: ${avgP} PBI/tydz.`,
+    box:'ib-blue',boxt:`<strong>Dane:</strong> Pool: 11 tygodni (wykluczono 19.07 outlier). Wartości: [17,22,22,19,20,11,25,18,25,21,5] · avg ${avgP} · min 5 · max 25. Cycle time ref: 23 dni. Okno: 18.08 → 17.09 (4 tyg. + 2 dni).`,
     bc:x=>x>=SC.all.p95w?'#FEE2E2':x>=SC.all.p85w?'#FEF3C7':'#DBEAFE',
-    bc2:x=>x>=56?'#D1FAE5':'#DBEAFE',c4col:'var(--green)',c4bg:'#F0FDF4',c4brd:'#DCFCE7',c4lbl:'Pr(≥56 PBI)',xl2:'liczba PBI ukończonych do 17.09',tbl:true},
-  p1:{title:'REW · Priorytety P1 (30 PBI)',sub:'Symulacja dla 30 PBI o najwyższym priorytecie · 10 000 iteracji',
-    meta:`Backlog P1: 30 PBI | Start: 11.08.2026<br>Deadline: 17.09.2026`,
-    box:'ib-purple',boxt:'<strong>Założenie:</strong> P1 stanowią 30 z 56 PBI (54% backlogu). Ta sama pula throughput.',
+    bc2:x=>x>=53?'#D1FAE5':'#DBEAFE',c4col:'var(--green)',c4bg:'#F0FDF4',c4brd:'#DCFCE7',c4lbl:'Pr(≥53 PBI)',xl2:'liczba PBI ukończonych do 17.09',tbl:true},
+  p1:{title:'REW · Priorytety P1 (25 PBI)',sub:'Symulacja dla 25 PBI o najwyższym priorytecie · 10 000 iteracji',
+    meta:`Backlog P1: 25 PBI | Start: 18.08.2026<br>Deadline: 17.09.2026`,
+    box:'ib-purple',boxt:'<strong>Założenie:</strong> P1 stanowią 25 z 53 PBI (47% backlogu). Ta sama pula throughput.',
     bc:x=>x>=SC.p1.p95w?'#FEE2E2':x>=SC.p1.p85w?'#FEF3C7':'#EDE9FE',
-    bc2:x=>x>=30?'#D1FAE5':'#EDE9FE',c4col:'var(--p1)',c4bg:'#F5F3FF',c4brd:'#DDD6FE',c4lbl:'Pr(≥30 P1)',xl2:'liczba P1 ukończonych do 17.09',vrd:true},
-  p2:{title:'REW · P1 + P2 (37 PBI)',sub:'Symulacja dla 37 PBI o priorytecie P1 i P2 · 10 000 iteracji',
-    meta:`Backlog P1+P2: 37 PBI | Start: 11.08.2026<br>Deadline: 17.09.2026`,
-    box:'ib-amber',boxt:'<strong>Założenie:</strong> P1+P2 stanowią 37 z 56 PBI (66% backlogu). Ta sama pula throughput.',
+    bc2:x=>x>=25?'#D1FAE5':'#EDE9FE',c4col:'var(--p1)',c4bg:'#F5F3FF',c4brd:'#DDD6FE',c4lbl:'Pr(≥25 P1)',xl2:'liczba P1 ukończonych do 17.09',vrd:true},
+  p2:{title:'REW · P1 + P2 (30 PBI)',sub:'Symulacja dla 30 PBI o priorytecie P1 i P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 30 PBI | Start: 18.08.2026<br>Deadline: 17.09.2026`,
+    box:'ib-amber',boxt:'<strong>Założenie:</strong> P1+P2 stanowią 30 z 53 PBI (57% backlogu). Ta sama pula throughput.',
     bc:x=>x>=SC.p2.p95w?'#FEE2E2':x>=SC.p2.p85w?'#FEF3C7':'#FEF9C3',
-    bc2:x=>x>=37?'#D1FAE5':'#FEF9C3',c4col:'var(--p2)',c4bg:'#FFFBEB',c4brd:'#FDE68A',c4lbl:'Pr(≥37 PBI)',xl2:'liczba P1+P2 ukończonych do 17.09',vrd:true,cmp:true},
-  va:{title:'REW · Urlop · Pełny backlog',sub:'Capacity ×0.67 · 56 PBI · 10 000 iteracji',
-    meta:`Backlog: 56 PBI | Start: 11.08.2026<br>Capacity: ×0.67 | Avg: ${avgPV} PBI/tydz.`,
+    bc2:x=>x>=30?'#D1FAE5':'#FEF9C3',c4col:'var(--p2)',c4bg:'#FFFBEB',c4brd:'#FDE68A',c4lbl:'Pr(≥30 PBI)',xl2:'liczba P1+P2 ukończonych do 17.09',vrd:true,cmp:true},
+  va:{title:'REW · Urlop · Pełny backlog',sub:'Capacity ×0.67 · 53 PBI · 10 000 iteracji',
+    meta:`Backlog: 53 PBI | Start: 18.08.2026<br>Capacity: ×0.67 | Avg: ${avgPV} PBI/tydz.`,
     box:'ib-teal',boxt:`<strong>Scenariusz urlopowy:</strong> Throughput ×0,67. Pula: [${poolV.join(', ')}] · avg ${avgPV}.`,
     bc:x=>x>=SC.va.p95w?'#FEE2E2':x>=SC.va.p85w?'#FEF3C7':'#CFFAFE',
-    bc2:x=>x>=56?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥56 PBI)',xl2:'liczba PBI ukończonych do 17.09',vrd:true},
-  vp1:{title:'REW · Urlop · P1 (30 PBI)',sub:'Capacity ×0.67 · 30 PBI P1 · 10 000 iteracji',
-    meta:`Backlog P1: 30 PBI | Start: 11.08.2026<br>Capacity: ×0.67 | Deadline: 17.09.2026`,
+    bc2:x=>x>=53?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥53 PBI)',xl2:'liczba PBI ukończonych do 17.09',vrd:true},
+  vp1:{title:'REW · Urlop · P1 (25 PBI)',sub:'Capacity ×0.67 · 25 PBI P1 · 10 000 iteracji',
+    meta:`Backlog P1: 25 PBI | Start: 18.08.2026<br>Capacity: ×0.67 | Deadline: 17.09.2026`,
     box:'ib-teal',boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1 przy nieobecności jednej osoby (×0,67).',
     bc:x=>x>=SC.vp1.p95w?'#FEE2E2':x>=SC.vp1.p85w?'#FEF3C7':'#CFFAFE',
-    bc2:x=>x>=30?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥30 P1)',xl2:'liczba P1 ukończonych do 17.09',vrd:true},
-  vp2:{title:'REW · Urlop · P1+P2 (37 PBI)',sub:'Capacity ×0.67 · 37 PBI P1+P2 · 10 000 iteracji',
-    meta:`Backlog P1+P2: 37 PBI | Start: 11.08.2026<br>Capacity: ×0.67 | Deadline: 17.09.2026`,
+    bc2:x=>x>=25?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥25 P1)',xl2:'liczba P1 ukończonych do 17.09',vrd:true},
+  vp2:{title:'REW · Urlop · P1+P2 (30 PBI)',sub:'Capacity ×0.67 · 30 PBI P1+P2 · 10 000 iteracji',
+    meta:`Backlog P1+P2: 30 PBI | Start: 18.08.2026<br>Capacity: ×0.67 | Deadline: 17.09.2026`,
     box:'ib-teal',boxt:'<strong>Scenariusz urlopowy:</strong> Cel P1+P2 przy nieobecności jednej osoby (×0,67).',
     bc:x=>x>=SC.vp2.p95w?'#FEE2E2':x>=SC.vp2.p85w?'#FEF3C7':'#CFFAFE',
-    bc2:x=>x>=37?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥37 PBI)',xl2:'liczba P1+P2 ukończonych do 17.09',vrd:true,cmp:true},
+    bc2:x=>x>=30?'#D1FAE5':'#CFFAFE',c4col:'var(--vac)',c4bg:'#ECFEFF',c4brd:'#A5F3FC',c4lbl:'Pr(≥30 PBI)',xl2:'liczba P1+P2 ukończonych do 17.09',vrd:true,cmp:true},
 };
 
 function buildTab(key){
@@ -267,7 +268,7 @@ function buildTab(key){
     </div>
     <div class="panel">
       <div class="panel-title">Wykres 2 — Ile PBI ukończymy do 17.09.2026?</div>
-      <div class="panel-subtitle">Okno 11.08 → 17.09 (5 tyg. + 2 dni robocze)</div>
+      <div class="panel-subtitle">Okno 18.08 → 17.09 (4 tyg. + 2 dni robocze)</div>
       <canvas id="c2-${key}" height="220"></canvas>
       <div class="pct-row">
         <div class="pct-chip"><span class="pct-chip-label">P50</span><span class="pct-chip-val" style="color:var(--p50)">${sc.p50p}</span><span class="pct-chip-desc">PBI z 50% pewnością</span></div>
@@ -322,7 +323,7 @@ function buildRoadmapTab(){
     <div class="rss-card"><div class="rss-label">Łącznie pozostało</div><div class="rss-val">${totalTodo} PBI</div><div class="rss-sub">w ${FEATURES.length} featurach</div></div>
     <div class="rss-card"><div class="rss-label">Do 17.09 zrobimy (P85)</div><div class="rss-val" style="color:var(--p85)">${pbi85} PBI</div><div class="rss-sub">P50: ${pbi50} · P95: ${pbi95}</div></div>
     <div class="rss-card"><div class="rss-label">Status featurów</div><div class="rss-val">🟢${greenCount} 🟡${amberCount} 🔴${redCount}</div><div class="rss-sub">bezpieczne / ryzyko / zagrożone</div></div>
-    <div class="rss-card"><div class="rss-label">Avg throughput</div><div class="rss-val">${avgP} PBI/tydz.</div><div class="rss-sub">pool: 10 tygodni</div></div>
+    <div class="rss-card"><div class="rss-label">Avg throughput</div><div class="rss-val">${avgP} PBI/tydz.</div><div class="rss-sub">pool: 11 tygodni</div></div>
   </div>`;
 
   const cutlineHtml=`<div class="panel">
@@ -379,7 +380,7 @@ function buildRoadmapTab(){
   document.getElementById('tab-road').innerHTML=`<div class="page">
     <header class="page-header">
       <div><h1>REW · Roadmapa featurów</h1><p>Cut-line forecasting · probabilistyczny status każdego featurea · 10 000 iter.</p></div>
-      <div class="header-meta">Okno: 11.08 → 17.09.2026<br>Avg: ${avgP} PBI/tydz. · ${FEATURES.length} featurów</div>
+      <div class="header-meta">Okno: 18.08 → 17.09.2026<br>Avg: ${avgP} PBI/tydz. · ${FEATURES.length} featurów</div>
     </header>
     <div class="info-box ib-blue"><strong>Metodologia:</strong> Dla każdego featurea: Pr(ukończymy wszystkie skumulowane remaining PBI do deadline). Kolejność featurów = kolejność realizacji. Daty P50/P85/P95 = kiedy feature zostanie ukończony przy danym poziomie pewności.</div>
     ${summaryHtml}
@@ -388,20 +389,22 @@ function buildRoadmapTab(){
   </div>`;
 }
 
+buildRoadmapTab();
+
 // ── OTHER WORK RATIO ──────────────────────────────────────────────────
 (function(){
-  const owrWeeks = ["24 maja","31 maja","7 czerwca","14 czerwca","21 czerwca","28 czerwca","5 lipca","12 lipca","19 lipca","26 lipca","2 sierpnia"];
-  const owrValues = [61,59,41,59,37,45,64,60,47,56,24];
-  const owrExcl = new Set(["31 maja","7 czerwca"]);
-  const owrFlag = {"2 sierpnia":"do potwierdzenia: pełny tydzień?"};
-  const owrAvg = Math.round(owrValues.reduce((a,b)=>a+b,0)/owrValues.length);
+  const owrWeeks=["31 maja","7 czerwca","14 czerwca","21 czerwca","28 czerwca","5 lipca","12 lipca","19 lipca","26 lipca","2 sierpnia","9 sierpnia","16 sierpnia"];
+  const owrValues=[59,41,59,37,45,64,60,47,56,24,52,100];
+  const owrExcl=new Set(["7 czerwca","19 lipca"]);
+  const owrFlag={"16 sierpnia":"sprint w toku — dane niepełne","2 sierpnia":"poprzednio do potwierdzenia"};
+  const owrAvg=Math.round(owrValues.slice(0,-1).reduce((a,b)=>a+b,0)/(owrValues.length-1));
 
   function owrColor(v){return v>=60?'#DC2626':v<40?'#059669':'#D97706';}
   function owrBadge(v){return v>=60?'background:#FEE2E2;color:#991B1B':v<40?'background:#D1FAE5;color:#065F46':'background:#FEF3C7;color:#92400E';}
   function owrLabel(v){return v>=60?'Wysoki':v<40?'Niski':'Średni';}
 
-  const tableRows = owrWeeks.map((w,i)=>{
-    const v=owrValues[i], excl=owrExcl.has(w), flag=owrFlag[w]||'';
+  const tableRows=owrWeeks.map((w,i)=>{
+    const v=owrValues[i],excl=owrExcl.has(w),flag=owrFlag[w]||'';
     return`<tr>
       <td style="font-family:'DM Sans',sans-serif;padding:9px 12px;border-bottom:1px solid #EEF0F4;font-size:13px">${w}${excl?' <span style="color:#9CA3AF;font-size:11px;font-style:italic">(wykluczony z puli throughput)</span>':''}</td>
       <td style="font-family:'IBM Plex Mono',monospace;padding:9px 12px;border-bottom:1px solid #EEF0F4;font-size:13px;font-weight:600">${v}%</td>
@@ -412,45 +415,26 @@ function buildRoadmapTab(){
 
   document.getElementById('tab-owr').innerHTML=`<div class="page">
     <header class="page-header">
-      <div><h1>REW · Other Work Ratio</h1><p>Bug percentage rate (bugi jako % całkowitego throughput) · tygodniowo · 24 maja – 2 sierpnia 2026</p></div>
-      <div class="header-meta">Źródło: FlowViz (Power BI)<br>Zespół REW · 11 tygodni obserwacji</div>
+      <div><h1>REW · Other Work Ratio</h1><p>Bug percentage rate (bugi jako % całkowitego throughput) · tygodniowo · 31 maja – 16 sierpnia 2026</p></div>
+      <div class="header-meta">Źródło: FlowViz (Power BI)<br>Zespół REW · 12 tygodni obserwacji</div>
     </header>
-
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
-      <div class="card" style="padding:18px 20px">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Średnia w okresie</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">${owrAvg}%</div>
-        <div style="font-size:11px;color:#6B7280;margin-top:4px">11 tygodni obserwacji</div>
-      </div>
-      <div class="card" style="padding:18px 20px">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Zakres (min–max)</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">24–64%</div>
-        <div style="font-size:11px;color:#6B7280;margin-top:4px">rozrzut 40 p.p.</div>
-      </div>
-      <div class="card" style="padding:18px 20px">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Ostatni tydzień</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:#059669">24%</div>
-        <div style="font-size:11px;color:#6B7280;margin-top:4px">2 sierpnia — do potwierdzenia</div>
-      </div>
-      <div class="card" style="padding:18px 20px">
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Trend</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-top:4px">Oscylacja</div>
-        <div style="font-size:11px;color:#6B7280;margin-top:4px">brak jednoznacznego kierunku</div>
-      </div>
+      <div class="card" style="padding:18px 20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Średnia w okresie</div><div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">${owrAvg}%</div><div style="font-size:11px;color:#6B7280;margin-top:4px">bez 16.08 (sprint w toku)</div></div>
+      <div class="card" style="padding:18px 20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Zakres (min–max)</div><div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600">24–64%</div><div style="font-size:11px;color:#6B7280;margin-top:4px">rozrzut 40 p.p.</div></div>
+      <div class="card" style="padding:18px 20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Ostatni pełny tydz.</div><div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:#D97706">52%</div><div style="font-size:11px;color:#6B7280;margin-top:4px">9 sierpnia 2026</div></div>
+      <div class="card" style="padding:18px 20px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Trend</div><div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-top:4px">Oscylacja</div><div style="font-size:11px;color:#6B7280;margin-top:4px">brak jednoznacznego kierunku</div></div>
     </div>
-
     <div class="panel">
       <div class="panel-title">Bug % tydzień do tygodnia</div>
-      <div class="panel-subtitle">Linia przerywana = średnia okresu (${owrAvg}%). Zakreskowane słupki = tygodnie wykluczone z puli throughput jako outliery objętościowe.</div>
+      <div class="panel-subtitle">Linia przerywana = średnia okresu bez 16.08 (${owrAvg}%). Zakreskowane słupki = tygodnie wykluczone z puli throughput.</div>
       <canvas id="owrChart" height="300" style="height:300px"></canvas>
       <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:#6B7280;margin-top:12px">
-        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#059669;display:inline-block"></span>&lt; 40% (niżej niż zwykle)</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#059669;display:inline-block"></span>&lt; 40%</span>
         <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#D97706;display:inline-block"></span>40–59%</span>
-        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#DC2626;display:inline-block"></span>≥ 60% (wysoki udział bugów)</span>
-        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#9CA3AF;display:inline-block"></span>tydzień wykluczony z puli throughput</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#DC2626;display:inline-block"></span>≥ 60%</span>
+        <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:50%;background:#9CA3AF;display:inline-block"></span>wykluczony z puli</span>
       </div>
     </div>
-
     <div class="panel" style="padding:8px 20px 20px">
       <table style="width:100%;border-collapse:collapse">
         <thead><tr>
@@ -462,70 +446,55 @@ function buildRoadmapTab(){
         <tbody>${tableRows}</tbody>
       </table>
     </div>
-
     <div class="panel" style="border-left:4px solid #D97706">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;margin-bottom:10px">Co to znaczy dla prognozy i rozmowy z zarządem</div>
       <div style="font-size:13px;line-height:1.65;color:#3a3f47">
-        Bug % <strong>nie jest stałą wartością ~55–60%</strong> — waha się tydzień do tygodnia w zakresie <strong>24–64%</strong>,
-        bez wyraźnego trendu spadkowego poza ostatnią obserwacją. To sam w sobie sygnał niestabilności systemu
-        dostaw, niezależny od tego, czy ostatecznie poprawia się jakość, czy nie.<br><br>
-        Tygodnie <strong>31 maja</strong> i <strong>7 czerwca</strong> to te same tygodnie, które już wcześniej wykluczono z puli
-        throughput jako outliery objętościowe — ich bug % (59% i 41%) nie wskazuje jednoznacznie
-        na gorszą ani lepszą jakość, tylko potwierdza, że to były nietypowe tygodnie pod względem wolumenu.<br><br>
-        Ostatni tydzień (<strong>2 sierpnia, 24%</strong>) wyraźnie odstaje w dół od reszty okresu — zanim potraktujemy to
-        jako realną poprawę, warto potwierdzić, czy to pełny tydzień danych, czy tydzień w trakcie zbierania.
+        Bug % <strong>oscyluje w zakresie 24–64%</strong> bez wyraźnego trendu spadkowego — średnia dla pełnych tygodni wynosi ${owrAvg}%.
+        Tydzień <strong>16 sierpnia (100%)</strong> to sprint w toku z niepełnymi danymi — nie należy go interpretować jako wskaźnika jakości.
+        Tydzień <strong>2 sierpnia (24%)</strong> był jednorazowym odchyleniem w dół, po którym nastąpił powrót do typowego poziomu (9 sierpnia: 52%).
+        Tygodnie <strong>7 czerwca</strong> i <strong>19 lipca</strong> zostały wykluczone z puli throughput jako outliery objętościowe.
       </div>
     </div>
   </div>`;
 
-  // Draw chart after tab is rendered
-  window._drawOwrChart = function(){
+  window._drawOwrChart=function(){
     const canvas=document.getElementById('owrChart');
     if(!canvas)return;
     const DPR=window.devicePixelRatio||1;
-    const W=canvas.parentElement.clientWidth-48, H=300;
-    canvas.width=W*DPR; canvas.height=H*DPR;
-    canvas.style.width=W+'px'; canvas.style.height=H+'px';
-    const ctx=canvas.getContext('2d'); ctx.scale(DPR,DPR);
+    const W=canvas.parentElement.clientWidth-48,H=300;
+    canvas.width=W*DPR;canvas.height=H*DPR;
+    canvas.style.width=W+'px';canvas.style.height=H+'px';
+    const ctx=canvas.getContext('2d');ctx.scale(DPR,DPR);
     const padL=40,padR=10,padT=20,padB=56;
-    const cW=W-padL-padR, cH=H-padT-padB;
-    const maxV=70, n=owrValues.length;
-
-    // grid
+    const cW=W-padL-padR,cH=H-padT-padB,maxV=70,n=owrValues.length;
     [0,20,40,60].forEach(g=>{
       const y=padT+cH-(g/maxV)*cH;
-      ctx.strokeStyle='#EEF0F4'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cW,y); ctx.stroke();
-      ctx.fillStyle='#9CA3AF'; ctx.font=`11px 'IBM Plex Mono',monospace`; ctx.textAlign='right';
+      ctx.strokeStyle='#EEF0F4';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+cW,y);ctx.stroke();
+      ctx.fillStyle='#9CA3AF';ctx.font=`11px 'IBM Plex Mono',monospace`;ctx.textAlign='right';
       ctx.fillText(g+'%',padL-6,y+4);
     });
-
-    // avg line
     const avgY=padT+cH-(owrAvg/maxV)*cH;
-    ctx.setLineDash([5,4]); ctx.strokeStyle='#6B7280'; ctx.lineWidth=1.5;
-    ctx.beginPath(); ctx.moveTo(padL,avgY); ctx.lineTo(padL+cW,avgY); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // bars
-    const gap=8, barW=(cW-gap*(n-1))/n;
+    ctx.setLineDash([5,4]);ctx.strokeStyle='#6B7280';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(padL,avgY);ctx.lineTo(padL+cW,avgY);ctx.stroke();ctx.setLineDash([]);
+    const gap=8,barW=(cW-gap*(n-1))/n;
     owrValues.forEach((v,i)=>{
-      const x=padL+i*(barW+gap);
-      const bH=(v/maxV)*cH, y=padT+cH-bH;
+      const x=padL+i*(barW+gap),bH=(v/maxV)*cH,y=padT+cH-bH;
       const excl=owrExcl.has(owrWeeks[i]);
-      ctx.globalAlpha=excl?0.35:0.85;
-      ctx.fillStyle=owrColor(v);
-      ctx.fillRect(x,y,barW,bH);
+      ctx.globalAlpha=excl?0.35:0.85;ctx.fillStyle=owrColor(v);ctx.fillRect(x,y,barW,bH);
       if(excl){ctx.globalAlpha=1;ctx.strokeStyle='#9CA3AF';ctx.lineWidth=1;ctx.strokeRect(x,y,barW,bH);}
       ctx.globalAlpha=1;
-      ctx.fillStyle='#1A1D23'; ctx.font=`bold 10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
+      ctx.fillStyle='#1A1D23';ctx.font=`bold 10px 'IBM Plex Mono',monospace`;ctx.textAlign='center';
       ctx.fillText(v+'%',x+barW/2,y-5);
-      ctx.save(); ctx.translate(x+barW/2,H-padB+14); ctx.rotate(-Math.PI/5);
-      ctx.fillStyle='#6B7280'; ctx.font=`10px 'DM Sans',sans-serif`; ctx.textAlign='right';
-      ctx.fillText(owrWeeks[i],0,0); ctx.restore();
+      ctx.save();ctx.translate(x+barW/2,H-padB+14);ctx.rotate(-Math.PI/5);
+      ctx.fillStyle='#6B7280';ctx.font=`10px 'DM Sans',sans-serif`;ctx.textAlign='right';
+      ctx.fillText(owrWeeks[i],0,0);ctx.restore();
     });
     ctx.textAlign='left';
   };
 })();
+
+document.getElementById('gen-date').textContent=new Date().toLocaleDateString('pl-PL');
 
 // ── CHARTS ────────────────────────────────────────────────────────────
 function buildHist(data,bins){
@@ -592,7 +561,6 @@ function sw(tab){
   if(tab!=='road') renderTab(tab);
 }
 
-document.getElementById('gen-date').textContent=new Date().toLocaleDateString('pl-PL');
 renderTab('all');
 </script>
 </body>
